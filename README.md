@@ -11,6 +11,6 @@ A Dropbox like Backup as school project
 ### Opzio(a)nali
 - Gui figa (albero .|.)
 - Sito
--- Registrazione
--- Login
--- Visualizzazione
+* Registrazione
+* Login
+* Visualizzazione
