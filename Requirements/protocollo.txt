@@ -1,0 +1,37 @@
+client si connette.
+client si autentica.(lunghezza username(16bit) + username + lunghezza password(16) + password)
+server accetta/rifiuta:
+- se rifiuta, codice di errore (8bit) e poi chiude connessione
+- se accetta, codice di successo(8bit) + codice ultima modifica
+
+Se cade(errore) questa connessione, l'utente è considerato non più autenticato e vengono chiuse tutte le altre connessioni a lui associate
+Se una nuova connessione viene creata e si autentica, quella vecchia e tutte le altre connessioni associate vengono chiuse immediatamente (e i trasferimenti cancellati).
+
+-----------------------------------
+U1										|
+237iqyrfw								|
+u2										|
+dfashfkhas								|
+u3 => errore 						|
+-----------------------------------
+
+opcode
+AUTH (username, pass)
+DELETE(file id)
+NEW(name, type) => transaction id (if file)
+MOVE(file id, new parent id)
+UPDATE(file id) => transaction id
+RENAME(file id, new file name) 
+HISTORY(file id) => timestamp info list
+DELETED() => file list
+GET(file id, timestamp info) => transaction id
+TREE() => tree metadata (5D1-3D2-szF1...)
+TRANSACTION(id...) => ack
+
+Per le transazioni, si apre una nuova connessione con username e transaction id. Il server può rispondere
+- already done
+- not auth
+- error
+- ready
+-- se upload, procede con l'invio prima della dimensione e i permessi, poi dei dati
+-- se download, si procede con la ricezione (i primi bytes sono la dimensione)
