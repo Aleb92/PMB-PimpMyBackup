@@ -9,16 +9,17 @@
 #define SOCKET_H_
 
 #include <stdint.h>
+#include <errno.h>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#include <winsock2.h>
-#include <windows.h>
+# include <winsock2.h>
+# include <windows.h>
 typedef SOCKET socket_t;
 #else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <unistd.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <sys/types.h>
+# include <unistd.h>
 typedef int socket_t;
 
 #endif
@@ -29,28 +30,35 @@ namespace utilities {
 
 
 	class socket_base {
-		socket_t handle;
+		const socket_t handle;
 	protected:
-		socket_base(socket_t _hnd) : handle(_hnd) { }
+		inline socket_base(socket_t _hnd) : handle(_hnd), blocking(true) { }
 	public:
 		bool blocking;
+
+		const socket_base& operator=(const socket_base&) = delete;
 		socket_base(const socket&&) = delete;
 		socket_base(const socket&) = delete;
-		socket_base(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP);
-		virtual ~socket_base();
+
+		socket_base(int af, int type, int protocol);
+		inline ~socket_base() { if(handle > 0) if(close(handle)) throw errno; }
 	};
 
-	class socket_stream {
+	class socket_stream : public socket_base {
 		friend class socket_listener;
 	protected:
-		socket_stream(socket_t _h, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT);
+		inline socket_stream(socket_t _h, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT) : socket_base(_h), clientIp(ip), clientPort(port) {}
 	public:
 		const uint32_t clientIp;
 		const in_port_t clientPort;
-		socket_stream(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT);
+
+		socket_stream(const char*, in_port_t , int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP);
+		socket_stream(uint32_t , in_port_t, int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP);
 
 		template<typename T>
-		ssize_t send(T val);
+		ssize_t send(T& val) {
+			return ::send(handle, &val, sizeof(T), blocking ? (MSG_NOSIGNAL) : (MSG_NOSIGNAL | MSG_DONTWAIT));
+		}
 
 		template<typename T>
 		ssize_t send<T*>(const T*, size_t);
@@ -75,6 +83,7 @@ namespace utilities {
 
 	class socket_listener : public socket_base {
 	public:
+		socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, const char* ip, in_port_t port = DEFAULT_PORT);
 		socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT);
 		socket_stream&& accept();
 	};
