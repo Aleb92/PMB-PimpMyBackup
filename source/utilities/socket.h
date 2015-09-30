@@ -34,6 +34,7 @@ typedef int socket_t;
  */
 #define DEFAULT_PORT 999
 
+
 namespace utilities {
 
 	/**
@@ -41,9 +42,17 @@ namespace utilities {
 	 * Gestisce anche il cambio dalla modalità blocking a quella non blocking
 	 */
 	class socket_base {
-		const socket_t handle;
+
 		bool blocking;
+
 	protected:
+
+	    socket_t handle;
+
+		inline socket_base(socket_base&&mv) : handle(mv.handle), blocking(mv.blocking) {
+		    mv.handle = -1;
+		}
+
 		/**
 		 * Inizializzazione protetta della classe di base: solo i derivati possono usarla perchè non deve essere
 		 * instanziabile questa classe.
@@ -71,15 +80,11 @@ namespace utilities {
 		 */
 		const socket_base& operator=(const socket_base&) = delete;
 
-		/**
-		 * not copiable
-		 */
-		socket_base(const socket&&) = delete;
 
 		/**
-		 * not movable
+		 * not copyable
 		 */
-		socket_base(const socket&) = delete;
+		socket_base(const socket_base&) = delete;
 
 		/**
 		 * this just allocates system resources (e.g. calls "socket" function)
@@ -120,7 +125,9 @@ namespace utilities {
 		 */
 		const in_port_t clientPort;
 
-		//socket_stream(const char*, in_port_t , int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP);
+		const socket_stream& operator=(const socket_stram&) = delete;
+
+		socket_stream(socket_stream&&);
 
 		/**
 		 * Inizializza un nuovo socket e si connette all'host:port desiterato.
@@ -148,7 +155,7 @@ namespace utilities {
 		 * @return
 		 */
 		template<typename T, size_t s>
-		inline ssize_t send<T(&)[s]>(const T (&buff)[s]) {
+		inline ssize_t send(const T (&buff)[s]) {
 			return ::send(handle, buff, sizeof(buff), MSG_NOSIGNAL);
 		}
 
@@ -163,14 +170,14 @@ namespace utilities {
 		 * @return
 		 */
 		template<typename T>
-		inline ssize_t send<T*>(const T*buff, size_t N) {
+		inline ssize_t send(const T*buff, size_t N) {
 			return ::send(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
-		/*template<typename T>
-		inline ssize_t send< std::vector<T> > (const std::vector<T> &v) {
+		template<typename T>
+		inline ssize_t send(const std::vector<T> &v) {
 			return ::send(handle, &v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
-		}*/
+		}
 
 		/**
 		 * Riceve un dato di tipo T. Lancia un'eccezione se la ricezione non risulta possibile.
@@ -196,23 +203,25 @@ namespace utilities {
 		 * @return
 		 */
 		template<typename T>
-		inline ssize_t recv(const T*buff, size_t N) {
+		inline ssize_t recv(T*buff, size_t N) {
 			return ::recv(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		template<typename T, size_t N>
-		inline ssize_t recv<T(&)[N]>(const T (&buff)[N]) {
+		inline ssize_t recv(T (&buff)[N]) {
 			return ::recv(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
-
+		template<typename T>
+		inline ssize_t recv(std::vector<T> &v) {
+		    return ::recv(handle, &v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
+		}
 	};
 
 	class socket_listener : public socket_base {
 	public:
-		socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, const char* ip, in_port_t port = DEFAULT_PORT);
 		socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT);
-		socket_stream&& accept();
+        socket_stream&& accept(int);
 	};
 
 } /* namespace utilities */
