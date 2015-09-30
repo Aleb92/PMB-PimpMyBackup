@@ -12,9 +12,9 @@ void socket_base::setBlocking(bool b) {
 	if((code = ioctlsocket(handle, FIONBIO, &val)))
 		throw code;
 #else
-    int flags = fcntl(fd, F_GETFL, 0);
+    int flags = fcntl(handle, F_GETFL, 0);
     if(flags < 0) throw errno;
-    if(fcntl(fd, F_SETFL, flags | O_NONBLOCK)!=0) throw errno;
+    if(fcntl(handle, F_SETFL, flags | O_NONBLOCK)!=0) throw errno;
 #endif
     blocking = b;
 }
@@ -36,10 +36,25 @@ socket_base::socket_base(int af, int type, int protocol):
 socket_stream::socket_stream(socket_stream&& ss) :
         socket_base((socket_base&&)ss), clientIp(ss.clientIp), clientPort(ss.clientPort) { }
 
+socket_stream::socket_stream(uint32_t ip, in_port_t port, int af, int type, int protocol):
+		socket_base(af, type, protocol), clientIp(ip), clientPort(port) {
+	struct sockaddr_in addr = { 0 };
+	addr.sin_addr.s_addr = htonl(ip); // FIXME: questa serve?? devo davvero usare htonl?
+	addr.sin_port = htons(port);
+	addr.sin_family = AF_INET;
+
+	if (connect(handle, (struct sockaddr*) &addr, sizeof(addr)))
+		throw errno;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
-socket_listener::socket_listener(int af, int type, int protocol, uint32_t ip,
-                                    in_port_t port){
+socket_listener::socket_listener(int af,
+			int type,
+			int protocol,
+			uint32_t ip,
+            in_port_t port) :
+            	socket_base(af, type, protocol) {
 	struct sockaddr_in addr = {0};
 	socklen_t addr_len;
 
@@ -49,7 +64,7 @@ socket_listener::socket_listener(int af, int type, int protocol, uint32_t ip,
 	addr.sin_addr.s_addr = ip;
 	addr.sin_port = htons(port);
 
-	if(bind(handle, (struct sockaddr*)&addr, addr_len) < 0){
+	if(bind(handle, (struct sockaddr*)&addr, addr_len) < 0)
 		throw errno;
 }
 
@@ -60,11 +75,11 @@ socket_stream&& socket_listener::accept(int q_size){
     socket_t new_sock;
 
     listen(handle , q_size);
-    s = sizeof(struct sockaddr_in);
+    len = sizeof(struct sockaddr_in);
     if((new_sock=::accept(handle, (struct sockaddr *)&client, (socklen_t*)&len))<0)
         throw errno;
 
-    return move(sock_stream(new_sock, client.sin_addr.s_addr, client.sin_port));
+    return move(socket_stream(new_sock, client.sin_addr.s_addr, client.sin_port));
 }
 
 /* namespace utilities */

@@ -20,11 +20,13 @@ typedef u_short in_port_t;
 typedef int socklen_t;
 
 #else
-# include <errno.h>
+# include <cerrno>
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <sys/types.h>
 # include <unistd.h>
+# include <fcntl.h>
+
 typedef int socket_t;
 
 #endif
@@ -32,14 +34,14 @@ typedef int socket_t;
 /**
  * Porta di default, scelta da bonetto
  */
-#define DEFAULT_PORT 999
+#define DEFAULT_PORT 6000
 
 
 namespace utilities {
 
 	/**
 	 * Classe di base per i socket. E' semplicemente un contenitore per un descrittore di risorsa.
-	 * Gestisce anche il cambio dalla modalità blocking a quella non blocking
+	 * Gestisce anche il cambio dalla modalitï¿½ blocking a quella non blocking
 	 */
 	class socket_base {
 
@@ -54,7 +56,7 @@ namespace utilities {
 		}
 
 		/**
-		 * Inizializzazione protetta della classe di base: solo i derivati possono usarla perchè non deve essere
+		 * Inizializzazione protetta della classe di base: solo i derivati possono usarla perchï¿½ non deve essere
 		 * instanziabile questa classe.
 		 * @param _hnd handle della risorsa
 		 */
@@ -64,7 +66,7 @@ namespace utilities {
 	public:
 
 		/**
-		 * Imposta la modalità blocking della risorsa
+		 * Imposta la modalitï¿½ blocking della risorsa
 		 * @param b
 		 */
 		inline void setBlocking(bool b = true);
@@ -102,18 +104,18 @@ namespace utilities {
 
 	class socket_stream : public socket_base {
 		/**
-		 * permetto alla classe listener di accedere al costruttore protetto. Questa classe è in pratica l'unica
-		 * che può instanziare in questo modo questa classe (e quindi anche la sua base)
+		 * permetto alla classe listener di accedere al costruttore protetto. Questa classe ï¿½ in pratica l'unica
+		 * che puï¿½ instanziare in questo modo questa classe (e quindi anche la sua base)
 		 */
 		friend class socket_listener;
 	protected:
 		/**
-		 * Inizializza la classe a partire da una risorsa di sistema già ottenuta.
+		 * Inizializza la classe a partire da una risorsa di sistema giï¿½ ottenuta.
 		 * @param _h handle alla risorsa
 		 * @param ip address
 		 * @param port number
 		 */
-		inline socket_stream(socket_t _h, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT) : socket_base(_h), clientIp(ip), clientPort(port) {}
+		inline socket_stream(socket_t _h, uint32_t ip, in_port_t port) : socket_base(_h), clientIp(ip), clientPort(port) {}
 	public:
 		/**
 		 * Client ip address in formato binatio (host)
@@ -125,7 +127,7 @@ namespace utilities {
 		 */
 		const in_port_t clientPort;
 
-		const socket_stream& operator=(const socket_stram&) = delete;
+		const socket_stream& operator=(const socket_stream&) = delete;
 
 		socket_stream(socket_stream&&);
 
@@ -159,7 +161,7 @@ namespace utilities {
 			return ::send(handle, buff, sizeof(buff), MSG_NOSIGNAL);
 		}
 
-		// Questa è vuota
+		// Questa ï¿½ vuota
 		template <typename T>
 		inline ssize_t send(const T, size_t); // empty
 
