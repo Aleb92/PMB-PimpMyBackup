@@ -26,3 +26,11 @@
 *.exe
 *.out
 *.app
+
+#eclipse files
+.cproject
+.project
+.settings/*
+
+#File di modifica di unix
+*~
