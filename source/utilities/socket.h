@@ -11,7 +11,11 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <windows.h>
-# define errno WSAGetLastError()
+
+# ifndef errno
+#  define errno WSAGetLastError()
+# endif
+
 # define close(A) closesocket(A)
 # define MSG_NOSIGNAL 0
 
@@ -148,7 +152,7 @@ namespace utilities {
 		 */
 		template<typename T>
 		inline ssize_t send(const T val) {
-			return ::send(handle, &val, sizeof(T), MSG_NOSIGNAL);
+			return ::send(handle, (const char*)&val, sizeof(T), MSG_NOSIGNAL);
 		}
 
 		/**
@@ -158,7 +162,7 @@ namespace utilities {
 		 */
 		template<typename T, size_t s>
 		inline ssize_t send(const T (&buff)[s]) {
-			return ::send(handle, buff, sizeof(buff), MSG_NOSIGNAL);
+			return ::send(handle, (const char*)buff, sizeof(buff), MSG_NOSIGNAL);
 		}
 
 		// Questa � vuota
@@ -173,12 +177,12 @@ namespace utilities {
 		 */
 		template<typename T>
 		inline ssize_t send(const T*buff, size_t N) {
-			return ::send(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
+			return ::send(handle, (const char*)buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		template<typename T>
 		inline ssize_t send(const std::vector<T> &v) {
-			return ::send(handle, &v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
+			return ::send(handle, (const char*)&v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		/**
@@ -189,7 +193,7 @@ namespace utilities {
 		template<typename T>
 		inline T recv() {
 			T ret;
-			if(::recv(handle, &ret, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
+			if(::recv(handle, (char*)&ret, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
 				throw errno;
 			return ret;
 		}
@@ -206,17 +210,17 @@ namespace utilities {
 		 */
 		template<typename T>
 		inline ssize_t recv(T*buff, size_t N) {
-			return ::recv(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
+			return ::recv(handle, (char*)buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		template<typename T, size_t N>
 		inline ssize_t recv(T (&buff)[N]) {
-			return ::recv(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
+			return ::recv(handle, (char*)buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		template<typename T>
 		inline ssize_t recv(std::vector<T> &v) {
-		    return ::recv(handle, &v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
+		    return ::recv(handle, (char*)&v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
 		}
 	};
 
