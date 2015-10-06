@@ -1,7 +1,40 @@
-#include "socket.h"
+#include "socket.hpp"
+#include <iostream> // Per std::cerr
+#include <cstdlib> // Per onexit
 
 using namespace utilities;
 using namespace std;
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+//WSAStartup call
+
+/**
+ * Questa funzione l'ho scopiazzata dalla guida windows
+ */
+int init_winsock(void) {
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    int err;
+
+    wVersionRequested = MAKEWORD(2, 2);
+
+    err = WSAStartup(wVersionRequested, &wsaData);
+    if (err != 0)
+    	return err;
+
+    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+        std::cerr << "Impossibile trovare una versione adatta di Winsock.dll\n" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return 0;
+}
+
+int WSACleanupWrap() {
+	return WSACleanup();
+}
+
+#endif
 
 void socket_base::setBlocking(bool b) {
 	if(b == blocking)

@@ -32,5 +32,9 @@
 .project
 .settings/*
 
+#build files
+build/
+build/*
+
 #File di modifica di unix
 *~

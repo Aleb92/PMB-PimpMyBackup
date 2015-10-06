@@ -11,6 +11,18 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <windows.h>
+# include "atbegin.hpp"
+# include "atend.hpp"
+
+//WSAStartup call
+int init_winsock(void);
+int WSACleanupWrap();
+
+//Alla fine ripuliamo
+atEnd(WSACleanupWrap);
+
+//All'inizio inizializziamo
+atBegin(init_winsock);
 
 # ifndef errno
 #  define errno WSAGetLastError()
@@ -42,6 +54,8 @@ typedef int socket_t;
 
 
 namespace utilities {
+
+
 
 	/**
 	 * Classe di base per i socket. E' semplicemente un contenitore per un descrittore di risorsa.
