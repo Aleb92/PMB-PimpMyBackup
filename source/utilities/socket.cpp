@@ -60,7 +60,7 @@ void socket_base::setBlocking(bool b) {
 socket_base::socket_base(int af, int type, int protocol):
 		handle(::socket(af, type, protocol)), blocking(true){
 	// Controllo che tutto sia andato a buon fine, se no trow dell'eccezione
-	if(handle < 0)
+	if(!hValid(handle))
 		throw _serrno;
 }
 
@@ -101,7 +101,7 @@ socket_listener::socket_listener(int af,
 		throw _serrno;
 }
 
-socket_stream&& socket_listener::accept(int q_size){
+socket_stream socket_listener::accept(int q_size){
 
     struct sockaddr_in client;
     socklen_t len;
@@ -112,7 +112,7 @@ socket_stream&& socket_listener::accept(int q_size){
     if((new_sock=::accept(handle, (struct sockaddr *)&client, (socklen_t*)&len))<0)
         throw _serrno;
 
-    return move(socket_stream(new_sock, client.sin_addr.s_addr, client.sin_port));
+    return socket_stream(new_sock, client.sin_addr.s_addr, client.sin_port);
 }
 
 /* namespace utilities */

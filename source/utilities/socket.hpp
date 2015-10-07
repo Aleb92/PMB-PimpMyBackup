@@ -28,6 +28,8 @@ atBegin(init_winsock);
 #  define _serrno WSAGetLastError()
 # endif
 
+# define hValid(h) ((h) != INVALID_SOCKET)
+
 # define close(A) closesocket(A)
 # define MSG_NOSIGNAL 0
 
@@ -46,6 +48,8 @@ typedef int socklen_t;
 typedef int socket_t;
 
 #define _serrno errno
+
+#define hValid(h) ((h) >= 0)
 
 #endif
 
@@ -81,7 +85,8 @@ namespace utilities {
 		 * @param _hnd handle della risorsa
 		 */
 		inline socket_base(socket_t _hnd) : handle(_hnd), blocking(true) {
-			if(handle < 0) throw errno;
+			if(!hValid(handle))
+				throw errno;
 		}
 	public:
 
@@ -119,7 +124,8 @@ namespace utilities {
 		/**
 		 * rilascia le risorse, se presenti. Lancia un'eccezione di tipo int in caso di errore.
 		 */
-		inline ~socket_base() { if(handle > 0) if(close(handle)) throw errno; }
+		inline ~socket_base() { if(hValid(handle))
+			if(close(handle)) throw _serrno; }
 	};
 
 	class socket_stream : public socket_base {
@@ -209,8 +215,10 @@ namespace utilities {
 		template<typename T>
 		inline T recv() {
 			T ret;
-			if(::recv(handle, (char*)&ret, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
-				throw errno;
+			if(::recv(handle, (char*)&ret, sizeof(T), MSG_NOSIGNAL) != sizeof(T)){
+				int err = _serrno;
+				throw err;
+			}
 			return ret;
 		}
 
@@ -243,7 +251,7 @@ namespace utilities {
 	class socket_listener : public socket_base {
 	public:
 		socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT);
-        socket_stream&& accept(int);
+        socket_stream accept(int);
 	};
 
 } /* namespace utilities */
