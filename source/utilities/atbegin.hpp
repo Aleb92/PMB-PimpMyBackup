@@ -57,9 +57,10 @@ namespace utilities {
 			int ret = func();
 			// Questo potrebbe dare problemi, ma tanto anche se cout non è ancora stato inizializzato,
 			//non importa perchè stiamo già crashando... al massimo l'utente non vede questo messaggio..
-			std::cerr << "Errore numero " << ret << " durante la chiamata a " << (void*)func << std::endl;
-			if(ret != 0)
+			if(ret != 0){
+				std::cerr << "Errore numero " << ret << " durante la chiamata a " << (void*)func << std::endl;
 				exit(ret);
+			}
 		}
 		static const at_begin<int, func> caller;
 	};

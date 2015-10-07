@@ -46,8 +46,8 @@ void socket_base::setBlocking(bool b) {
 		throw code;
 #else
     int flags = fcntl(handle, F_GETFL, 0);
-    if(flags < 0) throw errno;
-    if(fcntl(handle, F_SETFL, flags | O_NONBLOCK)!=0) throw errno;
+    if(flags < 0) throw _serrno;
+    if(fcntl(handle, F_SETFL, flags | O_NONBLOCK)!=0) throw _serrno;
 #endif
     blocking = b;
 }
@@ -60,8 +60,8 @@ void socket_base::setBlocking(bool b) {
 socket_base::socket_base(int af, int type, int protocol):
 		handle(::socket(af, type, protocol)), blocking(true){
 	// Controllo che tutto sia andato a buon fine, se no trow dell'eccezione
-	if(handle < 0)
-		throw errno;
+	if(!hValid(handle))
+		throw _serrno;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,7 +77,7 @@ socket_stream::socket_stream(uint32_t ip, in_port_t port, int af, int type, int 
 	addr.sin_family = AF_INET;
 
 	if (connect(handle, (struct sockaddr*) &addr, sizeof(addr)))
-		throw errno;
+		throw _serrno;
 }
 
 socket_stream::socket_stream(const char * ip, in_port_t port, int af, int type, int protocol):
@@ -108,14 +108,14 @@ socket_listener::socket_listener(int af,
 	addr_len = sizeof(struct sockaddr_in);
 
 	addr.sin_family = af;
-	addr.sin_addr.s_addr = ip;
+	addr.sin_addr.s_addr = htonl(ip);
 	addr.sin_port = htons(port);
 
 	if(bind(handle, (struct sockaddr*)&addr, addr_len) < 0)
-		throw errno;
+		throw _serrno;
 }
 
-socket_stream&& socket_listener::accept(int q_size){
+socket_stream socket_listener::accept(int q_size){
 
     struct sockaddr_in client;
     socklen_t len;
@@ -124,9 +124,9 @@ socket_stream&& socket_listener::accept(int q_size){
     listen(handle , q_size);
     len = sizeof(struct sockaddr_in);
     if((new_sock=::accept(handle, (struct sockaddr *)&client, (socklen_t*)&len))<0)
-        throw errno;
+        throw _serrno;
 
-    return move(socket_stream(new_sock, client.sin_addr.s_addr, client.sin_port));
+    return socket_stream(new_sock, client.sin_addr.s_addr, client.sin_port);
 }
 
 /* namespace utilities */
