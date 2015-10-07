@@ -146,17 +146,17 @@ namespace utilities {
 		 * @param ip address
 		 * @param port number
 		 */
-		inline socket_stream(socket_t _h, uint32_t ip, in_port_t port) : socket_base(_h), clientIp(ip), clientPort(port) {}
+		inline socket_stream(socket_t _h, uint32_t ip, in_port_t port) : socket_base(_h), oppositeIp(ip), oppositePort(port) {}
 	public:
 		/**
 		 * Client ip address in formato binatio (host)
 		 */
-		const uint32_t clientIp;
+		const uint32_t oppositeIp;
 
 		/**
 		 * Client port in forato binario (host)
 		 */
-		const in_port_t clientPort;
+		const in_port_t oppositePort;
 
 		const socket_stream& operator=(const socket_stream&) = delete;
 

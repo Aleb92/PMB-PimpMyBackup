@@ -54,7 +54,7 @@ void client() {
 		ss.send(10);
 		ss.send(44);
 		cout << 'c' << ss.recv<int>() << endl;
-		ss.send("bonnycul");
+		ss.send("bonnyculo");
 		char pp[5];
 		char *p = pp;
 		cout << 'c' << ss.recv(p, 5) << ')' << p << endl;
