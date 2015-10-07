@@ -11,7 +11,23 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <windows.h>
-# define errno WSAGetLastError()
+# include "atbegin.hpp"
+# include "atend.hpp"
+
+//WSAStartup call
+int init_winsock(void);
+int WSACleanupWrap();
+
+//Alla fine ripuliamo
+atEnd(WSACleanupWrap);
+
+//All'inizio inizializziamo
+atBegin(init_winsock);
+
+# ifndef errno
+#  define errno WSAGetLastError()
+# endif
+
 # define close(A) closesocket(A)
 # define MSG_NOSIGNAL 0
 
@@ -23,6 +39,7 @@ typedef int socklen_t;
 # include <cerrno>
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # include <sys/types.h>
 # include <unistd.h>
 # include <fcntl.h>
@@ -38,6 +55,8 @@ typedef int socket_t;
 
 
 namespace utilities {
+
+
 
 	/**
 	 * Classe di base per i socket. E' semplicemente un contenitore per un descrittore di risorsa.
@@ -141,6 +160,8 @@ namespace utilities {
 		 */
 		socket_stream(uint32_t ip, in_port_t port, int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP);
 
+		socket_stream(const char * ip, in_port_t port, int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP);
+
 		/**
 		 * Invia un singolo oggetto di tipo T
 		 * @param val
@@ -148,7 +169,7 @@ namespace utilities {
 		 */
 		template<typename T>
 		inline ssize_t send(const T val) {
-			return ::send(handle, &val, sizeof(T), MSG_NOSIGNAL);
+			return ::send(handle, (const char*)&val, sizeof(T), MSG_NOSIGNAL);
 		}
 
 		/**
@@ -158,7 +179,7 @@ namespace utilities {
 		 */
 		template<typename T, size_t s>
 		inline ssize_t send(const T (&buff)[s]) {
-			return ::send(handle, buff, sizeof(buff), MSG_NOSIGNAL);
+			return ::send(handle, (const char*)buff, sizeof(buff), MSG_NOSIGNAL);
 		}
 
 		// Questa � vuota
@@ -173,12 +194,12 @@ namespace utilities {
 		 */
 		template<typename T>
 		inline ssize_t send(const T*buff, size_t N) {
-			return ::send(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
+			return ::send(handle, (const char*)buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		template<typename T>
 		inline ssize_t send(const std::vector<T> &v) {
-			return ::send(handle, &v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
+			return ::send(handle, (const char*)&v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		/**
@@ -189,7 +210,7 @@ namespace utilities {
 		template<typename T>
 		inline T recv() {
 			T ret;
-			if(::recv(handle, &ret, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
+			if(::recv(handle, (char*)&ret, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
 				throw errno;
 			return ret;
 		}
@@ -206,17 +227,17 @@ namespace utilities {
 		 */
 		template<typename T>
 		inline ssize_t recv(T*buff, size_t N) {
-			return ::recv(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
+			return ::recv(handle, (char*)buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		template<typename T, size_t N>
 		inline ssize_t recv(T (&buff)[N]) {
-			return ::recv(handle, buff, N*sizeof(T), MSG_NOSIGNAL);
+			return ::recv(handle, (char*)buff, N*sizeof(T), MSG_NOSIGNAL);
 		}
 
 		template<typename T>
 		inline ssize_t recv(std::vector<T> &v) {
-		    return ::recv(handle, &v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
+		    return ::recv(handle, (char*)&v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
 		}
 	};
 

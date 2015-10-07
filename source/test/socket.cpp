@@ -1,4 +1,4 @@
-#include "../utilities/socket.h"
+#include "../utilities/socket.hpp"
 
 #include <thread>
 #include <iostream>
@@ -32,7 +32,7 @@ void server() {
 void client() {
 	try {
 		cout << "Sono il client!! Mi connetto..." << endl;
-		socket_stream ss(0, DEFAULT_PORT);
+		socket_stream ss("127.0.0.1", DEFAULT_PORT);
 		cout << "Fatto! Ora invio porcate!" << endl;
 		ss.send(10);
 		ss.send(44);
