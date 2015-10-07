@@ -1,3 +1,3 @@
 
 all:
-	$(MAKE) -C source all
+	$(MAKE) -C source/test all

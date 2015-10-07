@@ -31,6 +31,11 @@
 .cproject
 .project
 .settings/*
+.settings
+
+#build result
+build/*
+build
 
 #File di modifica di unix
 *~

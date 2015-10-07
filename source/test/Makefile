@@ -2,4 +2,4 @@
 all: socket
 
 socket:
-	g++ -std=c++11 socket.cpp ../utilities/socket.cpp -o sock_test -lpthread
+	g++ -g -std=c++11 socket.cpp ../utilities/socket.cpp -o ../../build/test/sock_test -lpthread
