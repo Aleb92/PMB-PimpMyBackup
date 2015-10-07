@@ -24,13 +24,17 @@ atEnd(WSACleanupWrap);
 //All'inizio inizializziamo
 atBegin(init_winsock);
 
+
+// COMPATIBILITY define
+
 # ifndef _serrno
 #  define _serrno WSAGetLastError()
 # endif
 
 # define hValid(h) ((h) != INVALID_SOCKET)
-
 # define close(A) closesocket(A)
+# define inet_network(a) ntohl(inet_addr(a))
+
 # define MSG_NOSIGNAL 0
 
 typedef SOCKET socket_t;

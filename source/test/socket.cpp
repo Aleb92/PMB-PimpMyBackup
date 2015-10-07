@@ -1,6 +1,5 @@
 #include "../utilities/socket.hpp"
 
-#include <windows.h>
 #include <thread>
 #include <iostream>
 
@@ -8,6 +7,9 @@ using namespace std;
 using namespace utilities;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+
+# include <windows.h>
+
 void wperror(const char* c, int errcode) {
 	char *msg = nullptr;
 	// OK ora chiedo la formattazione
