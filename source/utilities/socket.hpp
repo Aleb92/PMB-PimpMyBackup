@@ -24,8 +24,8 @@ atEnd(WSACleanupWrap);
 //All'inizio inizializziamo
 atBegin(init_winsock);
 
-# ifndef errno
-#  define errno WSAGetLastError()
+# ifndef _serrno
+#  define _serrno WSAGetLastError()
 # endif
 
 # define close(A) closesocket(A)
@@ -44,6 +44,8 @@ typedef int socklen_t;
 # include <fcntl.h>
 
 typedef int socket_t;
+
+#define _serrno errno
 
 #endif
 

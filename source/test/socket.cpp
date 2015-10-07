@@ -1,10 +1,23 @@
 #include "../utilities/socket.hpp"
 
+#include <windows.h>
 #include <thread>
 #include <iostream>
 
 using namespace std;
 using namespace utilities;
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+void wperror(const char* c, int errcode) {
+	char *msg = nullptr;
+	// OK ora chiedo la formattazione
+	if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER, nullptr, errcode, 0, (LPTSTR)&msg, 128, nullptr)){
+		cout << c << msg << endl;
+	}
+}
+#else
+#define wperror(c, code) perror(c)
+#endif
 
 void server() {
 	try {
@@ -25,14 +38,14 @@ void server() {
 		ss.send("ciao");
 	}
 	catch (int a) {
-		perror("Server");
+		wperror("Server", a);
 	}
 }
 
 void client() {
 	try {
 		cout << "Sono il client!! Mi connetto..." << endl;
-		socket_stream ss(0, DEFAULT_PORT);
+		socket_stream ss(0x7f000001, DEFAULT_PORT);
 		cout << "Fatto! Ora invio porcate!" << endl;
 		ss.send(10);
 		ss.send(44);
@@ -43,7 +56,7 @@ void client() {
 		cout << 'c' << ss.recv(p, 5) << ')' << p << endl;
 	}
 	catch (int a) {
-		perror("Client");
+		wperror("Client", a);
 	}
 
 }
