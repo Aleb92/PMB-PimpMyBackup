@@ -24,7 +24,7 @@ namespace utilities {
 		~at_end() {
 			(void)func();
 		}
-		static const at_end caller;
+		static const at_end<T,func> caller;
 	};
 
 	template <typename T, T (*func)()> const at_end<T, func> at_end<T, func>::caller;
