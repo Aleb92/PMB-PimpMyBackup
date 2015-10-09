@@ -35,6 +35,7 @@
 #build files
 build/
 build/*
+!build/Makefile
 
 #File di modifica di unix
 *~
