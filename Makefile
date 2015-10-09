@@ -4,7 +4,7 @@
 export CXXFLAGS := -g -std=c++11
 
 # Poi il linker!
-export LDFLAGS := -lpthread -ldl
+export LDFLAGS := -lpthread
 
 # Ok ogni makefile farà poi quello che deve per aggiungere quello che serve.
 # Adesso, ogni sottocartella corrisponde ad un target.

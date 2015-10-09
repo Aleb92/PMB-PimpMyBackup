@@ -2,7 +2,7 @@
 S_FOLDER := ../source/$(MAKECMDGOALS)
 INCLUDE := $(INCLUDE) -I../source -I$(S_FOLDER)/include 
 
-CFLAGS := -O3 -Os
+CFLAGS := -O3 -Os 
 
 ifneq ("$(wildcard $(S_FOLDER)/rules.mk)","")
 	include $(S_FOLDER)/rules.mk
