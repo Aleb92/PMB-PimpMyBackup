@@ -8,7 +8,6 @@
 #ifndef ATBEGIN_HPP_
 #define ATBEGIN_HPP_
 
-#include "traits.hpp"
 #include <iostream>
 
 namespace utilities {

@@ -8,11 +8,11 @@
 #ifndef ATEND_HPP_
 #define ATEND_HPP_
 
-#include "traits.hpp"
 #include <iostream>
-#include <type_traits>
 
 namespace utilities {
+
+#define atEnd(func) template class utilities::at_end<decltype(func()), func>
 
 	/**
 	 *  Questa classe è la controparte di at_begin. Serve a fare pulizia.
@@ -27,9 +27,9 @@ namespace utilities {
 		static const at_end<T,func> caller;
 	};
 
-	template <typename T, T (*func)()> const at_end<T, func> at_end<T, func>::caller;
+	template <typename T, T (*func)()> 
+	const at_end<T, func> at_end<T, func>::caller;
 
-#define atEnd(func) template class utilities::at_end<decltype(func()), func>
 
 }
 
