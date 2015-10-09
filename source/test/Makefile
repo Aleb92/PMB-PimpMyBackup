@@ -1,9 +1,9 @@
 
 CXXFLAGS = -g -std=c++11
 ifeq ($(OS),Windows_NT)
-	LDFLAGS = -lpthread -lws2_32
+	LDFLAGS := $(LDFLAGS) -lpthread -lws2_32
 else
-	LDFLAGS = -lpthread
+	LDFLAGS = $(LDFLAGS) -lpthread
 endif
 
 all: socket
