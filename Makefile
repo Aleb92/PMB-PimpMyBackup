@@ -8,7 +8,8 @@ export LDFLAGS := -lpthread
 
 # Ok ogni makefile farà poi quello che deve per aggiungere quello che serve.
 # Adesso, ogni sottocartella corrisponde ad un target.
-TARGETS := $(notdir $(wildcard source/*)) # Con questo prendo tutti i nomi delle cartelle
+# Con questo prendo tutti i nomi delle cartelle
+TARGETS := $(notdir $(wildcard source/*)) 
 
 # Ok adesso eseguo all, che l'unica cosa che fa è dipendere da tutti i target.
 all: $(TARGETS)
