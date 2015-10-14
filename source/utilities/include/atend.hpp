@@ -30,6 +30,19 @@ namespace utilities {
 	template <typename T, T (*func)()> 
 	const at_end<T, func> at_end<T, func>::caller;
 
+	template <typename T = void()>
+	class on_return{
+
+		std::function<T> f;
+	public:
+		inline on_return(std::function<T> func){
+			f = func;
+		}
+
+		inline ~on_return(){
+			(void)f();
+		}
+	};
 
 }
 
