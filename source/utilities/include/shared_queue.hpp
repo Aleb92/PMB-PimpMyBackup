@@ -14,7 +14,12 @@
 #include <utilities/include/atend.hpp>
 
 namespace utilities {
-	template<typename T, typename L = void, L* _l = nullptr, void (L::*push)(T&) = nullptr, void (L::*pop)(T&) = nullptr >
+
+	namespace impl {
+		struct nihil {};
+	}
+
+	template<typename T, typename L = impl::nihil, L* _l = nullptr, void (L::*push)(T&) = nullptr, void (L::*pop)(T&) = nullptr >
 	class shared_queue {
 		std::deque<T> data;
 		std::mutex lk;
