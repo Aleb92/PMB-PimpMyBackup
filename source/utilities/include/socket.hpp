@@ -62,7 +62,7 @@ typedef int socket_t;
  * Porta di default, scelta da bonetto
  */
 #define DEFAULT_PORT 6000
-
+#define DEFAULT_QUEUE_SIZE 16
 
 namespace utilities {
 
@@ -257,8 +257,8 @@ namespace utilities {
 
 	class socket_listener : public socket_base {
 	public:
-		socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT);
-        socket_stream accept(int);
+		socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT, int q_size = DEFAULT_QUEUE_SIZE);
+        socket_stream accept();
 	};
 
 } /* namespace utilities */

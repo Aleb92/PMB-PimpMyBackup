@@ -1,76 +1,94 @@
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE Tests
+#include <boost/test/unit_test.hpp>
+
 #include <utilities/include/socket.hpp>
 
+#include <mutex>
 #include <thread>
-#include <iostream>
 
 using namespace std;
 using namespace utilities;
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+mutex sem;
 
-# include <windows.h>
+BOOST_AUTO_TEST_SUITE(socket_test)
 
-void wperror(const char* c, int errcode) {
-	char *msg = nullptr;
-	// OK ora chiedo la formattazione
-	if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER, nullptr, errcode, 0, (LPTSTR)&msg, 128, nullptr)){
-		cout << c << msg << endl;
-	}
-}
-#else
-#define wperror(c, code) perror(c)
-#endif
 
 void server() {
 	try {
-		cout << "Sono il server. Creo il listener..." << endl;
-
 		socket_listener ls;
-		cout << "Fatto!" << endl << "Ora accetto connessioni..." << endl;
-		socket_stream ss = ls.accept(1);
-		cout << "Fatto!" << endl;
-		int a, b;
-		a = ss.recv<int>();
-		cout << a << endl;
-		b = ss.recv<int>();
-		cout << b << endl;
-		ss.send(a*b);
+
+		sem.unlock();
+		socket_stream ss = ls.accept();
+
+		(void)ss.send(ss.recv<int>()*ss.recv<int>());
 		char str[10];
-		cout << ss.recv(str) << ')' << str << endl;
-		ss.send("ciao");
+		(void)ss.recv(str);
+		(void)ss.send("ciao");
 	}
-	catch (int a) {
-		wperror("Server", a);
-	}
+	catch (...) { }
 }
 
 void client() {
 	try {
-		cout << "Sono il client!! Mi connetto..." << endl;
-
 		socket_stream ss("127.0.0.1", DEFAULT_PORT);
-
-		cout << "Fatto! Ora invio porcate!" << endl;
 		ss.send(10);
 		ss.send(44);
-		cout << 'c' << ss.recv<int>() << endl;
+		(void)ss.recv<int>();
 		ss.send("bonnyculo");
 		char pp[5];
 		char *p = pp;
-		cout << 'c' << ss.recv(p, 5) << ')' << p << endl;
+		(void)ss.recv(p, 5);
 	}
-	catch (int a) {
-		wperror("Client", a);
-	}
-
+	catch (...) {}
 }
 
-int main() {
+BOOST_AUTO_TEST_CASE(stream)
+{
+	// Uso un mutex come semaforo binario e lo metto a 0.
+	sem.lock();
+	//Faccio partire il server
 	thread s(server);
-	this_thread::sleep_for(chrono::seconds(2));
-	thread c(client);
 
+	//Aspetto che il server abbia fatto bind e sia attivo...
+	lock_guard<mutex> gd(sem);
+
+	// Divento io stesso il client
+	{
+		socket_stream ss  = socket_stream("127.0.0.1", DEFAULT_PORT);
+		BOOST_CHECK(ss.send(10) == sizeof(10));
+		BOOST_CHECK(ss.send(44) == sizeof(44));
+		BOOST_CHECK(ss.recv<int>() == 440);
+		BOOST_CHECK(ss.send("bonnycul0") == 10);
+		char pp[5];
+		char *p = pp;
+		BOOST_CHECK(ss.recv(p, 5) == 5);
+		BOOST_CHECK(strcmp(p, "ciao") == 0);
+	}
+	//Adesso aspetto l'altro thread
 	if(s.joinable()) s.join();
-	if(c.joinable()) c.join();
-	return 0;
 }
+
+BOOST_AUTO_TEST_CASE(listener)
+{
+	socket_listener ls = socket_listener();
+
+	// Faccio partire il client visto che sono pronto a ricevere
+	thread c(client);
+	// Accetto connessioni
+	socket_stream ss = ls.accept();
+
+	// Test case
+	BOOST_CHECK(ss.recv<int>() == 10);
+	BOOST_CHECK(ss.recv<int>() == 44);
+	BOOST_CHECK(ss.send(440) == sizeof(440));
+	char str[10];
+	BOOST_CHECK(ss.recv(str) == sizeof(str));
+	BOOST_CHECK(ss.send("ciao") == 5);
+
+	//Join per evitare problemi
+	if(c.joinable()) c.join();
+}
+
+BOOST_AUTO_TEST_SUITE_END()
