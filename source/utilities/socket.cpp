@@ -100,7 +100,7 @@ socket_listener::socket_listener(int af,
 			int type,
 			int protocol,
 			uint32_t ip,
-            in_port_t port) :
+            in_port_t port, int q_size) :
             	socket_base(af, type, protocol) {
 	struct sockaddr_in addr = {0};
 	socklen_t addr_len;
@@ -111,18 +111,18 @@ socket_listener::socket_listener(int af,
 	addr.sin_addr.s_addr = htonl(ip);
 	addr.sin_port = htons(port);
 
-	if(bind(handle, (struct sockaddr*)&addr, addr_len) < 0)
+	if(::bind(handle, (struct sockaddr*)&addr, addr_len) < 0)
 		throw _serrno;
+    if(::listen(handle , q_size))
+    	throw _serrno;
 }
 
-socket_stream socket_listener::accept(int q_size){
+socket_stream socket_listener::accept(){
 
-    struct sockaddr_in client;
-    socklen_t len;
+    struct sockaddr_in client = { 0 };
+    socklen_t len = sizeof(struct sockaddr_in);
     socket_t new_sock;
 
-    listen(handle , q_size);
-    len = sizeof(struct sockaddr_in);
     if((new_sock=::accept(handle, (struct sockaddr *)&client, (socklen_t*)&len))<0)
         throw _serrno;
 
