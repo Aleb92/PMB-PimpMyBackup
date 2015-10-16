@@ -31,23 +31,25 @@ namespace utilities {
 			std::lock_guard<std::mutex> guard(lk);
 			data.push_back(obj);
 			if(_l && push) (_l->*push)(obj);
+			cv.notify_all();
 		}
 
 		T dequeue(void){
 			std::unique_lock<std::mutex> guard(lk);
 
-			std::deque<T>& data = this->data;
-
-			on_return<> ret([&data](){
+			on_return<> ret([this](){
 				if(_l && push) (_l->*pop)(data.front());
 				data.pop_front();
 			});
 
-			cv.wait(guard, [&data](){return !data.empty();});
+			cv.wait(guard, [this](){
+				return !data.empty();
+			});
 			return data.front();
 		}
 
 		inline bool empty() const {
+			std::lock_guard<std::mutex> guard(lk);
 			return data.empty();
 		}
 
