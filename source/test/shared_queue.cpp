@@ -7,9 +7,6 @@
 #include <cstdlib>
 #include <ctime>
 
-
-
-
 using namespace utilities;
 using namespace std;
 
@@ -26,7 +23,7 @@ BOOST_AUTO_TEST_CASE(singleth_singleq)
 	int num = rand() % 1000;
 	int vett[1000];
 	for(int i = 0; i < num; i++) {
-		vett[i] = rand();
+		vett[i] = rand()%10000;
 		shared_queue<int>::inst().enqueue(vett[i]);
 	}
 
@@ -40,8 +37,8 @@ BOOST_AUTO_TEST_CASE(singleth_doubleq){
 	int vett[1000];
 	double dvett[1000];
 	for(int i = 0; i < num; i++) {
-		vett[i] = rand();
-		dvett[i] = rand()*1.0f;
+		vett[i] = rand()%10000;
+		dvett[i] = (rand()%10000)*1.0f;
 		shared_queue<int>::inst().enqueue(vett[i]);
 		shared_queue<double>::inst().enqueue(dvett[i]);
 	}
@@ -77,7 +74,7 @@ BOOST_AUTO_TEST_CASE(callbacks) {
 	typedef shared_queue<int, cbk, &cbk::c, &cbk::push, &cbk::pop> sq;
 
 	for(int i = 0; i < num; i++) {
-		vett[i] = rand();
+		vett[i]=rand()%10000;
 		sq::inst().enqueue(vett[i]);
 	}
 	BOOST_CHECK(cbk::c.count == num);
@@ -94,7 +91,7 @@ BOOST_AUTO_TEST_CASE(doubleth_singleq)
 	int vett[1000];
 	thread th( [num, &vett]() {
 		for(int i = 0; i < num; i++) {
-			vett[i] = rand();
+			vett[i] = rand()%10000;
 			shared_queue<int>::inst().enqueue(vett[i]);
 		}
 	});
