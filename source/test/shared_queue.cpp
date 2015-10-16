@@ -49,6 +49,22 @@ BOOST_AUTO_TEST_CASE(singleth_doubleq){
 	}
 }
 
+BOOST_AUTO_TEST_CASE(singleth_stringq){
+
+	string s1="ciao ", s2="bonny ", s3="come ", s4="va?";
+
+	shared_queue<string>::inst().enqueue(s1);
+	shared_queue<string>::inst().enqueue(s2);
+	shared_queue<string>::inst().enqueue(s3);
+	shared_queue<string>::inst().enqueue(s4);
+
+	string res;
+	while(!shared_queue<string>::inst().empty())
+		res.append(shared_queue<string>::inst().dequeue());
+
+	BOOST_CHECK_EQUAL("ciao bonny come va?", res);
+}
+
 class cbk {
 	cbk() : count(0) { }
 public:
