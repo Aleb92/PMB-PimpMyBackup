@@ -74,6 +74,7 @@ BOOST_AUTO_TEST_CASE(listener)
 {
 	socket_listener ls = socket_listener();
 
+
 	// Faccio partire il client visto che sono pronto a ricevere
 	thread c(client);
 	// Accetto connessioni

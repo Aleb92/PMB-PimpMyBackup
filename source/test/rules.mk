@@ -5,4 +5,4 @@ else
 LDFLAGS := $(LDFLAGS) -ldl
 endif
 
-LDFLAGS := $(LDFLAGS) -lboost_unit_test_framework-mt
+LDFLAGS := $(LDFLAGS) -lboost_unit_test_framework
