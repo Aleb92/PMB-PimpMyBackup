@@ -61,7 +61,7 @@ typedef int socket_t;
 /**
  * Porta di default, scelta da bonetto
  */
-#define DEFAULT_PORT 6000
+#define DEFAULT_PORT 6969
 #define DEFAULT_QUEUE_SIZE 16
 
 namespace utilities {
