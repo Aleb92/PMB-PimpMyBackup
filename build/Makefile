@@ -9,11 +9,14 @@ endif
 CXX_FILES := $(notdir $(wildcard $(S_FOLDER)/*.cpp))
 OBJ_FILES := $(addprefix $(MAKECMDGOALS)_,$(addsuffix .o,$(CXX_FILES:.cpp=)))
 
-
 ifneq ($(MAKECMDGOALS),utilities)
 
+ifndef SKIP
 $(MAKECMDGOALS): $(OBJ_FILES) util
 	$(CXX) $(OBJ_FILES) utilities_*.o -o $(MAKECMDGOALS) $(LDFLAGS)
+else
+$(MAKECMDGOALS):
+endif
 
 else
 
