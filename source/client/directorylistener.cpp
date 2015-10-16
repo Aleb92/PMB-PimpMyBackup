@@ -45,7 +45,7 @@ namespace client {
 
 			//TODO Da finire
 			for(int i=1; i*sizeof(FILE_NOTIFY_INFORMATION)<=dwBytesReturned; i++){
-				shared_queue<FILE_NOTIFY_INFORMATION>().enqueue(buffFileNotifyInfo[i-1]);
+				shared_queue<FILE_NOTIFY_INFORMATION>::inst().enqueue(buffFileNotifyInfo[i-1]);
 			}
 		}
 	}

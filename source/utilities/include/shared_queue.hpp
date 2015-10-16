@@ -30,13 +30,16 @@ namespace utilities {
 		void enqueue(T& obj) {
 			std::lock_guard<std::mutex> guard(lk);
 			data.push_back(obj);
-			if(_l && push) _l->*push(obj);
+			if(_l && push) (_l->*push)(obj);
 		}
 
 		T dequeue(void){
 			std::unique_lock<std::mutex> guard(lk);
-			on_return<> ret([data](){
-				if(_l && push) _l->*pop(data.front());
+
+			std::deque<T>& data = this->data;
+
+			on_return<> ret([&data](){
+				if(_l && push) (_l->*pop)(data.front());
 				data.pop_front();
 			});
 
@@ -48,9 +51,9 @@ namespace utilities {
 			return data.empty();
 		}
 
-		static inline shared_queue<T, push, pop>& operator()() {
-			static shared_queue<T, push, pop> ist;
-			return ist;
+		static inline shared_queue<T, L, _l, push, pop>& inst() {
+			static shared_queue<T, L, _l, push, pop> inst;
+			return inst;
 		}
 
 

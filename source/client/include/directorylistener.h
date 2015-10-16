@@ -3,6 +3,8 @@
 #ifndef SOURCE_CLIENT_DIRECTORYLISTENER_H_
 #define SOURCE_CLIENT_DIRECTORYLISTENER_H_
 
+#include <Windows.h>
+
 namespace client {
 
 	class directory_listener {

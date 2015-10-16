@@ -50,6 +50,8 @@ typedef int socklen_t;
 # include <unistd.h>
 # include <fcntl.h>
 
+#  warning BABAB
+
 typedef int socket_t;
 
 #define _serrno errno

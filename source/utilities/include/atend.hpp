@@ -8,6 +8,7 @@
 #ifndef ATEND_HPP_
 #define ATEND_HPP_
 
+#include <functional>
 #include <iostream>
 
 namespace utilities {
