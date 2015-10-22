@@ -7,6 +7,7 @@
 
 #include <Windows.h>
 #include <functional>
+#include <memory>
 
 #define FILTERS FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME|\
 		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE|\
@@ -16,6 +17,16 @@
 #define NOTIF_INFO_BUFF_LENGHT 64*K
 
 namespace client {
+
+	//FIXME: serve un nome più bello....
+	class change_entity {
+		std::shared_ptr<char> container;
+		FILE_NOTIFY_INFORMATION*data;
+	public:
+		change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*);
+		FILE_NOTIFY_INFORMATION& operator*();
+		FILE_NOTIFY_INFORMATION* operator->();
+	};
 
 	class directory_listener {
 
