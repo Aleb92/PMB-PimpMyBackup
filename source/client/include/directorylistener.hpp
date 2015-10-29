@@ -35,25 +35,31 @@ namespace client {
 	public:
 		directory_listener(const char*);
 
-		template <void (*func)(const FILE_NOTIFY_INFORMATION&)>
+		template <void (*func)(const change_entity)>
 			void scan(std::function<bool()> stopper) {
 
-				char buffFileNotifyInfo[NOTIF_INFO_BUFF_LENGHT];
 				DWORD dwBytesReturned = 0;
 
 				while(stopper()) // FIXME Trovare un modo per fermare il loop di scan della cartella
 				{
+					//FIXME Decidere come gestoire la lunghezza enorme di questo vettore che sara
+					//allocato nuovo ad ogni ciclo
+					char buffFileNotifyInfo[NOTIF_INFO_BUFF_LENGHT];
+
 					if(ReadDirectoryChangesW (dir, (LPVOID)&buffFileNotifyInfo,
 									sizeof(buffFileNotifyInfo), TRUE, FILTERS,
 									&dwBytesReturned, 0, 0) == 0)
 					throw GetLastError();
+
+					std::shared_ptr<char> whole(&buffFileNotifyInfo);
 
 					char* current = buffFileNotifyInfo;
 
 #define buffFNI ((FILE_NOTIFY_INFORMATION*)(current))
 
 					while(buffFNI->NextEntryOffset != 0){
-						func(*buffFNI);
+						change_entity currentEnt(whole, current);
+						func(currentEnt);
 						current+=buffFNI->NextEntryOffset;
 					}
 
@@ -61,25 +67,28 @@ namespace client {
 				}
 			}
 
-	template <typename T, T* _t, void (T::*func)(const FILE_NOTIFY_INFORMATION&)>
+	template <typename T, T* _t, void (T::*func)(const change_entity)>
 				void scan(std::function<bool()> stopper) {
 
-					char buffFileNotifyInfo[NOTIF_INFO_BUFF_LENGHT];
+
 					DWORD dwBytesReturned = 0;
 
 					while(stopper()) // FIXME Trovare un modo per fermare il loop di scan della cartella
 					{
+						char buffFileNotifyInfo[NOTIF_INFO_BUFF_LENGHT];
 						if(ReadDirectoryChangesW (dir, (LPVOID)&buffFileNotifyInfo,
 										sizeof(buffFileNotifyInfo), TRUE, FILTERS,
 										&dwBytesReturned, 0, 0) == 0)
 						throw GetLastError();
 
+						std::shared_ptr<char> whole(&buffFileNotifyInfo);
 						char* current = buffFileNotifyInfo;
 
 #define buffFNI ((FILE_NOTIFY_INFORMATION*)(current))
 
 						while(buffFNI->NextEntryOffset != 0){
-							(_t->*func)(buffFNI);
+							change_entity currentEnt(whole, current);
+							(_t->*func)(currentEnt);
 							current+=buffFNI->NextEntryOffset;
 						}
 
