@@ -1,37 +1,74 @@
-client si connette.
-client si autentica.(lunghezza username(16bit) + username + lunghezza password(16) + password)
-server accetta/rifiuta:
-- se rifiuta, codice di errore (8bit) e poi chiude connessione
-- se accetta, codice di successo(8bit) + codice ultima modifica
+       OPCODE COMPRESSO, FORMATO
 
-Se cade(errore) questa connessione, l'utente è considerato non più autenticato e vengono chiuse tutte le altre connessioni a lui associate
-Se una nuova connessione viene creata e si autentica, quella vecchia e tutte le altre connessioni associate vengono chiuse immediatamente (e i trasferimenti cancellati).
+bit a 1 significano azione richiesta, se tutti i bit a 0, richiesto listing della cartella.
+_
+1| Spostamento
+2| Creazione
+3| Cancellazione
+4| Permessi
+5| Timestamp
+6| Version change
+7| Modifier (directory/file | list/insert version)
+8| Scrittura
+-
 
+Nella richiesta i parametri dei vari comandi sono scritti IN SERIE, nell'ordine dei bit.
+L'header delle richieste Ã¨ composto da i dati di autenticazione (username, hash(password)) seguito da:
+- OPCODE (8bit)
+- FILE_ID (32 bit)
+- TIMESTAMP per ogni operazione, anche nel caso non serva (8x64 bit)
+- Gli argomenti in ordine, per ogni operazione
+
+Le operazioni svolte dal protocollo sono:
+- Client si connette.
+- Server invia subito salt (32 bit)
+- Client invia richiesta e contemporaneamente aspetta acknowledge da parte del server
+- Server chiude connessione nel caso di login errato
+- Server esegue le richieste e invia ack. Gli ack possono essere raggruppati tranquillamente 
+	(il server invia una serie di ack sottoforma di OPCODE mask)
+- Server restituisce -1 (tutti a 1) nel caso non riesca a eseguire qualche operazione (in quel caso tutta la transazione fallisce)
+- Se il Client riceve acknowledge prima di aver terminato l'invio, interrompe l'invio dei dati (solo per la scrittura)
+
+Il log nel client viene scritto solo nel momento della ricezione di un acknowledge.
+
+*********** Bisognerebbe comunque usare TSL...
+
+====== PACCHETTI DI OPERAZIONE ======
+Tutti i pacchetti iniziano con un numero (32 bit) che indica la lunghezza del campo (utile per saltare senza interpretare in caso
+la transazione sia giÃ  presente).
+
+<size><data>
+
+== Spostamento ==
+Solo una stringa stile C (null-terminated)
+
+== Creazione == 
+Solo una stringa stile C (null-terminated)
+
+== Cancellazione ==
+Solo una stringa stile C (null-terminated)
+
+== Permessi ==
+16bit di permessi, unix-like
+
+== Timestamp ==
+64bit di timestamp unix
+
+== Version change ==
+EMPTY
+
+== Modifier (directory/file | list/insert version) ==
+
+== Scrittura ==
+<binary data>
+
+
+
+Formato per il listing
 -----------------------------------
-U1										|
-237iqyrfw								|
-u2										|
-dfashfkhas								|
+U1									|
+237iqyrfw							|
+u2									|
+dfashfkhas							|
 u3 => errore 						|
 -----------------------------------
-
-opcode
-AUTH (username, pass)
-DELETE(file id)
-NEW(name, type) => transaction id (if file)
-MOVE(file id, new parent id)
-UPDATE(file id) => transaction id
-RENAME(file id, new file name) 
-HISTORY(file id) => timestamp info list
-DELETED() => file list
-GET(file id, timestamp info) => transaction id
-TREE() => tree metadata (5D1-3D2-szF1...)
-TRANSACTION(id...) => ack
-
-Per le transazioni, si apre una nuova connessione con username e transaction id. Il server può rispondere
-- already done
-- not auth
-- error
-- ready
--- se upload, procede con l'invio prima della dimensione e i permessi, poi dei dati
--- se download, si procede con la ricezione (i primi bytes sono la dimensione)
