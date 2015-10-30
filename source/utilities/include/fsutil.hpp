@@ -2,13 +2,16 @@
 #ifndef SOURCE_UTILITIES_INCLUDE_FSUTIL_HPP_
 #define SOURCE_UTILITIES_INCLUDE_FSUTIL_HPP_
 
+#include <string>
 #include <Shlobj.h>
 
 namespace utilities{
 
-	int createDirectoryRecursively(const char* path)
+	int createDirectoryRecursively(const wchar_t* path)
 	{
-		return SHCreateDirectoryEx( 0, path, 0);
+		//int result = SHCreateDirectory( 0, path );
+		int result = _wsystem((std::wstring(L"mkdir ") + path).c_str());
+		return result;
 	}
 }
 

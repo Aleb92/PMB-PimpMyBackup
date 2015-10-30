@@ -5,4 +5,5 @@ else
 LDFLAGS := $(LDFLAGS) -ldl
 endif
 
-LDFLAGS := $(LDFLAGS) -lboost_unit_test_framework
+# FIXME fa schifo.
+LDFLAGS := client_[^m]*.o $(LDFLAGS) -lboost_unit_test_framework
