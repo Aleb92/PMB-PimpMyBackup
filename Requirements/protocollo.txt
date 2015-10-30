@@ -26,7 +26,7 @@ Le operazioni svolte dal protocollo sono:
 - Server chiude connessione nel caso di login errato
 - Server esegue le richieste e invia ack. Gli ack possono essere raggruppati tranquillamente 
 	(il server invia una serie di ack sottoforma di OPCODE mask)
-- Server restituisce -1 (tutti a 1) nel caso non riesca a eseguire qualche operazione (in quel caso tutta la transazione fallisce)
+- Server restituisce 0 nel caso non riesca a eseguire qualche operazione (in quel caso tutta la transazione fallisce)
 - Se il Client riceve acknowledge prima di aver terminato l'invio, interrompe l'invio dei dati (solo per la scrittura)
 
 Il log nel client viene scritto solo nel momento della ricezione di un acknowledge.
@@ -61,8 +61,6 @@ EMPTY
 
 == Scrittura ==
 <binary data>
-
-
 
 Formato per il listing
 -----------------------------------
