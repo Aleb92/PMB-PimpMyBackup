@@ -19,3 +19,12 @@ FILE_NOTIFY_INFORMATION& change_entity::operator*() {
 FILE_NOTIFY_INFORMATION* change_entity::operator->() {
 	return data;
 }
+
+
+const FILE_NOTIFY_INFORMATION& change_entity::operator*() const {
+	return *data;
+}
+
+const FILE_NOTIFY_INFORMATION* change_entity::operator->() const {
+	return data;
+}

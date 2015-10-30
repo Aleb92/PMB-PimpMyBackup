@@ -24,6 +24,10 @@ public:
 	change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*);
 	FILE_NOTIFY_INFORMATION& operator*();
 	FILE_NOTIFY_INFORMATION* operator->();
+
+	const FILE_NOTIFY_INFORMATION& operator*() const;
+	const FILE_NOTIFY_INFORMATION* operator->() const;
+
 };
 
 class directory_listener {
