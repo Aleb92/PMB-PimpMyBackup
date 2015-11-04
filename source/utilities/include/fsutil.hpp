@@ -10,6 +10,7 @@ namespace utilities{
 	int createDirectoryRecursively(const wchar_t* path)
 	{
 		//int result = SHCreateDirectory( 0, path );
+		// FIXME: orribile!
 		int result = _wsystem((std::wstring(L"mkdir ") + path).c_str());
 		return result;
 	}

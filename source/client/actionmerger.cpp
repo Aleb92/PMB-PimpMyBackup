@@ -14,36 +14,40 @@
 
 using namespace std;
 using namespace client;
+using namespace server;
 
-inline static int get_flag_bit(DWORD event) {//FIXME
+
+inline static opcode get_flag_bit(DWORD event) {//FIXME
 	switch (event) {
 		case FILE_NOTIFY_CHANGE_FILE_NAME:
 		case FILE_NOTIFY_CHANGE_DIR_NAME:
-			return OP_MOVE;
+			return opcode::REMOVE ;
 		case FILE_NOTIFY_CHANGE_ATTRIBUTES:
 		case FILE_NOTIFY_CHANGE_SECURITY:
-			return OP_CHMOD;
+			return opcode::CHMOD;
 		case FILE_NOTIFY_CHANGE_SIZE:
-			return OP_WRITE;
+			return opcode::WRITE;
 		case FILE_NOTIFY_CHANGE_LAST_WRITE:
-			return OP_TIMESTAMP | OP_WRITE;
+			return opcode::TIMESTAMP | opcode::WRITE;
 		default:
-			return 0;
+			return opcode::LIST;
 	}
+
 }
 
 void action_merger::add_change(const wchar_t*filename, DWORD event,
 		const FILETIME& f, const wchar_t*newName) {
 	file_action& fa = map[filename];
-	char flag = get_flag_bit(event);
-	fa.op_code |= 1 << flag;
-	if (flag == OP_MOVE_BIT) {
+	opcode flag = get_flag_bit(event);
+	fa.op_code |= flag;
+	if (flag == opcode::MOVE) {
 		if (newName)
 			fa.newName = newName;
 		else
-			fa.op_code ^= OP_MOVE;
+			fa.op_code ^= opcode::MOVE;
 	}
-	fa.timestamps[flag] = f;
+	// gcc only
+	fa.timestamps[__builtin_ffs(flag) - 1] = f;
 }
 
 action_merger::iterator action_merger::remove(action_merger::const_iterator i) {

@@ -23,8 +23,11 @@ static void print(change_entity entity){
 }
 
 int main() {
+	wcout << "Inizializzo...";
+	wcout.flush();
 	directory_listener dl(L"PMB_test_root\\");
-	wcout << "Inizializzo..." << endl;
+	wcout << "Fatto!" << endl;
+
 	int count = 10;
 	try {
 		dl.scan<print>([&count](){ return ((--count) >= 0); });
