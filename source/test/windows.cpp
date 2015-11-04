@@ -14,16 +14,28 @@ using namespace client;
 
 BOOST_AUTO_TEST_SUITE(windows_test)
 
-bool stopper(){
+static bool stopper(){
 	static int a = 4;
 	return a--;
 }
 
-void print(change_entity entity){
-	wprintf(entity->FileName);
+static void print(change_entity entity){
+#define SW_ITEM(x) case x: wprintf(L"%s", L"" #x ": " ); break
+
+	switch(entity->Action) {
+		SW_ITEM(FILE_NOTIFY_CHANGE_FILE_NAME);
+		SW_ITEM(FILE_NOTIFY_CHANGE_DIR_NAME);
+		SW_ITEM(FILE_NOTIFY_CHANGE_ATTRIBUTES);
+		SW_ITEM(FILE_NOTIFY_CHANGE_SIZE);
+		SW_ITEM(FILE_NOTIFY_CHANGE_LAST_WRITE);
+		SW_ITEM(FILE_NOTIFY_CHANGE_SECURITY);
+	}
+#undef SW_ITEM
+
+	wprintf(L"%s\n", entity->FileName);
 }
 
-void create_file_1(){
+static void create_file_1(){
 	system("type NUL > PMB_test_root\\file_prova.txt");
 }
 

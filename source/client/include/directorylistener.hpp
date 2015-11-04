@@ -48,18 +48,18 @@ public:
 			//allocato nuovo ad ogni ciclo
 			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
-			if (ReadDirectoryChangesW(dir, (LPVOID) &current,
+			if (ReadDirectoryChangesW(dir, (LPVOID) current,
 			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, FILTERS,
-					&dwBytesReturned, 0, 0) == 0)
+					&dwBytesReturned, NULL, NULL) == 0)
 				throw GetLastError();
 
 			std::shared_ptr<char> whole(current);
 
 #define buffFNI ((FILE_NOTIFY_INFORMATION*)(current))
-
+			func(change_entity(whole, buffFNI));
 			while (buffFNI->NextEntryOffset != 0) {
-				func(change_entity(whole, buffFNI));
 				current += buffFNI->NextEntryOffset;
+				func(change_entity(whole, buffFNI));
 			}
 
 #undef buffFNI
@@ -77,7 +77,7 @@ public:
 			//allocato nuovo ad ogni ciclo
 			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
-			if (ReadDirectoryChangesW(dir, (LPVOID) &current,
+			if (ReadDirectoryChangesW(dir, (LPVOID) current,
 			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, FILTERS,
 					&dwBytesReturned, 0, 0) == 0)
 				throw GetLastError();

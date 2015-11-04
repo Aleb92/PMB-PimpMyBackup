@@ -10,7 +10,7 @@
 #include <string>
 #include <Windows.h>
 #include <server/include/protocol.hpp>
-#include "actionmerger.h"
+#include <actionmerger.hpp>
 
 using namespace std;
 using namespace client;
