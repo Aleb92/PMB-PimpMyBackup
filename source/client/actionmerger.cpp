@@ -19,20 +19,17 @@ using namespace server;
 
 inline static opcode get_flag_bit(DWORD event) {//FIXME
 	switch (event) {
-		case FILE_NOTIFY_CHANGE_FILE_NAME:
-		case FILE_NOTIFY_CHANGE_DIR_NAME:
-			return opcode::REMOVE ;
-		case FILE_NOTIFY_CHANGE_ATTRIBUTES:
-		case FILE_NOTIFY_CHANGE_SECURITY:
-			return opcode::CHMOD;
-		case FILE_NOTIFY_CHANGE_SIZE:
-			return opcode::WRITE;
-		case FILE_NOTIFY_CHANGE_LAST_WRITE:
-			return opcode::TIMESTAMP | opcode::WRITE;
-		default:
-			return opcode::LIST;
+		case FILE_ACTION_ADDED:
+			return CREATE;
+		case FILE_ACTION_REMOVED:
+			return REMOVE;
+		case FILE_ACTION_MODIFIED:
+			return WRITE | CHMOD;
+		case FILE_ACTION_RENAMED_OLD_NAME:
+		case FILE_ACTION_RENAMED_NEW_NAME:
+			return MOVE;
 	}
-
+	return INVALID;
 }
 
 void action_merger::add_change(const wchar_t*filename, DWORD event,
@@ -40,13 +37,13 @@ void action_merger::add_change(const wchar_t*filename, DWORD event,
 	file_action& fa = map[filename];
 	opcode flag = get_flag_bit(event);
 	fa.op_code |= flag;
-	if (flag == opcode::MOVE) {
+	if (flag == MOVE) {
 		if (newName)
 			fa.newName = newName;
 		else
 			fa.op_code ^= opcode::MOVE;
 	}
-	// gcc only
+	// FIXME: this is gcc only
 	fa.timestamps[__builtin_ffs(flag) - 1] = f;
 }
 

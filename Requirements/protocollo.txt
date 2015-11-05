@@ -6,7 +6,7 @@ _
 2| Creazione
 3| Cancellazione
 4| Permessi
-5| Timestamp
+5| [Riservato per uso futuro (ignorato)]
 6| Version change
 7| Modifier (directory/file | list/insert version)
 8| Scrittura
