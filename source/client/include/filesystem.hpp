@@ -108,6 +108,13 @@ public:
 	void delete_file(const wchar_t*, size_t s = 0);
 	void move_dir(const wchar_t*, const wchar_t*);
 	void move_file(const wchar_t*, size_t, const wchar_t*, size_t);
+	/**
+	 *
+	 * @param
+	 * @param s
+	 * @return
+	 * @remarks Il file aggiunto va riempito!!!!
+	 */
 	file_info& new_file(const wchar_t*, size_t s = 0);
 	directory& new_dir(const wchar_t*, size_t s = 0);
 };
