@@ -34,7 +34,7 @@ static pair<wstring, wstring> file_dir_name(const wchar_t*name, size_t length) {
 		++file;
 		return make_pair(
 			wstring(name, file - name),
-			wstring(file, length - file + name)
+			wstring(file, length - (file - name))
 		);
 	}
 	else

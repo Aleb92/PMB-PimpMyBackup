@@ -26,3 +26,6 @@ all: $(TARGETS)
 
 clean:
 	$(RM) -rf build/[!M]*
+
+doc:
+	doxygen doxygen.conf
