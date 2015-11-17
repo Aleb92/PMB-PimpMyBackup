@@ -28,3 +28,13 @@ const FILE_NOTIFY_INFORMATION& change_entity::operator*() const {
 const FILE_NOTIFY_INFORMATION* change_entity::operator->() const {
 	return data;
 }
+
+std::wostream& operator<< (std::wostream& out, const change_entity ce){
+	out << ce->FileNameLength << L" ";
+	return out.write(ce->FileName, ce->FileNameLength) << L" " << ce->Action << endl;
+}
+
+std::wostream& operator<< (std::wostream& out, const change_entity& ce){
+	out << ce->FileNameLength << L" ";
+	return out.write(ce->FileName, ce->FileNameLength) << L" " << ce->Action << endl;
+}

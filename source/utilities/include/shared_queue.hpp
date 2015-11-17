@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <utilities/include/atend.hpp>
+#include <utilities/include/singleton.hpp>
 
 namespace utilities {
 
@@ -20,10 +21,13 @@ namespace utilities {
 	}
 
 	template<typename T, typename L = impl::nihil, L* _l = nullptr, void (L::*push)(T&) = nullptr, void (L::*pop)(T&) = nullptr >
-	class shared_queue {
+	class shared_queue : public singleton<shared_queue<T, L, _l, push, pop>> {
 		std::deque<T> data;
 		std::mutex lk;
 		std::condition_variable cv;
+
+		friend class singleton<shared_queue<T, L, _l, push, pop>>;
+
 		shared_queue() = default;
 	public:
 
@@ -53,12 +57,6 @@ namespace utilities {
 			//std::lock_guard<std::mutex> guard(lk);
 			return data.empty();
 		}
-
-		static inline shared_queue<T, L, _l, push, pop>& inst() {
-			static shared_queue<T, L, _l, push, pop> inst;
-			return inst;
-		}
-
 
 	};
 }

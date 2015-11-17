@@ -6,14 +6,9 @@
 #include <Shlobj.h>
 
 namespace utilities{
-
-	int createDirectoryRecursively(const wchar_t* path)
-	{
-		//int result = SHCreateDirectory( 0, path );
-		// FIXME: orribile!
-		int result = _wsystem((std::wstring(L"mkdir ") + path).c_str());
-		return result;
-	}
+	int createDirectoryRecursively(const wchar_t* path);
+	bool pathExists(const wchar_t*path);
+	bool isPathDir(const wchar_t*path);
 }
 
 #endif /* SOURCE_UTILITIES_INCLUDE_FSUTIL_HPP_ */

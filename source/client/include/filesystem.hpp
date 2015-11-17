@@ -60,6 +60,8 @@ public:
 	typedef dir_list::const_iterator const_dir_iterator;
 	typedef file_table::const_iterator const_file_iterator;
 
+	directory() = default;
+
 	inline dir_iterator dbegin(){
 		return dirList.begin();
 	}
@@ -98,7 +100,7 @@ class filesystem {
 	using dir_table = std::unordered_map<std::wstring, directory>;
 	dir_table directories;
 public:
-	filesystem(HANDLE); //FIXME
+	filesystem() = default;
 	virtual ~filesystem() { }
 
 	file_info& get_file(const wchar_t*, size_t s = 0);

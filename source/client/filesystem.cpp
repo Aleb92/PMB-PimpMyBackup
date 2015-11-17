@@ -21,11 +21,6 @@ file_info& directory::add(const wstring& file_name){
 	return files[file_name];
 }
 
-filesystem::filesystem(HANDLE) {
-	//TODO: GESU' AIUTACI TU'
-	//FIXME
-}
-
 static pair<wstring, wstring> file_dir_name(const wchar_t*name, size_t length) {
 	if(!length)
 		length = wcslen(name);

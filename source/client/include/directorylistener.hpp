@@ -4,6 +4,7 @@
 #include <utilities/include/shared_queue.hpp>
 
 #include <Windows.h>
+#include <ostream>
 #include <functional>
 #include <memory>
 
@@ -16,27 +17,62 @@
 
 namespace client {
 
-//FIXME: serve un nome più bello....
+/**
+ * Smart pointer (custom) per un puntatore, parte di un chunk di memoria contigua
+ * che espone la classe FILE_NOTIFY_INFORMATION.
+ * Solo quando tutti i membri dell'array vengono distrutti, la memoria del
+ * chunk intero viene liberata.
+ */
 class change_entity {
+	/**
+	 * Smart pointer per il chunk di memoria: non voglio certo gestire io
+	 * la memoria o la copia!
+	 */
 	std::shared_ptr<char> container;
+	/**
+	 * Puntatore ai dati veri e propri
+	 */
 	FILE_NOTIFY_INFORMATION*data;
 public:
+	/**
+	 * L'oggetto è copiabile.
+	 * @param old copy
+	 */
+	change_entity(const change_entity&) = default;
 	change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*);
+
 	FILE_NOTIFY_INFORMATION& operator*();
 	FILE_NOTIFY_INFORMATION* operator->();
 
 	const FILE_NOTIFY_INFORMATION& operator*() const;
 	const FILE_NOTIFY_INFORMATION* operator->() const;
-
 };
 
+std::wostream& operator<< (std::wostream&, const change_entity);
+std::wostream& operator<< (std::wostream&, const change_entity&);
+
+/**
+ * Questa classe serve a monitorare i cambiamenti effettuati in
+ * una cartella in un file system qualsiasi.
+ */
 class directory_listener {
 
+	/**
+	 * Risorsa di sistema riferita alla cartella.
+	 */
 	HANDLE dir;
 
 public:
 	directory_listener(const wchar_t*);
 
+	/**
+	 * Questa funzione template prende in input una funzione di interruzione
+	 * che segnala se serve ancora continuare a monitorare.
+	 * Questa funzione inoltre richiama a ogni modifica la funzione passata
+	 * come template. La funzione è un template per permettere un maggior
+	 * grado di ottimizzazione!
+	 * @param stopper
+	 */
 	template<void (*func)(const change_entity)>
 	void scan(std::function<bool()> stopper) {
 
@@ -66,6 +102,8 @@ public:
 		}
 	}
 
+	void scan(std::function<void(const change_entity)> func, std::function<bool()> stopper);
+
 	template<typename T, T* _t, void (T::*func)(const change_entity)>
 	void scan(std::function<bool()> stopper) {
 
@@ -94,6 +132,8 @@ public:
 #undef buffFNI
 		}
 	}
+
+	inline HANDLE get_handle() { return this->dir; }
 
 	~directory_listener();
 };
