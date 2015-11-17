@@ -2,16 +2,16 @@
 A Dropbox like Backup as school project
 
 ## TODO (attuale)
-- Progettare database
+- Progettare database [da rivedere]
 - Progettare classi server (C++)
-- Progettare classi client (C++)
-- V&V
+- Progettare classi client (C++) [quasi completo]
+- V&V [in corso]
 - Progettare GUI (C# WPF)
 - Slides
 
-### Opzio(a)nali
+### Opzionali
 - Gui figa (albero con disegnini)
-- Sito
+- Sito (anche no, non richiesto dal progetto!)
 * Registrazione
 * Login
 * Visualizzazione
