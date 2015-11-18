@@ -11,6 +11,8 @@
 #include <cstdio>
 #include <string>
 #include <mutex>
+#include <locale>
+#include <codecvt>
 #include <Windows.h>
 
 using namespace std;
@@ -19,7 +21,8 @@ using namespace utilities;
 
 #define DIR_TEST_FOLDER L"PMB_test\\PMB_root\\"
 
-BOOST_AUTO_TEST_SUITE(windows_test);
+BOOST_AUTO_TEST_SUITE(windows_test)
+;
 
 struct fixture {
 	mutex lock;
@@ -27,7 +30,8 @@ struct fixture {
 	directory_listener dl;
 	bool closed;
 
-	fixture() : dl(DIR_TEST_FOLDER) {
+	fixture() :
+			dl(DIR_TEST_FOLDER) {
 		closed = false;
 	}
 
@@ -39,14 +43,22 @@ struct fixture {
 		lock_guard<mutex> lk(lock);
 		BOOST_ASSERT(!commands.empty());
 		BOOST_CHECK_EQUAL(ce->Action, commands.front().first);
-		BOOST_CHECK_EQUAL(wstring(ce->FileName, ce->FileNameLength).c_str(),
-				commands.front().second);
+
+		//PRIMA VOLTA CHE BOOST NON FA QUEL CHE DEVE NELLA MIA ESPERIENZA!!!
+		// Per far andare i test devo trasformare in utf8... :(
+		wstring_convert<codecvt_utf8<wchar_t>> converter;
+
+		string is = converter.to_bytes(ce->FileName, ce->FileName + ce->FileNameLength / sizeof(wchar_t)),
+				should = converter.to_bytes(commands.front().second);
+
+		BOOST_CHECK_EQUAL(is, should);
+
 		commands.pop_front();
 	}
 
 	void log(DWORD act, const wchar_t*str, bool last = false) {
 		lock_guard<mutex> lk(lock);
-		if(!closed) {
+		if (!closed) {
 			commands.push_back(make_pair(act, str));
 			closed = closed || last;
 		}
@@ -57,11 +69,26 @@ struct fixture {
 	}
 };
 
-
 static void dcl_script(fixture* fix) {
 	fix->log(FILE_ACTION_ADDED, L"prova.txt");
-	fix->log(FILE_ACTION_MODIFIED, L"prova.txt", true);
+	fix->log(FILE_ACTION_MODIFIED, L"prova.txt");
+	_wsystem(L"echo prova > " DIR_TEST_FOLDER L"\\prova.txt");
+
+	fix->log(FILE_ACTION_MODIFIED, L"prova.txt");
 	_wsystem(L"echo prova >> " DIR_TEST_FOLDER L"\\prova.txt");
+
+	fix->log(FILE_ACTION_ADDED, L"prova");
+	_wsystem(L"mkdir " DIR_TEST_FOLDER L"\\prova");
+
+	fix->log(FILE_ACTION_ADDED, L"prova\\prova");
+	fix->log(FILE_ACTION_MODIFIED, L"prova");
+	fix->log(FILE_ACTION_MODIFIED, L"prova\\prova");
+	_wsystem(L"echo prova > " DIR_TEST_FOLDER "\\prova\\prova");
+
+	fix->log(FILE_ACTION_ADDED, L"prova\\kkp");
+	fix->log(FILE_ACTION_MODIFIED, L"prova", true);
+	_wsystem(L"mkdir " DIR_TEST_FOLDER L"prova\\kkp");
+
 }
 
 struct bah {
@@ -90,7 +117,7 @@ BOOST_FIXTURE_TEST_CASE(directory_change_listener, fixture) {
 		dl.scan([this](const change_entity ce) {this->check(ce);},
 				[this]() {return this->keep();});
 
-		if(new_th.joinable())
+		if (new_th.joinable())
 			new_th.join();
 
 	} catch (int e) {
