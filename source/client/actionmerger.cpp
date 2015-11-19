@@ -17,14 +17,14 @@ using namespace client;
 using namespace server;
 
 
-inline static opcode get_flag_bit(DWORD event) {//FIXME
+inline static opcode get_flag_bit(DWORD event) {
 	switch (event) {
 		case FILE_ACTION_ADDED:
 			return CREATE;
 		case FILE_ACTION_REMOVED:
 			return REMOVE;
 		case FILE_ACTION_MODIFIED:
-			return WRITE | CHMOD;
+			return WRITE;
 		case FILE_ACTION_RENAMED_OLD_NAME:
 		case FILE_ACTION_RENAMED_NEW_NAME:
 			return MOVE;
@@ -43,7 +43,6 @@ void action_merger::add_change(const wchar_t*filename, DWORD event,
 		else
 			fa.op_code ^= opcode::MOVE;
 	}
-	// FIXME: this is gcc only
 	fa.timestamps[__builtin_ffs(flag) - 1] = f;
 }
 

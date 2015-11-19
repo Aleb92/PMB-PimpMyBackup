@@ -33,7 +33,7 @@ directory_listener::~directory_listener() {
 
 void directory_listener::scan(std::function<void(const change_entity)> func, std::function<bool()> stopper) {
 	DWORD dwBytesReturned = 0;
-	while (stopper()) // TODO Fai uno stopper serio
+	while (stopper())
 	{
 		char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
@@ -50,7 +50,6 @@ void directory_listener::scan(std::function<void(const change_entity)> func, std
 			current += buffFNI->NextEntryOffset;
 			func(change_entity(whole, buffFNI));
 		}
-
 #undef buffFNI
 	}
 }

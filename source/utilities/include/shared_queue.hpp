@@ -53,8 +53,6 @@ namespace utilities {
 		}
 
 		inline bool empty() const {
-			//FIXME Se aggiungo questa guardia mi da errore di compilazione da riguardare
-			//std::lock_guard<std::mutex> guard(lk);
 			return data.empty();
 		}
 
