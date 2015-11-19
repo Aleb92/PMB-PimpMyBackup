@@ -13,7 +13,7 @@
 		FILE_NOTIFY_CHANGE_SECURITY
 
 #define K 1024
-#define NOTIF_INFO_BUFF_LENGHT 64*K
+#define NOTIF_INFO_BUFF_LENGHT 8*K
 
 namespace client {
 
@@ -78,10 +78,8 @@ public:
 
 		DWORD dwBytesReturned = 0;
 
-		while (stopper()) // FIXME Trovare un modo per fermare il loop di scan della cartella
+		while (stopper())
 		{
-			//FIXME Decidere come gestoire la lunghezza enorme di questo vettore che sara
-			//allocato nuovo ad ogni ciclo
 			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
 			if (ReadDirectoryChangesW(dir, (LPVOID) current,
@@ -99,6 +97,7 @@ public:
 			}
 
 #undef buffFNI
+
 		}
 	}
 
@@ -109,24 +108,22 @@ public:
 
 		DWORD dwBytesReturned = 0;
 
-		while (stopper()) // FIXME Trovare un modo per fermare il loop di scan della cartella
+		while (stopper())
 		{
-			//FIXME Decidere come gestoire la lunghezza enorme di questo vettore che sara
-			//allocato nuovo ad ogni ciclo
 			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
 			if (ReadDirectoryChangesW(dir, (LPVOID) current,
 			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, FILTERS,
-					&dwBytesReturned, 0, 0) == 0)
+					&dwBytesReturned, NULL, NULL) == 0)
 				throw GetLastError();
 
 			std::shared_ptr<char> whole(current);
 
 #define buffFNI ((FILE_NOTIFY_INFORMATION*)(current))
-
+			(_t->*func)(change_entity(whole, buffFNI));
 			while (buffFNI->NextEntryOffset != 0) {
-				(_t->*func)(change_entity(whole, buffFNI));
 				current += buffFNI->NextEntryOffset;
+				(_t->*func)(change_entity(whole, buffFNI));
 			}
 
 #undef buffFNI

@@ -22,7 +22,6 @@ using namespace utilities;
 #define DIR_TEST_FOLDER L"PMB_test\\PMB_root\\"
 
 BOOST_AUTO_TEST_SUITE(windows_test)
-;
 
 struct fixture {
 	mutex lock;
@@ -91,10 +90,6 @@ static void dcl_script(fixture* fix) {
 
 }
 
-struct bah {
-	int a;
-};
-
 BOOST_AUTO_TEST_CASE(create_directory_recursively) {
 	try {
 		{
@@ -110,7 +105,6 @@ BOOST_AUTO_TEST_CASE(create_directory_recursively) {
 }
 
 BOOST_FIXTURE_TEST_CASE(directory_change_listener, fixture) {
-	_wsystem(L"mkdir " DIR_TEST_FOLDER);
 	try {
 		thread new_th(dcl_script, this);
 

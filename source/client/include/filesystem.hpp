@@ -12,6 +12,7 @@
 
 #include <forward_list>
 #include <unordered_map>
+#include <string>
 #include <Windows.h>
 #include <openssl/md5.h>
 
@@ -100,8 +101,9 @@ class filesystem {
 	using dir_table = std::unordered_map<std::wstring, directory>;
 	dir_table directories;
 public:
-	filesystem() = default;
-	virtual ~filesystem() { }
+	filesystem();
+
+	virtual ~filesystem();
 
 	file_info& get_file(const wchar_t*, size_t s = 0);
 	directory& get_dir(const wchar_t*, size_t s = 0);

@@ -1,6 +1,7 @@
 
 #include <utilities/include/strings.hpp>
 #include <filesystem.hpp>
+#include <settings.hpp>
 #include <string>
 
 using namespace std;
@@ -61,8 +62,8 @@ void filesystem::delete_file(const wchar_t*name, size_t length) {
 	directories.at(name_info.first).remove(name_info.second);
 }
 
-void filesystem::move_dir(const wchar_t*, const wchar_t*) {
-	//TODO
+void filesystem::move_dir(const wchar_t*old, const wchar_t*_new) {
+
 }
 
 void filesystem::move_file(const wchar_t*n1, size_t l1 , const wchar_t*n2, size_t l2) {
@@ -79,6 +80,10 @@ file_info& filesystem::new_file(const wchar_t*name, size_t length) {
 
 directory& filesystem::new_dir(const wchar_t*name, size_t length) {
 	return directories[wstring(name, length)];
+}
+
+filesystem::filesystem(){
+
 }
 
 } /* namespace client */
