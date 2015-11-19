@@ -7,11 +7,26 @@
 
 #include <settings.hpp>
 
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
 namespace client {
 
 settings::settings() {
-	// TODO Auto-generated constructor stub
+	wstring line;
+	wifstream myfile (SETTINGS_FILE_NAME);
+	if (myfile.is_open())
+	  {
+	    while ( getline(myfile,line) )
+	    {
 
+
+	    }
+	    myfile.close();
+	  }
 }
 
 settings::~settings() {
