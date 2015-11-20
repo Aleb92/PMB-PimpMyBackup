@@ -1,6 +1,8 @@
+
+#include <directorylistener.hpp>
+
 #include <iostream>
 #include <iterator>
-#include <directorylistener.hpp>
 
 using namespace std;
 using namespace client;

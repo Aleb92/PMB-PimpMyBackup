@@ -3,7 +3,6 @@
 #define SOURCE_UTILITIES_INCLUDE_FSUTIL_HPP_
 
 #include <string>
-#include <Shlobj.h>
 
 namespace utilities{
 	int createDirectoryRecursively(const wchar_t* path);
