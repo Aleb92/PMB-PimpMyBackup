@@ -22,7 +22,7 @@ file_info& directory::add(const wstring& file_name){
 	return files[file_name];
 }
 
-static pair<wstring, wstring> file_dir_name(const wchar_t*name, size_t length) {
+static pair<wstring, wstring> file_dir_name(const wchar_t*name, size_t length = 0) {
 	if(!length)
 		length = wcslen(name);
 	const wchar_t*file = wcsrchr(name, L'\\', length);
@@ -63,7 +63,8 @@ void filesystem::delete_file(const wchar_t*name, size_t length) {
 }
 
 void filesystem::move_dir(const wchar_t*old, const wchar_t*_new) {
-
+	auto oldName =file_dir_name(old), newName = file_dir_name(_new);
+	//TODO
 }
 
 void filesystem::move_file(const wchar_t*n1, size_t l1 , const wchar_t*n2, size_t l2) {
@@ -83,7 +84,7 @@ directory& filesystem::new_dir(const wchar_t*name, size_t length) {
 }
 
 filesystem::filesystem(){
-
+	// prima controllo se c'è un file da caricare
 }
 
 } /* namespace client */
