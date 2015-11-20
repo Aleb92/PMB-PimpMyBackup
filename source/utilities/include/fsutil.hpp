@@ -2,9 +2,7 @@
 #ifndef SOURCE_UTILITIES_INCLUDE_FSUTIL_HPP_
 #define SOURCE_UTILITIES_INCLUDE_FSUTIL_HPP_
 
-#include <string>
 #include <openssl/md5.h>
-
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 # include <windows.h>

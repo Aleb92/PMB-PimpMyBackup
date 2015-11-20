@@ -1,9 +1,3 @@
-/*
- * settings.hpp
- *
- *  Created on: 13 nov 2015
- *      Author: Marco
- */
 
 #ifndef SOURCE_CLIENT_INCLUDE_SETTINGS_HPP_
 #define SOURCE_CLIENT_INCLUDE_SETTINGS_HPP_
