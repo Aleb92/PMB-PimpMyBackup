@@ -3,8 +3,11 @@
 #include <filesystem.hpp>
 #include <settings.hpp>
 #include <string>
+#include <cstring>
+#include <cwchar>
 
 using namespace std;
+using namespace utilities;
 
 namespace client {
 
@@ -84,7 +87,11 @@ directory& filesystem::new_dir(const wchar_t*name, size_t length) {
 }
 
 filesystem::filesystem(){
-	// prima controllo se c'è un file da caricare
+	//TODO prima controllo se c'è un file da caricare
+}
+
+filesystem::~filesystem() {
+	//TODO
 }
 
 } /* namespace client */

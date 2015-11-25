@@ -103,7 +103,7 @@ class filesystem {
 public:
 	filesystem();
 
-	virtual ~filesystem();
+	~filesystem();
 
 	file_info& get_file(const wchar_t*, size_t s = 0);
 	directory& get_dir(const wchar_t*, size_t s = 0);
