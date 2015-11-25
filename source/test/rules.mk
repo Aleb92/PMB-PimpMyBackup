@@ -7,4 +7,5 @@ LDFLAGS := $(LDFLAGS) -ldl
 endif
 
 # FIXME fa schifo.
-LDFLAGS := client_[^m]*.o $(LDFLAGS) -lboost_unit_test_framework
+EXT_OBJ := client_[^m]*.o
+LDFLAGS := $(LDFLAGS) -lboost_unit_test_framework
