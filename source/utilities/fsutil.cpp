@@ -20,19 +20,19 @@ bool utilities::pathExists(const wchar_t*path) {
 bool utilities::isPathDir(const wchar_t*path) {
 	DWORD attr = GetFileAttributesW(path);
 	return (attr != INVALID_FILE_ATTRIBUTES)
-			&& (attr & FILE_ATTRIBUTE_DIRECTORY);
+	&& (attr & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 bool utilities::fileMD5(const wchar_t*path, unsigned char buff[MD5_DIGEST_LENGTH]) {
 	HANDLE file = CreateFileW(path,
-		GENERIC_READ,
-		FILE_SHARE_READ,
-		NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
+			GENERIC_READ,
+			FILE_SHARE_READ,
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_NORMAL,
+			NULL);
 	if (file == INVALID_HANDLE_VALUE)
-		return false;
+	return false;
 
 	bool ret = fdMD5(file, buff);
 	CloseHandle(file);
@@ -42,20 +42,20 @@ bool utilities::fileMD5(const wchar_t*path, unsigned char buff[MD5_DIGEST_LENGTH
 bool utilities::fdMD5(HANDLE hwnd, unsigned char buff[MD5_DIGEST_LENGTH]) {
 	LARGE_INTEGER size;
 	if (!GetFileSizeEx(hwnd, &size))
-		return false;
+	return false;
 
 	HANDLE map = CreateFileMapping(hwnd,
-					NULL,
-					PAGE_READONLY, size.HighPart, size.LowPart,
-					NULL);
+			NULL,
+			PAGE_READONLY, size.HighPart, size.LowPart,
+			NULL);
 
 	if(map == NULL)
-		return false;
+	return false;
 
 	const unsigned char*fileBUFF = static_cast<unsigned char*>( MapViewOfFile(
-			 map,
-			 FILE_MAP_READ,
-			 0, 0, 0) );
+					map,
+					FILE_MAP_READ,
+					0, 0, 0) );
 	if(fileBUFF == NULL) {
 		CloseHandle(map);
 		return false;
@@ -71,6 +71,44 @@ bool utilities::fdMD5(HANDLE hwnd, unsigned char buff[MD5_DIGEST_LENGTH]) {
 
 #else
 
-//TODO: unix utilities
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+
+bool utilities::fileMD5(const char*path,
+		unsigned char buff[MD5_DIGEST_LENGTH]) {
+	int fd = open(path, O_RDONLY);
+
+	if (fd == -1)
+		return false;
+
+	bool ret = fdMD5(fd, buff);
+
+	if (close(fd) == -1)
+		return false;
+	return ret;
+}
+
+bool fdMD5(int fd, unsigned char buff[MD5_DIGEST_LENGTH]) {
+
+	struct stat sb;
+	if (fstat(fd, &sb) == -1)
+		return false;
+	if (!S_ISREG(sb.st_mode))
+		return false;
+
+	void *m = mmap(0, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	if (m == MAP_FAILED)
+		return false;
+
+	MD5((unsigned char*) m, sb.st_size, buff);
+
+	if (munmap(m, sb.st_size) == -1)
+		return false;
+
+	return true;
+}
 
 #endif
