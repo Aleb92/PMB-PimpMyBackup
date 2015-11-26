@@ -1,5 +1,6 @@
 
 #include <utilities/include/strings.hpp>
+#include <utilities/include/fsutil.hpp>
 #include <filesystem.hpp>
 #include <settings.hpp>
 #include <string>
@@ -144,8 +145,47 @@ filesystem::filesystem(){
 	}
 	else {
 		fromFile = false;
-		// Discesa ricorsiva dalla directory
+		loadFS(settings::inst().watched_dir, L"");
 	}
+}
+
+/**
+ * Ben lontano dall'essere ottimale... ma comunque amen.
+ * @param name
+ * @param prefix
+ */
+void filesystem::loadFS(const wstring& name, const wstring& prefix) {
+    HANDLE dir;
+    WIN32_FIND_DATA file_data;
+
+    if ((dir = FindFirstFileW((name + L"/*").c_str(), &file_data)) == INVALID_HANDLE_VALUE)
+        return; /* No files found */
+
+    do {
+        if (file_data.cFileName == '.')
+            continue;
+
+        const wstring file_name = file_data.cFileName;
+        const wstring full_file_name = prefix + L"/" + file_name;
+        const bool is_directory = (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
+
+        if (is_directory) {
+        	new_dir(full_file_name.c_str(), full_file_name.length());
+        	loadFS(name + L"/" + file_name, full_file_name);
+        }
+        else {
+        	// TOH un file!
+        	file_info& fi = new_file(full_file_name.c_str(), full_file_name.length());
+        	// Carico i dati!
+        	fi.lastModified = file_data.ftLastWriteTime;
+        	fi.mod = file_mod(file_data.dwFileAttributes);
+        	fileMD5((name + L"/" + file_name).c_str(), fi.checksum);
+        }
+
+    } while (FindNextFile(dir, &file_data));
+
+    FindClose(dir);
 }
 
 filesystem::~filesystem() {
