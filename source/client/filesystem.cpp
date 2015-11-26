@@ -3,8 +3,15 @@
 #include <filesystem.hpp>
 #include <settings.hpp>
 #include <string>
+#include <cstring>
+#include <cwchar>
+#include <istream>
+#include <fstream>
+#include <stack>
+#include <windows.h>
 
 using namespace std;
+using namespace utilities;
 
 namespace client {
 
@@ -80,11 +87,45 @@ file_info& filesystem::new_file(const wchar_t*name, size_t length) {
 }
 
 directory& filesystem::new_dir(const wchar_t*name, size_t length) {
-	return directories[wstring(name, length)];
+	auto name_info = file_dir_name(name, length);
+	directory& ret = directories[wstring(name, length)];
+	directories[name_info.first].dirList[name_info.second] = ret;
+	return ret;
 }
 
+const directory& filesystem::root() const {
+	return directories[""];
+}
+
+struct dir_struct {
+	size_t name_len, n_child;
+};
+
+struct file_struct {
+	size_t name_len;
+	file_info file;
+};
+
 filesystem::filesystem(){
-	// prima controllo se c'è un file da caricare
+	// Provo ad aprire il file
+	ifstream file(settings::inst().tree_filename, ios::binary | ios_base::in);
+
+	if(file.is_open()) {
+		fromFile = true;
+		// Ottengo quanti elementi ho
+		//Leggo quanti elementi ho
+		size_t elem;
+
+		file.read(reinterpret_cast<char*>(&elem), sizeof(elem));
+	}
+	else {
+		fromFile = false;
+		// Discesa ricorsiva dalla directory
+	}
+}
+
+filesystem::~filesystem() {
+	//TODO
 }
 
 } /* namespace client */

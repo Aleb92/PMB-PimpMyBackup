@@ -15,11 +15,11 @@ using namespace client;
 
 log::log() {
 	wstring oldfile_name = settings::inst().log_filename + L".old";
-	if(MoveFile(settings::inst().log_filename.c_str(), oldfile_name.c_str())){
+	if(MoveFileW(settings::inst().log_filename.c_str(), oldfile_name.c_str())){
 		//TODO: Load old log
 	}
 
-	HANDLE file_handle = CreateFile(
+	HANDLE file_handle = CreateFileW(
 			settings::inst().log_filename.c_str(),
 			GENERIC_WRITE,
 		    0, NULL,

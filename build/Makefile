@@ -13,7 +13,7 @@ ifneq ($(MAKECMDGOALS),utilities)
 
 ifndef SKIP
 $(MAKECMDGOALS): $(OBJ_FILES) util
-	$(CXX) $(OBJ_FILES) utilities_*.o -o $(MAKECMDGOALS) $(LDFLAGS)
+	$(CXX) $(OBJ_FILES) $(EXT_OBJ) utilities_*.o -o $(MAKECMDGOALS) $(LDFLAGS)
 else
 $(MAKECMDGOALS):
 endif

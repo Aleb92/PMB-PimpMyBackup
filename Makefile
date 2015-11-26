@@ -4,7 +4,9 @@
 export CXXFLAGS := -g -std=c++11
 
 # Poi il linker!
-export LDFLAGS := -lpthread -lsqlite3
+export LDFLAGS := -lpthread -lsqlite3 -lcrypto
+
+export EXT_OBJ := 
 
 # Ok ogni makefile farà poi quello che deve per aggiungere quello che serve.
 # Adesso, ogni sottocartella corrisponde ad un target.
