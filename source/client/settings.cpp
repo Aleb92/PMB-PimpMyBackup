@@ -8,6 +8,8 @@
 #include <map>
 #include <cstdlib>
 #include <cwchar>
+#include <locale>
+#include <codecvt>
 
 using namespace std;
 
@@ -29,9 +31,12 @@ settings::settings() {
 	  }
 
 	log_filename = settings[L"log_filename"];
-	tree_filename = settings[L"tree_filename"];
-	watched_dir= settings[L"watched_dir"];
-	server_host= settings[L"server_host"];
+
+	wstring_convert<codecvt_utf8<wchar_t>> converter;
+	tree_filename = converter.to_bytes(settings[L"tree_filename"]);
+
+	watched_dir = settings[L"watched_dir"];
+	server_host = settings[L"server_host"];
 
 	wstring port = settings[L"server_port"];
 	server_port = static_cast<uint16_t>(_wtoi(port.c_str()));
