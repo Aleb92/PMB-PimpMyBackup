@@ -40,7 +40,7 @@ inline file_mod operator~(file_mod lh){ return static_cast<file_mod>(~lh); }
 struct file_info {
 	FILETIME lastModified;
 	client::file_mod mod;
-	char checksum[MD5_DIGEST_LENGTH];
+	unsigned char checksum[MD5_DIGEST_LENGTH];
 };
 
 class directory {
@@ -100,7 +100,7 @@ class filesystem {
 	using dir_table = std::unordered_map<std::wstring, directory>;
 	dir_table directories;
 	bool fromFile;///< per uso eventuale
-	void load(std::ifstream&, size_t n);
+	void loadFS(const std::wstring&,const std::wstring&);
 public:
 
 	filesystem();
