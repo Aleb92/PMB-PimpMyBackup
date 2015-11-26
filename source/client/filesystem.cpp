@@ -211,12 +211,12 @@ filesystem::~filesystem() {
 			size_t nameLen= fileName.length()*sizeof(wchar_t);
 
 			fileo.write(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
-			fileo.write(reinterpret_cast<char*>(fileName), nameLen);
-
-			//TODO Da finire...
+			fileo.write(reinterpret_cast<char*>(fileName.c_str()), nameLen);
+			fileo.write(reinterpret_cast<char*>(&(kvf.second)), sizeof(file_info));
 		}
 	}
 
+	fileo.close();
 }
 
 } /* namespace client */
