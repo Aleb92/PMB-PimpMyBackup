@@ -16,7 +16,7 @@ class settings : public utilities::singleton<settings> {
 	virtual ~settings();
 public:
 	std::wstring log_filename;
-	std::wstring tree_filename;
+	std::string tree_filename;
 	std::wstring watched_dir;
 	std::wstring server_host;
 	uint16_t server_port;

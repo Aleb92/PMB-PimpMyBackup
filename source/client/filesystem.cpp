@@ -189,7 +189,12 @@ void filesystem::loadFS(const wstring& name, const wstring& prefix) {
 }
 
 filesystem::~filesystem() {
-	//TODO
+
+	size_t dirsNumber = directories.size(), filesNumber = 0;
+	ofstream fileo(settings::inst().tree_filename, ios::binary | ios_base::out);
+
+	fileo.write(reinterpret_cast<char*>(&dirsNumber), sizeof(size_t));
+
 }
 
 } /* namespace client */
