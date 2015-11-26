@@ -112,11 +112,35 @@ filesystem::filesystem(){
 
 	if(file.is_open()) {
 		fromFile = true;
+		wchar_t name[300];//Melius abundare quam deficere
 		// Ottengo quanti elementi ho
 		//Leggo quanti elementi ho
-		size_t elem;
+		size_t n, len;
+		// Prendo il numero di directories
+		file.read(reinterpret_cast<char*>(&n), sizeof(n));
+		while(n) {
+			// Prendo la dimensione del path
+			file.read(reinterpret_cast<char*>(&len), sizeof(len));
+			//Carico il path
+			file.read(reinterpret_cast<char*>(name), len);
+			//Creo la directory
+			new_dir(name, len);
+			--n;
+		}
 
-		file.read(reinterpret_cast<char*>(&elem), sizeof(elem));
+		// Ora i files:
+		file.read(reinterpret_cast<char*>(&n), sizeof(n));
+		while(n) {
+			// Prendo la dimensione del path
+			file.read(reinterpret_cast<char*>(&len), sizeof(len));
+			//Carico il path
+			file.read(reinterpret_cast<char*>(name), len);
+			// Ora carico le informazioni del file
+			file_info &f = new_file(name, len);
+			file.read(reinterpret_cast<char*>(&f), sizeof(file_info));
+			--n;
+		}
+		//fait!
 	}
 	else {
 		fromFile = false;
