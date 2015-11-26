@@ -52,7 +52,6 @@ class directory {
 
 	file_table files;
 	dir_list dirList;
-
 public:
 
 	typedef dir_list::iterator dir_iterator;
@@ -100,10 +99,16 @@ class filesystem {
 
 	using dir_table = std::unordered_map<std::wstring, directory>;
 	dir_table directories;
+	bool fromFile;///< per uso eventuale
+	void load(std::ifstream&, size_t n);
 public:
+
 	filesystem();
 
 	~filesystem();
+
+
+	const directory& root() const;
 
 	file_info& get_file(const wchar_t*, size_t s = 0);
 	directory& get_dir(const wchar_t*, size_t s = 0);
@@ -112,6 +117,9 @@ public:
 	void delete_file(const wchar_t*, size_t s = 0);
 	void move_dir(const wchar_t*, const wchar_t*);
 	void move_file(const wchar_t*, size_t, const wchar_t*, size_t);
+
+
+
 	/**
 	 *
 	 * @param

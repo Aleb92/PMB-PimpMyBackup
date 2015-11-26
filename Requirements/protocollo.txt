@@ -70,3 +70,6 @@ u2									|
 dfashfkhas							|
 u3 => errore 						|
 -----------------------------------
+
+Formato per il tree
+[Dimensione della struttura]
