@@ -1,6 +1,7 @@
 
 #include <directorylistener.hpp>
 #include <utilities/include/fsutil.hpp>
+#include <thread>
 #include <windows.h>
 
 #include <functional>
@@ -10,7 +11,7 @@ using namespace client;
 
 namespace client {
 
-directory_listener::directory_listener(const wchar_t* path) {
+directory_listener::directory_listener(const wchar_t* path) : running(false) {
 	dir = CreateFileW(path, GENERIC_READ,
 			FILE_SHARE_READ | FILE_SHARE_DELETE | FILE_SHARE_WRITE, 0, OPEN_EXISTING,
 			FILE_FLAG_BACKUP_SEMANTICS, 0);
@@ -31,10 +32,13 @@ directory_listener::~directory_listener() {
 	CloseHandle(dir);
 }
 
-void directory_listener::scan(std::function<void(const change_entity)> func, std::function<bool()> stopper) {
+void directory_listener::scan(std::function<void(const change_entity)> func) {
+	if(running)
+		return; // TODO: eccezione?
 	DWORD dwBytesReturned = 0;
-	while (stopper())
+	while (running)
 	{
+		//FIXME: Credo ci sia una corsa critica quì
 		char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
 		if (ReadDirectoryChangesW(dir, (LPVOID) current,
@@ -51,6 +55,17 @@ void directory_listener::scan(std::function<void(const change_entity)> func, std
 			func(change_entity(whole, buffFNI));
 		}
 #undef buffFNI
+	}
+}
+
+void directory_listener::stop() {
+	if(running) {
+		running = false;
+		// fixme:Questo probabilmente elimina (nella pratica) il problema delle corse critiche
+		// però... NO BIEN per la parte teorica che rimane dipendente dallo schedulatore
+		std::this_thread::yield();
+		// Interrompi l'attesa!
+		CancelIoEx(dir, NULL);
 	}
 }
 
