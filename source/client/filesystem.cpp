@@ -195,6 +195,28 @@ filesystem::~filesystem() {
 
 	fileo.write(reinterpret_cast<char*>(&dirsNumber), sizeof(size_t));
 
+	for(auto kv : directories){
+		filesNumber += kv.second.files.size();
+		size_t nameLen= kv.first.length()*sizeof(wchar_t);
+		fileo.write(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
+		fileo.write(reinterpret_cast<char*>(kv.first.c_str()), nameLen);
+	}
+
+	fileo.write(reinterpret_cast<char*>(&filesNumber), sizeof(size_t));
+
+	for(auto kvd : directories){
+		for(auto kvf : kvd.second.files){
+
+			wstring fileName = kvd.first + L"\\" + kvf.first;
+			size_t nameLen= fileName.length()*sizeof(wchar_t);
+
+			fileo.write(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
+			fileo.write(reinterpret_cast<char*>(fileName.c_str()), nameLen);
+			fileo.write(reinterpret_cast<char*>(&(kvf.second)), sizeof(file_info));
+		}
+	}
+
+	fileo.close();
 }
 
 } /* namespace client */
