@@ -61,6 +61,7 @@ class directory_listener {
 	 * Risorsa di sistema riferita alla cartella.
 	 */
 	HANDLE dir;
+	std::atomic<bool> running;
 
 public:
 	directory_listener(const wchar_t*);
@@ -74,11 +75,12 @@ public:
 	 * @param stopper
 	 */
 	template<void (*func)(const change_entity)>
-	void scan(std::function<bool()> stopper) {
-
+	void scan() {
+		if(running)
+			return; // TODO: eccezione?
 		DWORD dwBytesReturned = 0;
 
-		while (stopper())
+		while (running)
 		{
 			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
@@ -101,14 +103,15 @@ public:
 		}
 	}
 
-	void scan(std::function<void(const change_entity)> func, std::function<bool()> stopper);
+	void scan(std::function<void(const change_entity)> func);
 
 	template<typename T, T* _t, void (T::*func)(const change_entity)>
-	void scan(std::function<bool()> stopper) {
-
+	void scan() {
+		if(running)
+			return; // TODO: eccezione?
 		DWORD dwBytesReturned = 0;
 
-		while (stopper())
+		while (running)
 		{
 			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
@@ -130,7 +133,9 @@ public:
 		}
 	}
 
-	inline HANDLE get_handle() { return this->dir; }
+	void stop();
+
+//	inline HANDLE get_handle() { return this->dir; }
 
 	~directory_listener();
 };
