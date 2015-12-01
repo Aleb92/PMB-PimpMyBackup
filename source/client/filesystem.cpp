@@ -16,19 +16,8 @@ using namespace utilities;
 
 namespace client {
 
-file_info& directory::get(const wstring& file_name){
-	wstring fn = file_name;
-	return files.at(fn);
-}
 
-file_info directory::remove(const wstring& file_name){
-	file_info oldFile = files.at(file_name);
-	return oldFile;
-}
-
-file_info& directory::add(const wstring& file_name){
-	return files[file_name];
-}
+const std::wstring directory::null_dir = L":::NOT INITIALIZED:::";
 
 static pair<wstring, wstring> file_dir_name(const wchar_t*name, size_t length = 0) {
 	if(!length)
@@ -47,6 +36,39 @@ static pair<wstring, wstring> file_dir_name(const wchar_t*name, size_t length = 
 			wstring(file, length)
 		);
 }
+
+////////////////////////////// directory SECTION ////////////////////////
+
+file_info& directory::get(const wstring& file_name){
+	wstring fn = file_name;
+	return files.at(fn);
+}
+
+file_info directory::remove(const wstring& file_name){
+	file_info oldFile = files.at(file_name);
+	return oldFile;
+}
+
+file_info& directory::add(const wstring& file_name){
+	return files[file_name];
+}
+
+void directory::move(filesystem& fsys, directory& old) {
+	// muovo tutti i file :D
+	files.swap(old.files);
+
+	// E poi le directories
+	for(directory* oldChild : old.dirList) {
+		auto oldPath = file_dir_name(oldChild->name->c_str());
+		fsys.new_dir(((*name) + oldPath.second).c_str()).move(fsys, *oldChild);
+		// Elimino la directory vecchia
+		fsys.delete_dir(oldChild->name->c_str());
+	}
+}
+
+////////////////////////////// filesystem SECTION ////////////////////////
+
+
 
 file_info& filesystem::get_file(const wchar_t*name, size_t length) {
 	auto name_info = file_dir_name(name, length);
@@ -71,8 +93,9 @@ void filesystem::delete_file(const wchar_t*name, size_t length) {
 }
 
 void filesystem::move_dir(const wchar_t*old, const wchar_t*_new) {
-	auto oldName =file_dir_name(old), newName = file_dir_name(_new);
-	//TODO
+	auto oldPath =file_dir_name(old);
+	//Creo la nuova directory
+	new_dir(_new).move(*this, get_dir(old));
 }
 
 void filesystem::move_file(const wchar_t*n1, size_t l1 , const wchar_t*n2, size_t l2) {
@@ -88,14 +111,24 @@ file_info& filesystem::new_file(const wchar_t*name, size_t length) {
 }
 
 directory& filesystem::new_dir(const wchar_t*name, size_t length) {
+	// Divido il nome in due parti: father e child
 	auto name_info = file_dir_name(name, length);
-	directory& ret = directories[wstring(name, length)];
-	directories[name_info.first].dirList[name_info.second] = ret;
+
+	// Inserisco nella hash table, che è quella che gestirà la sua memoria.
+	auto res = directories.insert(make_pair(wstring(name, length), directory() ));
+
+	// Del risultato, prendo la directory
+	directory& ret = res.first->second;
+	// E ci salvo dentro il puntatore al nome
+	ret.name = &res.first->first;
+
+	// E qui aggiungo alla lista del padre
+	directories[name_info.first].dirList.push_front(&ret);
 	return ret;
 }
 
-const directory& filesystem::root() const {
-	return directories[""];
+const directory& filesystem::root() {
+	return directories[L""];
 }
 
 struct dir_struct {
@@ -156,13 +189,13 @@ filesystem::filesystem(){
  */
 void filesystem::loadFS(const wstring& name, const wstring& prefix) {
     HANDLE dir;
-    WIN32_FIND_DATA file_data;
+    WIN32_FIND_DATAW file_data;
 
     if ((dir = FindFirstFileW((name + L"/*").c_str(), &file_data)) == INVALID_HANDLE_VALUE)
         return; /* No files found */
 
     do {
-        if (file_data.cFileName == '.')
+        if (file_data.cFileName[0] == L'.')
             continue;
 
         const wstring file_name = file_data.cFileName;
@@ -183,7 +216,7 @@ void filesystem::loadFS(const wstring& name, const wstring& prefix) {
         	fileMD5((name + L"/" + file_name).c_str(), fi.checksum);
         }
 
-    } while (FindNextFile(dir, &file_data));
+    } while (FindNextFileW(dir, &file_data));
 
     FindClose(dir);
 }
@@ -199,7 +232,7 @@ filesystem::~filesystem() {
 		filesNumber += kv.second.files.size();
 		size_t nameLen= kv.first.length()*sizeof(wchar_t);
 		fileo.write(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
-		fileo.write(reinterpret_cast<char*>(kv.first.c_str()), nameLen);
+		fileo.write(reinterpret_cast<const char*>(kv.first.c_str()), nameLen);
 	}
 
 	fileo.write(reinterpret_cast<char*>(&filesNumber), sizeof(size_t));
@@ -211,7 +244,7 @@ filesystem::~filesystem() {
 			size_t nameLen= fileName.length()*sizeof(wchar_t);
 
 			fileo.write(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
-			fileo.write(reinterpret_cast<char*>(fileName.c_str()), nameLen);
+			fileo.write(reinterpret_cast<const char*>(fileName.c_str()), nameLen);
 			fileo.write(reinterpret_cast<char*>(&(kvf.second)), sizeof(file_info));
 		}
 	}

@@ -194,7 +194,7 @@ namespace utilities {
 			return ::send(handle, (const char*)buff, sizeof(buff), MSG_NOSIGNAL);
 		}
 
-		// Questa � vuota
+		// Questa è vuota
 		template <typename T>
 		inline ssize_t send(const T, size_t); // empty
 

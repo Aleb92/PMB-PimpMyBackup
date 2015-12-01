@@ -35,7 +35,7 @@ inline file_mod operator&(file_mod lh, file_mod rh){ return static_cast<file_mod
 inline file_mod operator^(file_mod lh, file_mod rh){ return static_cast<file_mod>(lh ^ rh); }
 inline file_mod operator~(file_mod lh){ return static_cast<file_mod>(~lh); }
 
-
+class filesystem;
 
 struct file_info {
 	FILETIME lastModified;
@@ -50,8 +50,14 @@ class directory {
 
 	friend class filesystem;
 
+	void move(filesystem& fsys, directory& from);
+
 	file_table files;
 	dir_list dirList;
+
+	static const std::wstring null_dir;
+
+	const std::wstring*name = &null_dir;
 public:
 
 	typedef dir_list::iterator dir_iterator;
@@ -59,6 +65,9 @@ public:
 
 	typedef dir_list::const_iterator const_dir_iterator;
 	typedef file_table::const_iterator const_file_iterator;
+
+	//TODO: in seguito sarebbe carino implementare il move costructor
+	//		per evitare una copia delle liste/tabelle.
 
 	directory() = default;
 
@@ -90,6 +99,8 @@ public:
 		return files.end();
 	}
 
+	inline const std::wstring& get_name() const { return *name; }
+
 	file_info& get(const std::wstring&);
 	file_info remove(const std::wstring&);
 	file_info& add(const std::wstring&);
@@ -108,7 +119,7 @@ public:
 	~filesystem();
 
 
-	const directory& root() const;
+	const directory& root();
 
 	file_info& get_file(const wchar_t*, size_t s = 0);
 	directory& get_dir(const wchar_t*, size_t s = 0);

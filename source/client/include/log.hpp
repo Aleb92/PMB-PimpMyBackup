@@ -16,19 +16,19 @@
 namespace client {
 
 class log : public utilities::singleton<log> {
-private:
+	friend class utilities::singleton<log>;
 	log();
 	std::wofstream log_file;
 	~log();
 public:
 
 	template <typename T>
-	void issue(T val) {
+	void issue(T& val) {
 		log_file << L"i " << val << std::endl;
 	}
 
 	template <typename T>
-	void close(T val){
+	void close(T& val){
 		log_file << L"c " << val << std::endl;
 	}
 };

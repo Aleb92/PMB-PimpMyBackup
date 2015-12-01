@@ -20,21 +20,23 @@ namespace utilities {
 		struct nihil {};
 	}
 
-	template<typename T, typename L = impl::nihil, L* _l = nullptr, void (L::*push)(T&) = nullptr, void (L::*pop)(T&) = nullptr >
-	class shared_queue : public singleton<shared_queue<T, L, _l, push, pop>> {
+	template<typename T, typename L = void, void (L::*push)(T&) = nullptr, void (L::*pop)(T&) = nullptr >
+	class shared_queue : public singleton<shared_queue<T, L, push, pop>> {
 		std::deque<T> data;
 		std::mutex lk;
 		std::condition_variable cv;
+		L& _l;
 
-		friend class singleton<shared_queue<T, L, _l, push, pop>>;
+		friend class singleton<shared_queue<T, L, push, pop>>;
 
-		shared_queue() = default;
+		//FIXME: qui suppongo che L sia un singleton!
+		shared_queue() : _l(L::inst()) {};
 	public:
 
-		void enqueue(T& obj) {
+		void enqueue(const T obj) {
 			std::lock_guard<std::mutex> guard(lk);
 			data.push_back(obj);
-			if(_l && push) (_l->*push)(obj);
+			if(_l && push) (_l.*push)(obj);
 			cv.notify_all();
 		}
 
@@ -42,7 +44,7 @@ namespace utilities {
 			std::unique_lock<std::mutex> guard(lk);
 
 			on_return<> ret([this](){
-				if(_l && push) (_l->*pop)(data.front());
+				if(_l && push) (_l.*pop)(data.front());
 				data.pop_front();
 			});
 

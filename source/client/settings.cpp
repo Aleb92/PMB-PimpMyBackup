@@ -15,6 +15,8 @@ using namespace std;
 
 namespace client {
 
+std::wstring_convert<std::codecvt_utf8<wchar_t>> settings::converter;
+
 settings::settings() {
 	wstring line;
 	wifstream settingFile (SETTINGS_FILE_NAME);
@@ -32,7 +34,6 @@ settings::settings() {
 
 	log_filename = settings[L"log_filename"];
 
-	wstring_convert<codecvt_utf8<wchar_t>> converter;
 	tree_filename = converter.to_bytes(settings[L"tree_filename"]);
 
 	watched_dir = settings[L"watched_dir"];
@@ -47,7 +48,7 @@ settings::~settings() {
 	wofstream settingFile(SETTINGS_FILE_NAME);
 	if(settingFile.is_open()){
 		settingFile << L"log_filename=" << log_filename << endl;
-		settingFile << L"tree_filename=" << tree_filename << endl;
+		settingFile << L"tree_filename=" << converter.from_bytes(tree_filename) << endl;
 		settingFile << L"watched_dir=" << watched_dir << endl;
 		settingFile << L"server_host=" << server_host << endl;
 		settingFile << L"server_port=" << server_port << endl;
