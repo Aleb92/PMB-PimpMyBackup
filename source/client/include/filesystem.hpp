@@ -1,9 +1,3 @@
-/*
- * filesystem.hpp
- *
- *  Created on: 10 nov 2015
- *      Author: Marco
- */
 
 #ifndef SOURCE_CLIENT_INCLUDE_FILESYSTEM_HPP_
 #define SOURCE_CLIENT_INCLUDE_FILESYSTEM_HPP_
