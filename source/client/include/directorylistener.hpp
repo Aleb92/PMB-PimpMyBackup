@@ -66,48 +66,14 @@ class directory_listener {
 public:
 	directory_listener(const wchar_t*);
 
-//	template<void (*func)(const change_entity)>
-//	void scan() {
-//		if(running)
-//			return; // TODO: eccezione?
-//		running = true;
-//		DWORD dwBytesReturned = 0;
-//
-//		std::lock_guard<std::mutex> guard (lock);
-//		while (running)
-//		{
-//			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
-//
-//			if (ReadDirectoryChangesW(dir, (LPVOID) current,
-//			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, FILTERS,
-//					&dwBytesReturned, NULL, NULL) == 0)
-//				throw GetLastError();
-//			lock.unlock();
-//
-//			std::shared_ptr<char> whole(current);
-//
-//#define buffFNI ((FILE_NOTIFY_INFORMATION*)(current))
-//			func(change_entity(whole, buffFNI));
-//			while (buffFNI->NextEntryOffset != 0) {
-//				current += buffFNI->NextEntryOffset;
-//				func(change_entity(whole, buffFNI));
-//			}
-//
-//#undef buffFNI
-//			lock.lock();
-//		}
-//	}
-
 	/**
-		 * Questa funzione template prende in input una funzione di interruzione
-		 * che segnala se serve ancora continuare a monitorare.
-		 * Questa funzione inoltre richiama a ogni modifica la funzione passata
-		 * come template. La funzione è un template per permettere un maggior
-		 * grado di ottimizzazione!
-		 * @param stopper
-		 */
-	void scan(std::function<void(const change_entity)> func);
-
+	 * Questa funzione template prende in input una funzione di interruzione
+	 * che segnala se serve ancora continuare a monitorare.
+	 * Questa funzione inoltre richiama a ogni modifica la funzione passata
+	 * come template. La funzione è un template per permettere un maggior
+	 * grado di ottimizzazione!
+	 * @param stopper
+	 */
 	template<typename T, void (T::*func)(const change_entity)>
 	void scan(T* _t) {
 		if(running)

@@ -9,7 +9,7 @@ using namespace std;
 base_exception::base_exception(const string& str) : msg(str) {}
 base_exception::base_exception(string&& str) : msg(str) {}
 
-virtual const char* base_exception::what() const {
+const char* base_exception::what() const throw() {
 	return msg.c_str();
 }
 

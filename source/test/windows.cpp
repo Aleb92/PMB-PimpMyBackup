@@ -53,18 +53,21 @@ struct fixture {
 		BOOST_CHECK_EQUAL(is, should);
 
 		commands.pop_front();
+		if(closed && commands.size() == 0)
+			dl.stop();
 	}
 
-	void log(DWORD act, const wchar_t*str, bool last = false) {
+	void log(DWORD act, const wchar_t*str) {
 		lock_guard<mutex> lk(lock);
-		if (!closed) {
+		if (!closed)
 			commands.push_back(make_pair(act, str));
-			closed = closed || last;
-		}
 	}
 
-	bool keep() {
-		return !closed || !commands.empty();
+	void close() {
+		lock_guard<mutex> lk(lock);
+		closed = true;
+		if(commands.size() == 0)
+			dl.stop();
 	}
 };
 
@@ -85,7 +88,7 @@ static void dcl_script(fixture* fix) {
 	_wsystem(L"echo prova > " DIR_TEST_FOLDER "\\prova\\prova");
 
 	fix->log(FILE_ACTION_ADDED, L"prova\\kkp");
-	fix->log(FILE_ACTION_MODIFIED, L"prova", true);
+	fix->log(FILE_ACTION_MODIFIED, L"prova");
 	_wsystem(L"mkdir " DIR_TEST_FOLDER L"prova\\kkp");
 
 }
@@ -108,8 +111,7 @@ BOOST_FIXTURE_TEST_CASE(directory_change_listener, fixture) {
 	try {
 		thread new_th(dcl_script, this);
 
-		dl.scan([this](const change_entity ce) {this->check(ce);},
-				[this]() {return this->keep();});
+		dl.scan<fixture, &fixture::check>(this);
 
 		if (new_th.joinable())
 			new_th.join();

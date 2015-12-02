@@ -23,12 +23,12 @@ class log : public utilities::singleton<log> {
 public:
 
 	template <typename T>
-	void issue(T& val) {
+	void issue(const T& val) {
 		log_file << L"i " << val << std::endl;
 	}
 
 	template <typename T>
-	void close(T& val){
+	void close(const T& val){
 		log_file << L"c " << val << std::endl;
 	}
 };

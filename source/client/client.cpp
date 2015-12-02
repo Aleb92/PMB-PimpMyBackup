@@ -15,10 +15,9 @@ client::~client() {
 }
 
 void client::start() {
-
-	thread watcher(&directory_listener::scan<shq, &shq::enqueue>, dirListener),
-		   merger(&client::merge, this), dispatcher(&client::dispatch, this);
-
+	watcher = thread(&directory_listener::scan<shq, &shq::enqueue>, &dirListener, & shq::inst());
+	merger = thread(&client::merge, this);
+	dispatcher = thread(&client::dispatch, this);
 }
 
 void client::dispatch(){
@@ -32,9 +31,14 @@ void client::merge(){
 
 void client::stop() {
 	//TODO Implementare stop
+
+	// E aspettare che tutto sia effettivamento chiuso
+	if(watcher.joinable())
+		watcher.join();
+	if(merger.joinable())
+		merger.join();
+	if(dispatcher.joinable())
+		dispatcher.join();
 }
-
-
-
 
 } /* namespace client */

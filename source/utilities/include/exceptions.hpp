@@ -18,7 +18,7 @@ namespace utilities {
 		base_exception(const std::string&);
 		base_exception(std::string&&);
 
-		virtual const char* what() const;
+		virtual const char* what() const throw();
 	};
 
 	//TODO definire le eccezioni

@@ -71,15 +71,19 @@ public:
 	int count;
 
 
-	void push(int& i) {
+	void push(const int& i) {
 		++count;
 	}
 
-	void pop(int&i) {
+	void pop(const int&i) {
 		--count;
 	}
 
 	static cbk c;
+
+	static cbk& inst() {
+		return c;
+	}
 };
 cbk cbk::c;
 
@@ -87,7 +91,7 @@ BOOST_AUTO_TEST_CASE(callbacks) {
 	int num = rand() % 1000;
 	int vett[1000];
 
-	typedef shared_queue<int, cbk, &cbk::c, &cbk::push, &cbk::pop> sq;
+	typedef shared_queue<int, cbk, &cbk::push, &cbk::pop> sq;
 
 	for(int i = 0; i < num; i++) {
 		vett[i]=rand()%10000;

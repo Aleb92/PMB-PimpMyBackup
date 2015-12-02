@@ -5,10 +5,12 @@
 #include <directorylistener.hpp>
 #include <filesystem.hpp>
 #include <log.hpp>
+#include <thread>
 
 namespace client {
 
 class client {
+	std::thread watcher, merger, dispatcher;
 
 	friend class std::thread;
 

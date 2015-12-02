@@ -14,8 +14,8 @@ namespace utilities {
 	class singleton{
 	public:
 		static inline T& inst() {
-			static T inst;
-			return inst;
+			static T val;
+			return val;
 		}
 	};
 

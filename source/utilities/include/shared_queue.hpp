@@ -17,10 +17,16 @@
 namespace utilities {
 
 	namespace impl {
-		struct nihil {};
+		struct nihil {
+			static nihil& inst() {
+				return n;
+			}
+		private:
+			static nihil n;
+		};
 	}
 
-	template<typename T, typename L = void, void (L::*push)(T&) = nullptr, void (L::*pop)(T&) = nullptr >
+	template<typename T, typename L = impl::nihil, void (L::*push)(const T&) = nullptr, void (L::*pop)(const T&) = nullptr >
 	class shared_queue : public singleton<shared_queue<T, L, push, pop>> {
 		std::deque<T> data;
 		std::mutex lk;
@@ -36,7 +42,7 @@ namespace utilities {
 		void enqueue(const T obj) {
 			std::lock_guard<std::mutex> guard(lk);
 			data.push_back(obj);
-			if(_l && push) (_l.*push)(obj);
+			if(push) (_l.*push)(obj);
 			cv.notify_all();
 		}
 
@@ -44,7 +50,7 @@ namespace utilities {
 			std::unique_lock<std::mutex> guard(lk);
 
 			on_return<> ret([this](){
-				if(_l && push) (_l.*pop)(data.front());
+				if(push) (_l.*pop)(data.front());
 				data.pop_front();
 			});
 
