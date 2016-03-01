@@ -49,6 +49,7 @@ struct fixture {
 
 		string is = converter.to_bytes(ce->FileName, ce->FileName + ce->FileNameLength / sizeof(wchar_t)),
 				should = converter.to_bytes(commands.front().second);
+
 		commands.pop_front();
 
 		BOOST_CHECK_EQUAL(is, should);
@@ -87,7 +88,8 @@ static void dcl_script(fixture* fix) {
 	_wsystem(L"echo prova > " DIR_TEST_FOLDER "\\prova\\prova");
 
 	fix->log(FILE_ACTION_ADDED, L"prova\\kkp");
-	fix->log(FILE_ACTION_MODIFIED, L"prova\\kkp");
+	fix->log(FILE_ACTION_MODIFIED, L"prova");
+	fix->close();
 	_wsystem(L"mkdir " DIR_TEST_FOLDER L"prova\\kkp");
 
 }

@@ -1,6 +1,7 @@
 #include <utilities/include/fsutil.hpp>
 #include <openssl/md5.h>
 #include <functional>
+#include <iostream>
 
 using namespace std;
 
@@ -34,7 +35,7 @@ bool utilities::fileMD5(const wchar_t*path, unsigned char buff[MD5_DIGEST_LENGTH
 	if (file == INVALID_HANDLE_VALUE)
 	return false;
 
-	bool ret = fdMD5(file, buff);
+	bool ret = utilities::fdMD5(file, buff);
 	CloseHandle(file);
 	return ret;
 }
@@ -50,7 +51,7 @@ bool utilities::fdMD5(HANDLE hwnd, unsigned char buff[MD5_DIGEST_LENGTH]) {
 			NULL);
 
 	if(map == NULL)
-	return false;
+		return false;
 
 	const unsigned char*fileBUFF = static_cast<unsigned char*>( MapViewOfFile(
 					map,
@@ -61,7 +62,7 @@ bool utilities::fdMD5(HANDLE hwnd, unsigned char buff[MD5_DIGEST_LENGTH]) {
 		return false;
 	}
 
-	MD5(fileBUFF, (size_t)(size.QuadPart), buff);
+	MD5(fileBUFF, static_cast<size_t>(size.QuadPart), buff);
 
 	UnmapViewOfFile(fileBUFF);
 	CloseHandle(map);
