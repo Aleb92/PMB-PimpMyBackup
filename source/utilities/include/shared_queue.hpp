@@ -1,3 +1,4 @@
+
 /*
  * queue.hpp
  *
@@ -17,16 +18,16 @@
 namespace utilities {
 
 	namespace impl {
-		struct nihil {
-			static nihil& inst() {
-				return n;
-			}
-		private:
-			static nihil n;
+
+
+		struct nihil : public singleton<nihil> {
+			//FIXME: Non mi piace! E' semplicemente orrido.
+			friend class singleton<nihil>;
 		};
 	}
 
-	template<typename T, typename L = impl::nihil, void (L::*push)(const T&) = nullptr, void (L::*pop)(const T&) = nullptr >
+	template<typename T, typename L = impl::nihil,
+			void (L::*push)(const T&) = nullptr, void (L::*pop)(const T&) = nullptr >
 	class shared_queue : public singleton<shared_queue<T, L, push, pop>> {
 		std::deque<T> data;
 		std::mutex lk;
@@ -50,11 +51,11 @@ namespace utilities {
 			std::unique_lock<std::mutex> guard(lk);
 
 			on_return<> ret([this](){
-				if(push) (_l.*pop)(data.front());
+				if(pop) (_l.*pop)(data.front());
 				data.pop_front();
-			});
+			});//FIXME: viene davvero poi ottimizzato?
 
-			cv.wait(guard, [this](){
+			cv.wait(guard, [this](){//FIXME: e la distruzione?
 				return !data.empty();
 			});
 			return data.front();
@@ -65,6 +66,7 @@ namespace utilities {
 		}
 
 	};
+
 }
 
 

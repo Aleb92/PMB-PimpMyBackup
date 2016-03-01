@@ -39,3 +39,4 @@ build/*
 
 #File di modifica di unix
 *~
+/Build (GNU)/

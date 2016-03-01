@@ -22,14 +22,14 @@ namespace utilities {
 	class at_end {
 	private:
 		at_end() {}
-		~at_end() {
+		inline ~at_end() {
 			(void)func();
 		}
 		static const at_end<T,func> caller;
 	};
 
 	template <typename T, T (*func)()> 
-	const at_end<T, func> at_end<T, func>::caller;
+	const at_end<T, func> at_end<T, func>::caller = at_end<T, func>();
 
 	template <typename T = void()>
 	class on_return{
