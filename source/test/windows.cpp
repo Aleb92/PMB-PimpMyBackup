@@ -40,7 +40,7 @@ struct fixture {
 
 	void check(const change_entity ce) {
 		lock_guard<mutex> lk(lock);
-		BOOST_ASSERT(!commands.empty());
+		BOOST_REQUIRE(!commands.empty());
 		BOOST_CHECK_EQUAL(ce->Action, commands.front().first);
 
 		//PRIMA VOLTA CHE BOOST NON FA QUEL CHE DEVE NELLA MIA ESPERIENZA!!!
@@ -49,6 +49,7 @@ struct fixture {
 
 		string is = converter.to_bytes(ce->FileName, ce->FileName + ce->FileNameLength / sizeof(wchar_t)),
 				should = converter.to_bytes(commands.front().second);
+
 		commands.pop_front();
 
 		BOOST_CHECK_EQUAL(is, should);
@@ -84,11 +85,11 @@ static void dcl_script(fixture* fix) {
 
 	fix->log(FILE_ACTION_ADDED, L"prova\\prova");
 	fix->log(FILE_ACTION_MODIFIED, L"prova\\prova");
-	fix->log(FILE_ACTION_MODIFIED, L"prova\\prova");
 	_wsystem(L"echo prova > " DIR_TEST_FOLDER "\\prova\\prova");
 
 	fix->log(FILE_ACTION_ADDED, L"prova\\kkp");
-	fix->log(FILE_ACTION_MODIFIED, L"prova\\kkp");
+	fix->log(FILE_ACTION_MODIFIED, L"prova");
+	fix->close();
 	_wsystem(L"mkdir " DIR_TEST_FOLDER L"prova\\kkp");
 
 }

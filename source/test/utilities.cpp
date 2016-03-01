@@ -33,15 +33,15 @@ BOOST_AUTO_TEST_SUITE(utilities_test)
  */
 BOOST_AUTO_TEST_CASE(MD5_static)
 {
-	unsigned char buff[MD5_DIGEST_LENGTH], check[MD5_DIGEST_LENGTH];
+	unsigned char buff[MD5_DIGEST_LENGTH] = { 0 }, check[MD5_DIGEST_LENGTH] = { 0 };
 	const unsigned char static_try[] = "prova MD5";
 
-	wofstream testFile(MD5_TEST_FILENAME);
+	ofstream testFile(MD5_TEST_FILENAME);
 	testFile << static_try;
 	testFile.close(); // Questo fa si che venga scritto
 
 	fileMD5(MD5_TEST_FILENAME_W, buff);
-	MD5(static_try, sizeof(static_try), check);
+	MD5(static_try, sizeof(static_try)-1, check);
 
 	BOOST_CHECK(memcmp(buff, check, MD5_DIGEST_LENGTH) == 0);
 	remove(MD5_TEST_FILENAME);
