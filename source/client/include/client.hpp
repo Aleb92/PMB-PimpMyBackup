@@ -17,7 +17,7 @@ class client {
 	filesystem fs;
 	directory_listener dirListener;
 
-	using shq = utilities::shared_queue<change_entity, log, &log::issue<change_entity>, &log::close<change_entity>>;
+	using shq = utilities::shared_queue<change_entity>;
 
 	void merge();
 	void dispatch();
