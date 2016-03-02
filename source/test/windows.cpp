@@ -9,7 +9,7 @@
 #include <thread>
 #include <deque>
 #include <cstdio>
-#include <string>]]
+#include <string>
 #include <mutex>
 #include <locale>
 #include <codecvt>
@@ -49,6 +49,8 @@ struct fixture {
 
 		string is = converter.to_bytes(ce->FileName, ce->FileName + ce->FileNameLength / sizeof(wchar_t)),
 				should = converter.to_bytes(commands.front().second);
+
+
 
 		commands.pop_front();
 

@@ -37,6 +37,10 @@ build/
 build/*
 !build/Makefile
 
+# cmake cache
+CMakeFiles/
+PMB_Test/
+
 #File di modifica di unix
 *~
 /Build (GNU)/
