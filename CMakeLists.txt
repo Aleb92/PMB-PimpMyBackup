@@ -1,8 +1,8 @@
-cmake_minimum_required(2.6)
+cmake_minimum_required(VERSION 2.6)
 project(PMB)
 
 # Questa build è gestita da source e dalle sue sottocartelle
-subdirs(source)
+#subdirs(source)
 
 # Quì però è un bel posto dove mettere il comando per i file
 find_package(Doxygen)
