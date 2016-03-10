@@ -6,9 +6,12 @@ using namespace std;
 using namespace client;
 
 
+
 change_entity::change_entity(std::shared_ptr<char>&whole,
 		FILE_NOTIFY_INFORMATION*chunk) :
-		container(whole), data(chunk) {
+		container(whole), data(chunk){
+
+	::GetSystemTimeAsFileTime(const_cast<FILETIME*>(&time));
 }
 
 

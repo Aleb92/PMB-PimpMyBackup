@@ -9,6 +9,8 @@
 #include <log.hpp>
 #include <windows.h>
 #include <io.h>
+#include <cstdio>
+#include <unordered_map>
 
 using namespace std;
 using namespace client;
@@ -16,7 +18,26 @@ using namespace client;
 log::log() {
 	wstring oldfile_name = settings::inst().log_filename + L".old";
 	if(MoveFileW(settings::inst().log_filename.c_str(), oldfile_name.c_str())){
-		//TODO: Load old log
+
+		FILE* old_log = _wfopen(oldfile_name.c_str(), L"rb");
+		if(old_log == NULL)
+			throw errno;
+
+		log_entry_header entry;
+
+		unordered_map<wstring, file_action> load_map;
+
+		while(feof(old_log)){
+			fread(&entry, sizeof(struct log_entry_header), 1, old_log);
+
+			wstring entityName;
+			entityName.resize(entry.length/sizeof(wchar_t));
+			fread(&entityName[0], entry.length, 1, old_log);
+
+			file_action& eInfo = load_map[entityName];
+
+			//TODO
+		}
 	}
 
 	HANDLE file_handle = CreateFileW(
@@ -30,16 +51,49 @@ log::log() {
 	    int file_descriptor = _open_osfhandle((intptr_t)file_handle, 0);
 
 	    if (file_descriptor != -1) {
-	        FILE* file = _fdopen(file_descriptor, "w");
+	        log_file = _fdopen(file_descriptor, "wb");
 
-	        if (file != NULL) {
-//	            log_file = ofstream(file);
-	            log_file.rdbuf()->pubsetbuf(nullptr, 0);
+	        if (log_file != NULL) {
+	        	throw errno;
 	        }
 	    }
 	}
 }
 
+void log::issue(const change_entity& entity) {
+
+	log_entry_header h = {
+			'i',
+			get_flag_bit(entity->Action),
+			entity.time,
+			reinterpret_cast<size_t> (entity->FileNameLength)
+	};
+
+	fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
+	fwrite(entity->FileName, h.length, 1, log_file);
+
+	fflush(log_file);
+}
+
+void log::close(const file_action& action, const wstring& name) {
+
+	log_entry_header h = {
+				'c',
+				action.op_code,
+				action.timestamps[0],
+				name.length()* sizeof(wchar_t)
+		};
+
+	for(int i=1; i<8; i++)
+		if(CompareFileTime(action.timestamps+i,&h.timestamp) > 0)
+			h.timestamp = action.timestamps[i];
+
+	fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
+	fwrite(name.c_str(), h.length, 1, log_file);
+
+	fflush(log_file);
+}
+
 log::~log() {
-	log_file.close();
+	fclose(log_file);
 }

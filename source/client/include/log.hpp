@@ -11,26 +11,29 @@
 #include <directorylistener.hpp>
 #include <utilities/include/singleton.hpp>
 
+#include <string>
 #include <fstream>
 
 namespace client {
 
+struct log_entry_header  {
+	char type;
+	server::opcode op_code;
+	FILETIME timestamp;
+	size_t length;
+};
+
 class log : public utilities::singleton<log> {
 	friend class utilities::singleton<log>;
 	log();
-	std::wofstream log_file;
+	FILE* log_file;
 	~log();
+
 public:
 
-	template <typename T>
-	void issue(const T& val) {
-		log_file << L"i " << val << std::endl;
-	}
+	void issue(const change_entity&);
 
-	template <typename T>
-	void close(const T& val){
-		log_file << L"c " << val << std::endl;
-	}
+	void close(const file_action&, const std::wstring&);
 };
 
 } /* namespace client */

@@ -9,6 +9,8 @@
 
 namespace client {
 
+inline server::opcode get_flag_bit(DWORD);
+
 /**
  * Struttura per memorizzare lo stato attuale di una modifica al file
  * non ancora inviata al server.

@@ -17,7 +17,7 @@ using namespace client;
 using namespace server;
 
 
-inline static opcode get_flag_bit(DWORD event) {
+inline opcode client::get_flag_bit(DWORD event) {
 	switch (event) {
 		case FILE_ACTION_ADDED:
 			return CREATE;

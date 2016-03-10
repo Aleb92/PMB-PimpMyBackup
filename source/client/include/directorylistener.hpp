@@ -34,6 +34,9 @@ class change_entity {
 	 */
 	FILE_NOTIFY_INFORMATION*data;
 public:
+
+	const FILETIME time;
+
 	/**
 	 * L'oggetto è copiabile.
 	 * @param old copy
