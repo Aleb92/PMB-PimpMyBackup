@@ -19,8 +19,8 @@ struct file_action {
 	uint8_t op_code;///< bitmask delle operazioni da inviare
 	FILETIME timestamps[8];///< timestamp di ognuna delle operazioni
 	std::wstring newName;///< nuovo nome del file (in caso di MOVE)
-	file_action& operator|=(log_entry_header&);
-	file_action& operator^=(log_entry_header&);
+	file_action& operator|=(const log_entry_header&);
+	file_action& operator^=(const log_entry_header&);
 };
 
 /**
