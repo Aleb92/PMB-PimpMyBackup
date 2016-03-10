@@ -44,7 +44,7 @@ void action_merger::add_change(const wchar_t*filename, DWORD event,
 			fa.op_code ^= opcode::MOVE;
 	}
 	// __builtin_ffs restituisce in pratica log2(x) + 1
-	// FIXME: sto indicizzando bene?
+	// FIXME: sto indicizzando bene? (si)
 	fa.timestamps[__builtin_ffs(flag) - 1] = f;
 }
 
@@ -57,11 +57,13 @@ file_action& file_action::operator |=(const log_entry_header& entry){
 }
 
 file_action& file_action::operator ^=(const log_entry_header& entry) {
-	//TODO
-	for(int i = 0, j = 1; i < 8; i++, j << 1){
-		FILETIME& _t = timestamps[i];
-		if(CompareFileTime(&entry.timestamp, &_t) == 1){
-
+	for(uint8_t i = 0, j = 1; i < 8; i++, j << 1){
+		if(op_code & j) {
+			FILETIME& _t = timestamps[i];
+			if(CompareFileTime(&entry.timestamp, &_t) == 1){
+				_t = {0};//FIXME serve? Credo di no
+				opcode ^= j;
+			}
 		}
 	}
 	return *this;
