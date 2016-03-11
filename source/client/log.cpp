@@ -40,7 +40,7 @@ log::log() {
 			if (entry.type=='i') {
 				eInfo |= entry;
 
-				if (entry.op_code | server::opcode::MOVE) {
+				if (entry.op_code & server::opcode::MOVE) {
 					size_t length;
 					fread(&length, sizeof(size_t), 1, old_log);
 					wstring entityName;
@@ -49,6 +49,7 @@ log::log() {
 				}
 			}else eInfo ^= entry;
 		}
+		//TODO: infilare il tutto nel action merger e rendere l'action_merger un signleton!
 	}
 
 	HANDLE file_handle = CreateFileW(settings::inst().log_filename.c_str(),
