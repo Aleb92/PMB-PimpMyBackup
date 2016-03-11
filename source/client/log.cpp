@@ -47,8 +47,7 @@ log::log() {
 					entityName.resize(length / sizeof(wchar_t));
 					fread(&entityName[0], length, 1, old_log);
 				}
-			}else
-				eInfo ^= entry;
+			}else eInfo ^= entry;
 		}
 	}
 
