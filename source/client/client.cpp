@@ -12,8 +12,7 @@ namespace client {
 
 client::client() : dirListener(settings::inst().watched_dir.c_str()) { }
 
-client::~client() {
-}
+client::~client() { }
 
 void client::start() {
 	watcher = thread(&directory_listener::scan<shq, &shq::enqueue>, &dirListener, & shq::inst());
@@ -28,11 +27,15 @@ void client::merge(){
 	//Questo continua finche l'azione che non viene fuori e 0 che significa chiusura
 	while((che = shq::inst().dequeue())->Action) {
 
+		if(fs.isDir(che->FileName, che->FileNameLength) && che->Action == FILE_ACTION_MODIFIED)
+			continue;
+
+		//TODO: Se serve controllare il checksum dei file quando ci arriva un file modified e se uguale
+		// 		saltare
 
 		log::inst().issue(che);
 		action_merger::inst().add_change(che);
 	}
-
 }
 
 void client::dispatch(){

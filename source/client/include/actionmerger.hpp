@@ -42,12 +42,9 @@ public:
 
 	/**
 	 * Marca un nuovo file come modificato.
-	 * @param nome del file
-	 * @param Azione notificata
-	 * @param Timestamp
-	 * @param newName nuovo nome (in caso di MOVE)
+	 * @param Info sull'entita' modificata
 	 */
-	void add_change(const wchar_t*, DWORD, const FILETIME&, const wchar_t * newName = nullptr);
+	void add_change(const change_entity&);
 
 	/**
 	 * rimuove un elemento dalla mappa e restituisce il puntatore

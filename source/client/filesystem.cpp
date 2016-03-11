@@ -127,14 +127,19 @@ directory& filesystem::new_dir(const wchar_t*name, size_t length) {
 	return ret;
 }
 
-bool filesystem::isDir(const wchar_t* name, size_t s = 0);
+bool filesystem::isDir(const wchar_t* name, size_t length = 0){
+	if(length == 0)
+		length = wcslen(name);
+
+	return directories.count(wstring(name, length));
+}
+
 bool filesystem::isFile(const wchar_t* name, size_t length = 0){
 	auto name_info = file_dir_name(name, length);
 	if(directories.count(name_info.first)){
 		return directories[name_info.first].files.count(name_info.second);
 	}
-	return directories.at(name_info.first).files[name_info.second];
-
+	return false;
 }
 
 const directory& filesystem::root() {
