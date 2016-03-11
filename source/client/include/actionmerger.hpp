@@ -27,15 +27,17 @@ struct file_action {
  * Classe per aggregare i cambiamenti. E' in pratica una hash table che
  * tiene traccia dei files.
  */
-class action_merger {
+class action_merger : public utilities::singleton<action_merger> {
 	using maptype = std::unordered_map<std::wstring, file_action>;
 	maptype map;///< mappa per i cambiamenti
+	action_merger() = default;
+	friend class utilities::singleton<action_merger>;
+	friend class client::log;
 public:
 
 	typedef maptype::iterator iterator;
 	typedef maptype::const_iterator const_iterator;
 
-	action_merger() = default;
 	virtual ~action_merger() = default;
 
 	/**
