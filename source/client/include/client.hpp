@@ -28,6 +28,8 @@ public:
 	void start();
 	void stop();
 
+	bool synchronize();
+
 	~client();
 };
 
