@@ -11,7 +11,12 @@
 
 namespace client {
 
-
+/**
+ * Classe per la gestione delle opzioni impostata come singleton per comodità.
+ * All'apertura e alla chiusura del programma carica e salva le opzioni in un file.
+ * Ogni modifica alle opzioni è quindi automaticamente serializzata durante la distruzione dell'oggetto.
+ * Tutti i suoi membri sono quindi pubblici e modificabili.
+ */
 class settings : public utilities::singleton<settings> {
 	friend class utilities::singleton<settings>;
 
@@ -20,9 +25,22 @@ class settings : public utilities::singleton<settings> {
 	settings();
 	virtual ~settings();
 public:
+	/**
+	 * Nome del file di log
+	 */
 	std::wstring log_filename;
-	std::string tree_filename;
+
+	// FIXME: ?!?
+	// std::string tree_filename;
+
+	/**
+	 * Cartella salvata
+	 */
 	std::wstring watched_dir;
+
+	/**
+	 * indirizzo ip (stringa) del server
+	 */
 	std::wstring server_host;
 	uint16_t server_port;
 
