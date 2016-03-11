@@ -1,10 +1,3 @@
-/*
- * log.cpp
- *
- *  Created on: 13 nov 2015
- *      Author: Marco
- */
-
 #include <settings.hpp>
 #include <log.hpp>
 #include <windows.h>
@@ -17,6 +10,8 @@ using namespace client;
 
 log::log() {
 	wstring oldfile_name = settings::inst().log_filename + L".old";
+	unordered_map<wstring, file_action> load_map;
+
 	if (MoveFileW(settings::inst().log_filename.c_str(),
 			oldfile_name.c_str())) {
 
@@ -25,8 +20,6 @@ log::log() {
 			throw errno;
 
 		log_entry_header entry;
-
-		unordered_map<wstring, file_action> load_map;
 
 		while (feof(old_log)) {
 			fread(&entry, sizeof(struct log_entry_header), 1, old_log);
@@ -47,10 +40,15 @@ log::log() {
 					entityName.resize(length / sizeof(wchar_t));
 					fread(&entityName[0], length, 1, old_log);
 				}
-			}else
+			}else {
 				eInfo ^= entry;
+
+				if(eInfo.op_code == 0){
+					load_map.erase(entityName);
+				}
+			}
 		}
-		//TODO: infilare il tutto nel action merger e rendere l'action_merger un signleton!
+		fclose(old_log);
 	}
 
 	HANDLE file_handle = CreateFileW(settings::inst().log_filename.c_str(),
@@ -67,6 +65,12 @@ log::log() {
 			if (log_file != NULL) {
 				throw errno;
 			}
+
+			/*
+			 * Riempe la action merger con le nuove entry ancora da completare trovate nella scansione
+			 * del vecchio log
+			 */
+			action_merger::inst().map.swap(load_map);
 		}
 	}
 }
@@ -100,6 +104,21 @@ void log::close(const file_action& action, const wstring& name) {
 	fwrite(name.c_str(), h.length, 1, log_file);
 
 	fflush(log_file);
+}
+
+void log::issue(const file_action& action, const std::wstring& name){
+
+	log_entry_header h = { 'i', action.op_code, action.timestamps[0],
+				name.length() * sizeof(wchar_t) };
+
+		for (int i = 1; i < 8; i++)
+			if (CompareFileTime(action.timestamps + i, &h.timestamp) > 0)
+				h.timestamp = action.timestamps[i];
+
+		fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
+		fwrite(name.c_str(), h.length, 1, log_file);
+
+		fflush(log_file);
 }
 
 log::~log() {

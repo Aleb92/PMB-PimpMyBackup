@@ -1,9 +1,3 @@
-/*
- * log.hpp
- *
- *  Created on: 13 nov 2015
- *      Author: Marco
- */
 
 #ifndef SOURCE_CLIENT_INCLUDE_LOG_HPP_
 #define SOURCE_CLIENT_INCLUDE_LOG_HPP_
@@ -23,11 +17,16 @@ struct log_entry_header  {
 	size_t length;
 };
 
+/*
+ * Il log...
+ */
 class log : public utilities::singleton<log> {
 	friend class utilities::singleton<log>;
 	log();
 	FILE* log_file;
 	~log();
+
+	void issue(const file_action&, const std::wstring&);
 
 public:
 
