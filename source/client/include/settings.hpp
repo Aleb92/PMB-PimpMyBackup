@@ -31,7 +31,7 @@ public:
 	std::wstring log_filename;
 
 	// FIXME: ?!?
-	// std::string tree_filename;
+	std::string tree_filename;
 
 	/**
 	 * Cartella salvata
