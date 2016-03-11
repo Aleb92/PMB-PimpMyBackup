@@ -12,16 +12,20 @@
 
 namespace client {
 
+/**
+ * Enumerazione per i permessi... Usiamo una versione nostra per evitare
+ * incompatibilità tra i sistemi.
+ */
 enum file_mod : uint16_t {
-	ROOT_EXEC = 1<<0,
-	ROOT_WRITE = 1 <<1,
-	ROOT_READ = 1<<2,
-	ALL_EXEC = 1<<3,
-	ALL_WRITE = 1<<4,
-	ALL_READ = 1<<5,
-	USER_EXEC = 1<<6,
-	USER_WRITE = 1<<7,
-	USER_READ = 1<<8
+	ROOT_EXEC = 1<<0,  //!< ROOT_EXEC
+	ROOT_WRITE = 1 <<1,//!< ROOT_WRITE
+	ROOT_READ = 1<<2,  //!< ROOT_READ
+	ALL_EXEC = 1<<3,   //!< ALL_EXEC
+	ALL_WRITE = 1<<4,  //!< ALL_WRITE
+	ALL_READ = 1<<5,   //!< ALL_READ
+	USER_EXEC = 1<<6,  //!< USER_EXEC
+	USER_WRITE = 1<<7, //!< USER_WRITE
+	USER_READ = 1<<8   //!< USER_READ
 };
 
 inline file_mod operator|(file_mod lh, file_mod rh){ return static_cast<file_mod>(lh | rh); }
@@ -31,15 +35,23 @@ inline file_mod operator~(file_mod lh){ return static_cast<file_mod>(~lh); }
 
 class filesystem;
 
+/**
+ * Struttura per gestire le informazioni di base nella rappresentazione del filesystem
+ * Contiene anche il checksum MD5 per la tracciare le modifiche
+ */
 struct file_info {
 	FILETIME lastModified;
-	client::file_mod mod;
+	file_mod mod;
 	unsigned char checksum[MD5_DIGEST_LENGTH];
 };
 
+/**
+ * Rappresenta una directory di file. Contiene le informazioni sui file e sulle
+ * cartelle al suo interno.
+ */
 class directory {
 
-	using file_table = std::unordered_map<std::wstring, client::file_info>;
+	using file_table = std::unordered_map<std::wstring, file_info>;
 	using dir_list = std::forward_list<directory*>;
 
 	friend class filesystem;
@@ -105,6 +117,7 @@ class filesystem {
 	using dir_table = std::unordered_map<std::wstring, directory>;
 	dir_table directories;
 	bool fromFile;///< per uso eventuale
+
 	void loadFS(const std::wstring&,const std::wstring&);
 public:
 
