@@ -117,6 +117,11 @@ public:
 
 	file_info& get_file(const wchar_t*, size_t s = 0);
 	directory& get_dir(const wchar_t*, size_t s = 0);
+	bool isDir(const wchar_t*, size_t s = 0);
+	bool isFile(const wchar_t*, size_t s = 0);
+	inline bool exists(const wchar_t* name, size_t s = 0){
+		return isDir(name, s)||isFile(name, s);
+	}
 
 	void delete_dir(const wchar_t*, size_t s = 0);
 	void delete_file(const wchar_t*, size_t s = 0);
