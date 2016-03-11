@@ -44,6 +44,15 @@ public:
 	std::wstring server_host;
 	uint16_t server_port;
 
+	/**
+	 * Questa variabile indica se sincronizzare o no (ovvero se scaricare di nuovo tutto dal server)
+	 * La sincronizzazione deve avvvenire nel main prima che parta la pipeline, per evitare problemi
+	 * quindi l'ordine nel main sarà
+	 * sincronizza
+	 * start
+	 * stop
+	 */
+	bool synchronize;
 
 	//TODO aggiungere altro
 
