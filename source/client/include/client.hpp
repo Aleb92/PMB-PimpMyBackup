@@ -14,6 +14,7 @@ class client {
 
 	friend class std::thread;
 
+	utilities::thread_pool thPool;
 	filesystem fs;
 	directory_listener dirListener;
 
@@ -21,6 +22,11 @@ class client {
 
 	void merge();
 	void dispatch();
+	//todo: manino
+	void sendAction(std::wstring&, file_action&, std::atomic<bool>&);
+
+
+
 
 public:
 	client();

@@ -4,45 +4,52 @@
 #include <functional>
 #include <future>
 #include <thread>
-
+#include <atomic>
 
 namespace utilities {
 
-	/**
-	 * template thread_pool, che abbiamo preferito rispetto ad una classe
-	 * virtuale perchè così si evita l'eventuale passaggio da una v-table.
-	 *
-	 */
-	template <typename POLICY, typename A, typename...T>
-	class thread_pool : public thread_pool<POLICY, T...> {
-	public:
-		static std::future<A> execute(std::function<A()> f) {
-			return POLICY::dispatch(f);
-		}
-	};
+class thread_pool {
 
-	template <typename POLICY,typename A>
-	class thread_pool<POLICY, A> {
-	public:
+	std::atomic<bool> running;
+	std::deque<std::thread> waitingList;
+	std::thread joiner;
 
-		static std::future<A> execute(std::function<A()> f) {
-			return POLICY::dispatch(f);
-		}
-	};
+public:
 
-	/**
-	 * Questa classe implementa a tutti gli effetti la politica della
-	 * thread pool. In questo caso lascia che sia il c++ a decidere
-	 * come eseguire i compiti affidatigli.
-	 * 		però è meglio di utilizzare l'operatore () perchè se no ci si
-	 * 		confonde poi con i functor/callable e non mi piace.
-	 */
-	struct default_threa_pool_policy {
-		template <typename T>
-		static std::future<T> dispatch(std::function<T()> f) {
-			return std::async(f);
+	thread_pool() :
+			running(true), joiner(join_all, this) {
+
+	}
+
+	inline void stop(void) {
+		running = false;
+		if(joiner.joinable())
+			joiner.join();
+	}
+
+	inline bool isRunning() {
+		return running;
+	}
+
+	static void execute(std::function<void(std::atomic<bool>&)> f) {
+		if (!running)
+			return;
+		waitingList.push_back(std::thread(f, running));
+	}
+
+	void join_all() {
+		while (running) {
+			while (!waitingList.empty)
+				if (waitingList.front().joinable()) {
+					waitingList.front().join();
+					waitingList.pop_front();
+				} else
+					std::this_thread::yield();
+
 		}
-	};
+		std::this_thread::yield();
+	}
+};
 
 }
 #endif

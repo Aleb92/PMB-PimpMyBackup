@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <string>
 #include <Windows.h>
+#include <limits>
+
 #include <server/include/protocol.hpp>
 #include <actionmerger.hpp>
 
@@ -31,7 +33,24 @@ inline opcode client::get_flag_bit(DWORD event) {
 	return INVALID;
 }
 
+/*
+ * Since we read and write simultaneusly from two different threads and we iterate on the map we don't
+ * want a reash to happen while we
+ */
+action_merger::action_merger(size_t estimatedFileNum) :
+		map(estimatedFileNum) {
+	map.max_load_factor(std::numeric_limits<float>::infinity());
+
+	it = map.begin();
+}
+
 void action_merger::add_change(const change_entity& che) {
+
+	//FIXME:
+	if(che->Action == 0){
+		map[L"*"].op_code = 0;
+		return;
+	}
 
 	file_action& fa = map[wstring(che->FileName, che->FileNameLength)];
 	opcode flag = get_flag_bit(che->Action);
@@ -52,6 +71,8 @@ void action_merger::add_change(const change_entity& che) {
 	// __builtin_ffs restituisce la posizione del primo bit meno significativo a 1
 	// FIXME: sto indicizzando bene? (si)
 	fa.timestamps[__builtin_ffs(flag) - 1] = che.time;
+
+	cv.notify_all();
 }
 
 file_action& file_action::operator |=(const log_entry_header& entry) {
@@ -75,10 +96,20 @@ file_action& file_action::operator ^=(const log_entry_header& entry) {
 	return *this;
 }
 
-action_merger::iterator action_merger::remove(action_merger::const_iterator i) {
-	return map.erase(i);
-}
+bool action_merger::remove(std::wstring&, file_action&) {
+	//TODO: Manino
+	unique_lock<mutex> guard(lock);
 
-void action_merger::remove(const wchar_t* i) {
-	map.erase(i);
+	cv.wait(guard, [this]() {
+		return !map.empty();
+	});
+
+	if (it == map.end())
+		it = map.begin();
+
+	pair<const wstring, const file_action> ret = make_pair(it->first,
+			it->second);
+
+	it = map.erase(it);
+	return ret;
 }

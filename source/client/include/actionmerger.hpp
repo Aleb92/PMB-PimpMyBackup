@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <cstdint>
 #include <string>
+#include <mutex>
 #include <Windows.h>
 
 namespace client {
@@ -15,6 +16,8 @@ inline server::opcode get_flag_bit(DWORD);
  * Struttura per memorizzare lo stato attuale di una modifica al file
  * non ancora inviata al server.
  */
+
+//TODO: Implementare move constructor per velocità?
 struct file_action {
 	uint8_t op_code;///< bitmask delle operazioni da inviare
 	FILETIME timestamps[8];///< timestamp di ognuna delle operazioni
@@ -30,7 +33,12 @@ struct file_action {
 class action_merger : public utilities::singleton<action_merger> {
 	using maptype = std::unordered_map<std::wstring, file_action>;
 	maptype map;///< mappa per i cambiamenti
-	action_merger() = default;
+	maptype::iterator it;
+	std::mutex lock;
+	std::condition_variable cv;
+
+	action_merger(size_t estimatedFileNum = 100);
+
 	friend class utilities::singleton<action_merger>;
 	friend class client::log;
 public:
@@ -47,23 +55,9 @@ public:
 	void add_change(const change_entity&);
 
 	/**
-	 * rimuove un elemento dalla mappa e restituisce il puntatore
-	 * all'elemento successivo.
-	 * @param iteratore dell'elemento attuale
-	 * @return iteratore all'elemento successivo
+	 * Rimuove un elemento dalla mappa e lo restituisce
 	 */
-	iterator remove(const_iterator);
-
-	/**
-	 * Segna un file come non modificato (lo rimuove dalla mappa)
-	 * @param nome del file
-	 */
-	void remove(const wchar_t*);
-
-	inline iterator begin() { return map.begin(); }
-	inline const_iterator begin() const { return map.begin(); }
-	inline iterator end() { return map.end(); }
-	inline const_iterator end() const { return map.end(); }
+	bool remove(std::wstring&, file_action&);
 };
 
 }
