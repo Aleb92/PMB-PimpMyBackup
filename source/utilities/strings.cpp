@@ -26,6 +26,17 @@ std::pair<std::wstring, std::wstring> splitOnce(const std::wstring &s, wchar_t d
 	return p;
 }
 
+std::pair<std::string, std::string> splitOnce(const std::string &s, char delim){
+	std::stringstream ss(s);
+	std::string item;
+	std::pair<std::string, std::string> p;
+	std::getline(ss, item, delim);
+	p.first = item;
+	p.second = string(istreambuf_iterator<char>(ss), {});
+	return p;
+}
+
+
 std::vector<std::wstring> split(const std::wstring &s, wchar_t delim) {
 	std::vector<std::wstring> elems;
 	split(s, delim, elems);

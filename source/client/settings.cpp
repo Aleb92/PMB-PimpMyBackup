@@ -17,6 +17,7 @@ namespace client {
 
 std::wstring_convert<std::codecvt_utf8<wchar_t>> settings::converter;
 
+// TODO: load synchronize
 settings::settings() {
 	wstring line;
 	wifstream settingFile (SETTINGS_FILE_NAME);

@@ -12,14 +12,14 @@ class thread_pool {
 
 	std::atomic<bool> running;
 	std::deque<std::thread> waitingList;
+	// Thread di attesa per terminare i vari thread aperti...
+	// mi ricorda molto quello che fa init in un sistema unix...
 	std::thread joiner;
 
 public:
 
 	thread_pool() :
-			running(true), joiner(join_all, this) {
-
-	}
+			running(true), joiner(join_all, this) { }
 
 	inline void stop(void) {
 		running = false;
@@ -31,24 +31,15 @@ public:
 		return running;
 	}
 
-	static void execute(std::function<void(std::atomic<bool>&)> f) {
+	// Alla fine, serve un template...
+    template<typename T, typename... A>
+	void execute(T&& f, A&&... args) {
 		if (!running)
 			return;
-		waitingList.push_back(std::thread(f, running));
+		waitingList.push_back(std::thread(f, args..., running));
 	}
 
-	void join_all() {
-		while (running) {
-			while (!waitingList.empty)
-				if (waitingList.front().joinable()) {
-					waitingList.front().join();
-					waitingList.pop_front();
-				} else
-					std::this_thread::yield();
-
-		}
-		std::this_thread::yield();
-	}
+	void join_all();
 };
 
 }

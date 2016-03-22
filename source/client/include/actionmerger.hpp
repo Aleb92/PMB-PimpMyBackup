@@ -34,8 +34,10 @@ class action_merger : public utilities::singleton<action_merger> {
 	using maptype = std::unordered_map<std::wstring, file_action>;
 	maptype map;///< mappa per i cambiamenti
 	maptype::iterator it;
+
 	std::mutex lock;
 	std::condition_variable cv;
+	bool open;
 
 	action_merger(size_t estimatedFileNum = 100);
 
@@ -58,6 +60,8 @@ public:
 	 * Rimuove un elemento dalla mappa e lo restituisce
 	 */
 	bool remove(std::wstring&, file_action&);
+
+	void close();
 };
 
 }
