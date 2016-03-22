@@ -25,7 +25,6 @@ namespace utilities {
 
 		friend class singleton<shared_queue<T>>;
 
-		//FIXME: qui suppongo che L sia un singleton!
 		shared_queue(){};
 	public:
 
@@ -41,10 +40,10 @@ namespace utilities {
 
 			on_return<> ret([this](){
 
-			data.pop_front();
+				data.pop_front();
 			});//FIXME: viene davvero poi ottimizzato?
 
-			cv.wait(guard, [this](){//FIXME: e la distruzione?
+			cv.wait(guard, [this](){
 				return !data.empty();
 			});
 			return data.front();

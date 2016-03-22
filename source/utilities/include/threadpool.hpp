@@ -34,7 +34,6 @@ namespace utilities {
 	 * Questa classe implementa a tutti gli effetti la politica della
 	 * thread pool. In questo caso lascia che sia il c++ a decidere
 	 * come eseguire i compiti affidatigli.
-	 * FIXME: il nome che ho usato per la funzione (dispatch) non mi piace.
 	 * 		però è meglio di utilizzare l'operatore () perchè se no ci si
 	 * 		confonde poi con i functor/callable e non mi piace.
 	 */

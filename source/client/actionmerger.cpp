@@ -67,7 +67,7 @@ file_action& file_action::operator ^=(const log_entry_header& entry) {
 		if (op_code & j) {
 			FILETIME& _t = timestamps[i];
 			if (CompareFileTime(&entry.timestamp, &_t) == 1) {
-				_t = {0};		//FIXME serve? Credo di no
+				_t = {0};
 				opcode ^= j;
 			}
 		}
