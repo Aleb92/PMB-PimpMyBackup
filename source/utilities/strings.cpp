@@ -16,54 +16,54 @@ const wchar_t* wcsrchr(const wchar_t*str, wchar_t lk, size_t last) {
 	return nullptr;
 }
 
-std::pair<std::wstring, std::wstring> splitOnce(const std::wstring &s, wchar_t delim){
-	std::wstringstream ss(s);
-	std::wstring item;
-	std::pair<std::wstring, std::wstring> p;
-	std::getline(ss, item, delim);
+pair<wstring, wstring> splitOnce(const wstring &s, wchar_t delim){
+	wstringstream ss(s);
+	wstring item;
+	pair<wstring, wstring> p;
+	getline(ss, item, delim);
 	p.first = item;
 	p.second = wstring(istreambuf_iterator<wchar_t>(ss), {});
 	return p;
 }
 
-std::pair<std::string, std::string> splitOnce(const std::string &s, char delim){
-	std::stringstream ss(s);
-	std::string item;
-	std::pair<std::string, std::string> p;
-	std::getline(ss, item, delim);
+pair<string, stringstream> splitOnce(const string &s, char delim){
+	stringstream ss(s);
+	string item;
+	pair<string, stringstream> p;
+	getline(ss, item, delim);
 	p.first = item;
-	p.second = string(istreambuf_iterator<char>(ss), {});
+	p.second = ss;
 	return p;
 }
 
 
-std::vector<std::wstring> split(const std::wstring &s, wchar_t delim) {
-	std::vector<std::wstring> elems;
+vector<wstring> split(const wstring &s, wchar_t delim) {
+	vector<wstring> elems;
 	split(s, delim, elems);
 	return elems;
 }
 
-std::vector<std::wstring> &split(const std::wstring &s, wchar_t delim,
-		std::vector<std::wstring> &elems) {
-	std::wstringstream ss(s);
-	std::wstring item;
-	while (std::getline(ss, item, delim)) {
+vector<wstring> &split(const wstring &s, wchar_t delim,
+		vector<wstring> &elems) {
+	wstringstream ss(s);
+	wstring item;
+	while (getline(ss, item, delim)) {
 		elems.push_back(item);
 	}
 	return elems;
 }
 
-std::vector<std::string> split(const std::string &s, char delim) {
-	std::vector<std::string> elems;
+vector<string> split(const string &s, char delim) {
+	vector<string> elems;
 	split(s, delim, elems);
 	return elems;
 }
 
-std::vector<std::string> &split(const std::string &s, char delim,
-		std::vector<std::string> &elems) {
-	std::stringstream ss(s);
-	std::string item;
-	while (std::getline(ss, item, delim)) {
+vector<string> &split(const string &s, char delim,
+		vector<string> &elems) {
+	stringstream ss(s);
+	string item;
+	while (getline(ss, item, delim)) {
 		elems.push_back(item);
 	}
 	return elems;

@@ -64,7 +64,6 @@ void sendAction(std::wstring&, file_action&, std::atomic<bool>&) {
 
 	// Per prima cosa mi aggancio al server
 	socket_stream sock(settings::inst().server_host.c_str());
-	settings::inst().server_host
 
 	// TODO: Autenticazione
 
