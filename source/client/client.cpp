@@ -8,9 +8,12 @@
 using namespace std;
 using namespace utilities;
 using namespace client;
+using namespace server;
+
+static std::wstring_convert<std::codecvt_utf8<wchar_t>> client::converter;
 
 client::client() :
-		dirListener(settings::inst().watched_dir.c_str()) {
+		dirListener(settings::inst().watched_dir) {
 }
 
 client::~client() {
@@ -55,21 +58,56 @@ void client::dispatch() {
 	}
 }
 
-void sendAction(std::wstring&, file_action&, std::atomic<bool>&) {
+void client::sendAction(std::wstring& fileName, file_action& action,
+		std::atomic<bool>&) {
+	const pair<opcode, bool (client::*)(std::wstring&)> flag[] = {
+			{ MOVE, move },
+			{ CREATE, create },
+			{ REMOVE, remove },
+			{ CHMOD, chmod },
+			{ VERSION, version }
+	};
+
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
 	// Questa funzione quindi invia l'header generico,
 	// Controlla che non ci siano stati problemi (e nel caso capisce dove)
 	// e finisce col re-inserire (se necessario) in coda la /le operazioni
 	// da ripetere e aggiornare il log.
 
+	wstring realName = (action.op_code & MOVE) ? action.newName : fileName;
+	file_action result = action;
+
 	// Per prima cosa mi aggancio al server
-	socket_stream sock(settings::inst().server_host.c_str());
+	socket_stream sock(settings::inst().server_host, settings::inst().server_port);
 
-	// TODO: Autenticazione
+	if(sock.send(settings::inst().username)!= settings::inst().username.value.length())
+		goto retry;
 
+	sock.send(settings::inst().password);
+	sock.send(action.op_code);
+	sock.send(action.timestamps);
+	sock.send(fileName);
 
+	for(auto f : flag){
+		if(action.op_code & f.first){
+			if(!(this->*f.second)(realName))
+				goto retry;
+		}//TODO: Mettere atomic<bool> anche qua (leggi sotto)
+	}
+
+	result.op_code &= ~WRITE;
+	result.op_code ^= sock.recv<opcode>();
+	if(result.op_code)
+		action_merger::inst().add_change(fileName, action);
+
+	//TODO: continuare con la WRITE e ricordare atomic<bool> per dirgli di fermarsi quando scrive
+	//visto che e una operazione lunga
+
+	return;
+
+retry:
+	action_merger::inst().add_change(fileName, action);
 }
-
 
 void client::stop() {
 

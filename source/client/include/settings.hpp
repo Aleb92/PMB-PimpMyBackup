@@ -21,7 +21,12 @@ namespace client {
 	 * Nome del file di log
 	 */
 	SETTINGS_ENTRY(std::wstring, log_filename);
+
+	//FIXME: ?!
 	SETTINGS_ENTRY(std::string, tree_filename);
+
+	SETTINGS_ENTRY(std::string, username);
+	SETTINGS_ENTRY(std::string, password);
 
 	/**
 	 * Cartella salvata

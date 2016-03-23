@@ -55,6 +55,8 @@ public:
 	 * @param Info sull'entita' modificata
 	 */
 	void add_change(const change_entity&);
+	//TODO
+	void add_change(std::wstring& fileName, file_action& action);
 
 	/**
 	 * Rimuove un elemento dalla mappa e lo restituisce

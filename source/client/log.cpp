@@ -12,7 +12,7 @@ log::log() {
 	wstring oldfile_name = settings::inst().log_filename + L".old";
 	unordered_map<wstring, file_action> load_map;
 
-	if (MoveFileW(settings::inst().log_filename.c_str(),
+	if (MoveFileW(settings::inst().log_filename.value.c_str(),
 			oldfile_name.c_str())) {
 
 		FILE* old_log = _wfopen(oldfile_name.c_str(), L"rb");
@@ -51,7 +51,7 @@ log::log() {
 		fclose(old_log);
 	}
 
-	HANDLE file_handle = CreateFileW(settings::inst().log_filename.c_str(),
+	HANDLE file_handle = CreateFileW(settings::inst().log_filename.value.c_str(),
 	GENERIC_WRITE, 0, NULL,
 	CREATE_ALWAYS,
 	FILE_FLAG_WRITE_THROUGH, NULL);

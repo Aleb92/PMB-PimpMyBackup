@@ -6,6 +6,8 @@
 #include <filesystem.hpp>
 #include <log.hpp>
 #include <thread>
+#include <locale>
+#include <codecvt>
 
 namespace client {
 
@@ -14,6 +16,7 @@ class client {
 
 	friend class std::thread;
 
+	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	utilities::thread_pool thPool;
 
 	filesystem fs;
@@ -26,8 +29,12 @@ class client {
 
 	void sendAction(std::wstring&, file_action&, std::atomic<bool>&);
 
-
-
+	bool move(std::wstring&);
+	bool create(std::wstring&);
+	bool remove(std::wstring&);
+	bool chmod(std::wstring&);
+	bool version(std::wstring&);
+	bool write(std::wstring&);
 
 public:
 	client();

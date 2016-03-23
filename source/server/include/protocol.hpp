@@ -8,8 +8,8 @@ namespace server {
 	enum opcode : uint8_t {
 		LIST		= 0,
 		INVALID		= 0,
-		CREATE		= 1<<0,
-		MOVE		= 1<<1,
+		MOVE		= 1<<0,
+		CREATE		= 1<<1,
 		REMOVE		= 1<<2,
 		CHMOD		= 1<<3,
 		RESERVED	= 1<<4,

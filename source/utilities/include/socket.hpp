@@ -24,7 +24,6 @@ atEnd(WSACleanupWrap);
 //All'inizio inizializziamo
 atBegin(init_winsock);
 
-
 // COMPATIBILITY define
 
 # ifndef _serrno
@@ -66,200 +65,306 @@ typedef int socket_t;
 
 namespace utilities {
 
+/**
+ * Classe di base per i socket. E' semplicemente un contenitore per un descrittore di risorsa.
+ * Gestisce anche il cambio dalla modalit� blocking a quella non blocking
+ */
+class socket_base {
 
+	bool blocking;
+
+protected:
+
+	socket_t handle;
+
+	inline socket_base(socket_base&&mv) :
+			handle(mv.handle), blocking(mv.blocking) {
+		mv.handle = -1;
+	}
 
 	/**
-	 * Classe di base per i socket. E' semplicemente un contenitore per un descrittore di risorsa.
-	 * Gestisce anche il cambio dalla modalit� blocking a quella non blocking
+	 * Inizializzazione protetta della classe di base: solo i derivati possono usarla perch� non deve essere
+	 * instanziabile questa classe.
+	 * @param _hnd handle della risorsa
 	 */
-	class socket_base {
+	inline socket_base(socket_t _hnd) :
+			handle(_hnd), blocking(true) {
+		if (!hValid(handle))
+			throw errno;
+	}
+public:
 
-		bool blocking;
+	/**
+	 * Imposta la modalit� blocking della risorsa
+	 * @param b
+	 */
+	inline void setBlocking(bool b = true);
 
-	protected:
+	/**
+	 * returns the mode of the socket.
+	 * @return
+	 */
+	inline bool getBlocking() {
+		return blocking;
+	}
 
-	    socket_t handle;
+	/**
+	 * not assignable
+	 */
+	const socket_base& operator=(const socket_base&) = delete;
 
-		inline socket_base(socket_base&&mv) : handle(mv.handle), blocking(mv.blocking) {
-		    mv.handle = -1;
+	/**
+	 * not copyable
+	 */
+	socket_base(const socket_base&) = delete;
+
+	/**
+	 * this just allocates system resources (e.g. calls "socket" function)
+	 * @param af
+	 * @param type
+	 * @param protocol
+	 */
+	socket_base(int af, int type, int protocol);
+
+	/**
+	 * rilascia le risorse, se presenti. Lancia un'eccezione di tipo int in caso di errore.
+	 */
+	inline ~socket_base() {
+		if (hValid(handle))
+			if (close(handle))
+				throw _serrno;
+	}
+};
+
+class socket_stream: public socket_base {
+	/**
+	 * permetto alla classe listener di accedere al costruttore protetto. Questa classe � in pratica l'unica
+	 * che pu� instanziare in questo modo questa classe (e quindi anche la sua base)
+	 */
+	friend class socket_listener;
+protected:
+	/**
+	 * Inizializza la classe a partire da una risorsa di sistema gi� ottenuta.
+	 * @param _h handle alla risorsa
+	 * @param ip address
+	 * @param port number
+	 */
+	inline socket_stream(socket_t _h, uint32_t ip, in_port_t port) :
+			socket_base(_h), oppositeIp(ip), oppositePort(port) {
+	}
+public:
+	/**
+	 * Client ip address in formato binatio (host)
+	 */
+	const uint32_t oppositeIp;
+
+	/**
+	 * Client port in forato binario (host)
+	 */
+	const in_port_t oppositePort;
+
+	const socket_stream& operator=(const socket_stream&) = delete;
+
+	socket_stream(socket_stream&&);
+
+	/**
+	 * Inizializza un nuovo socket e si connette all'host:port desiterato.
+	 * @param ip
+	 * @param port
+	 * @param af
+	 * @param type
+	 * @param protocol
+	 */
+	socket_stream(uint32_t ip, in_port_t port, int af = AF_INET, int type =
+	SOCK_STREAM, int protocol = IPPROTO_TCP);
+
+	socket_stream(const char * ip, in_port_t port, int af = AF_INET, int type =
+	SOCK_STREAM, int protocol = IPPROTO_TCP);
+
+	inline socket_stream(const std::string ip, in_port_t port, int af = AF_INET,
+			int type = SOCK_STREAM, int protocol = IPPROTO_TCP) :
+			socket_stream(ip.c_str(), port, af, type, protocol) {
+	}
+
+	/**
+	 * Invia un singolo oggetto di tipo T
+	 * @param val
+	 * @return The number of bytes sent or -1
+	 */
+	template<typename T>
+	inline ssize_t send(const T val) {
+		return ::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL);
+	}
+
+	template<>
+	inline ssize_t send<uint16_t>(const uint16_t val) {
+		val = htons(val);
+		return ::send(handle, (const char*) &val, sizeof(uint16_t), MSG_NOSIGNAL);
+	}
+
+	template<>
+	inline ssize_t send<uint32_t>(const uint32_t val) {
+		val = htons(val);
+		return ::send(handle, (const char*) &val, sizeof(uint32_t), MSG_NOSIGNAL);
+	}
+
+	template<>
+	inline ssize_t send<int16_t>(const int16_t val) {
+		val = htons(val);
+		return ::send(handle, (const char*) &val, sizeof(int16_t), MSG_NOSIGNAL);
+	}
+
+	template<>
+	inline ssize_t send<int32_t>(const int32_t val) {
+		val = htons(val);
+		return ::send(handle, (const char*) &val, sizeof(int32_t), MSG_NOSIGNAL);
+	}
+
+	template<>
+	inline ssize_t send<const std::string&>(const std::string& str) {
+		uint32_t size= str.length();
+
+		if(send(size)!= sizeof(uint32_t))
+			throw errno;
+
+		return send(str.c_str(), size);
+	}
+
+	/**
+	 * Invia un array di oggetti di tipo T, deducendone la dimensione in automatico.
+	 * @param buff
+	 * @return
+	 */
+	template<typename T, size_t s>
+	inline ssize_t send(const T (&buff)[s]) {
+		return ::send(handle, (const char*) buff, sizeof(buff), MSG_NOSIGNAL);
+	}
+
+	// Questa è vuota
+	template<typename T>
+	inline ssize_t send(const T, size_t); // empty
+
+	/**
+	 * recives an array of T
+	 * @param buff array
+	 * @param N number of elements in the array
+	 * @return
+	 */
+	template<typename T>
+	inline ssize_t send(const T*buff, size_t N) {
+		return ::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL);
+	}
+
+	template<typename T>
+	inline ssize_t send(const std::vector<T> &v) {
+		return ::send(handle, (const char*) &v[0], v.size() * sizeof(T),
+		MSG_NOSIGNAL);
+	}
+
+	/**
+	 * Riceve un dato di tipo T. Lancia un'eccezione se la ricezione non risulta possibile.
+	 * (attenti quindi ad usarlo in caso di non blocking socket)
+	 * @return the object received
+	 */
+	template<typename T>
+	inline T recv() {
+		T ret;
+		if (::recv(handle, (char*) &ret, sizeof(T), MSG_NOSIGNAL)
+				!= sizeof(T)) {
+			int err = _serrno;
+			throw err;
 		}
+		return ret;
+	}
 
-		/**
-		 * Inizializzazione protetta della classe di base: solo i derivati possono usarla perch� non deve essere
-		 * instanziabile questa classe.
-		 * @param _hnd handle della risorsa
-		 */
-		inline socket_base(socket_t _hnd) : handle(_hnd), blocking(true) {
-			if(!hValid(handle))
-				throw errno;
+	template<>
+	inline uint16_t recv<uint16_t>() {
+		uint16_t ret;
+		if (::recv(handle, (char*) &ret, sizeof(uint16_t), MSG_NOSIGNAL)
+				!= sizeof(uint16_t)) {
+			int err = _serrno;
+			throw err;
 		}
-	public:
+		return ntohs(ret);
+	}
 
-		/**
-		 * Imposta la modalit� blocking della risorsa
-		 * @param b
-		 */
-		inline void setBlocking(bool b = true);
-
-		/**
-		 * returns the mode of the socket.
-		 * @return
-		 */
-		inline bool getBlocking() { return blocking; }
-
-		/**
-		 * not assignable
-		 */
-		const socket_base& operator=(const socket_base&) = delete;
-
-
-		/**
-		 * not copyable
-		 */
-		socket_base(const socket_base&) = delete;
-
-		/**
-		 * this just allocates system resources (e.g. calls "socket" function)
-		 * @param af
-		 * @param type
-		 * @param protocol
-		 */
-		socket_base(int af, int type, int protocol);
-
-		/**
-		 * rilascia le risorse, se presenti. Lancia un'eccezione di tipo int in caso di errore.
-		 */
-		inline ~socket_base() { if(hValid(handle))
-			if(close(handle)) throw _serrno; }
-	};
-
-	class socket_stream : public socket_base {
-		/**
-		 * permetto alla classe listener di accedere al costruttore protetto. Questa classe � in pratica l'unica
-		 * che pu� instanziare in questo modo questa classe (e quindi anche la sua base)
-		 */
-		friend class socket_listener;
-	protected:
-		/**
-		 * Inizializza la classe a partire da una risorsa di sistema gi� ottenuta.
-		 * @param _h handle alla risorsa
-		 * @param ip address
-		 * @param port number
-		 */
-		inline socket_stream(socket_t _h, uint32_t ip, in_port_t port) : socket_base(_h), oppositeIp(ip), oppositePort(port) {}
-	public:
-		/**
-		 * Client ip address in formato binatio (host)
-		 */
-		const uint32_t oppositeIp;
-
-		/**
-		 * Client port in forato binario (host)
-		 */
-		const in_port_t oppositePort;
-
-		const socket_stream& operator=(const socket_stream&) = delete;
-
-		socket_stream(socket_stream&&);
-
-		/**
-		 * Inizializza un nuovo socket e si connette all'host:port desiterato.
-		 * @param ip
-		 * @param port
-		 * @param af
-		 * @param type
-		 * @param protocol
-		 */
-		socket_stream(uint32_t ip, in_port_t port, int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP);
-
-		socket_stream(const char * ip, in_port_t port, int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP);
-
-		/**
-		 * Invia un singolo oggetto di tipo T
-		 * @param val
-		 * @return The number of bytes sent or -1
-		 */
-		template<typename T>
-		inline ssize_t send(const T val) {
-			return ::send(handle, (const char*)&val, sizeof(T), MSG_NOSIGNAL);
+	template<>
+	inline uint32_t recv<uint32_t>() {
+		uint32_t ret;
+		if (::recv(handle, (char*) &ret, sizeof(uint32_t), MSG_NOSIGNAL)
+				!= sizeof(uint32_t)) {
+			int err = _serrno;
+			throw err;
 		}
+		return ntohl(ret);
+	}
 
-		/**
-		 * Invia un array di oggetti di tipo T, deducendone la dimensione in automatico.
-		 * @param buff
-		 * @return
-		 */
-		template<typename T, size_t s>
-		inline ssize_t send(const T (&buff)[s]) {
-			return ::send(handle, (const char*)buff, sizeof(buff), MSG_NOSIGNAL);
+	template<>
+	inline int16_t recv<int16_t>() {
+		int16_t ret;
+		if (::recv(handle, (char*) &ret, sizeof(int16_t), MSG_NOSIGNAL)
+				!= sizeof(int16_t)) {
+			int err = _serrno;
+			throw err;
 		}
+		return ntohs(ret);
+	}
 
-		// Questa è vuota
-		template <typename T>
-		inline ssize_t send(const T, size_t); // empty
-
-		/**
-		 * recives an array of T
-		 * @param buff array
-		 * @param N number of elements in the array
-		 * @return
-		 */
-		template<typename T>
-		inline ssize_t send(const T*buff, size_t N) {
-			return ::send(handle, (const char*)buff, N*sizeof(T), MSG_NOSIGNAL);
+	template<>
+	inline int32_t recv<int32_t>() {
+		int32_t ret;
+		if (::recv(handle, (char*) &ret, sizeof(int32_t), MSG_NOSIGNAL)
+				!= sizeof(int32_t)) {
+			int err = _serrno;
+			throw err;
 		}
+		return ntohl(ret);
+	}
 
-		template<typename T>
-		inline ssize_t send(const std::vector<T> &v) {
-			return ::send(handle, (const char*)&v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
-		}
+	template<typename T>
+	inline ssize_t recv(const T); // Empty
 
-		/**
-		 * Riceve un dato di tipo T. Lancia un'eccezione se la ricezione non risulta possibile.
-		 * (attenti quindi ad usarlo in caso di non blocking socket)
-		 * @return the object received
-		 */
-		template<typename T>
-		inline T recv() {
-			T ret;
-			if(::recv(handle, (char*)&ret, sizeof(T), MSG_NOSIGNAL) != sizeof(T)){
-				int err = _serrno;
-				throw err;
-			}
-			return ret;
-		}
+	/**
+	 * Riceve un array di dati
+	 * @param buff
+	 * @param N
+	 * @return
+	 */
+	template<typename T>
+	inline ssize_t recv(T* buff, size_t N) {
+		return ::recv(handle, (char*) buff, N * sizeof(T), MSG_NOSIGNAL);
+	}
 
-		template<typename T>
-		inline ssize_t recv(const T); // Empty
+	template<typename T, size_t N>
+	inline ssize_t recv(T (&buff)[N]) {
+		return ::recv(handle, (char*) buff, N * sizeof(T), MSG_NOSIGNAL);
+	}
 
+	template<typename T>
+	inline ssize_t recv(std::vector<T> &v) {
+		return ::recv(handle, (char*) &v[0], v.size() * sizeof(T), MSG_NOSIGNAL);
+	}
 
-		/**
-		 * Riceve un array di dati
-		 * @param buff
-		 * @param N
-		 * @return
-		 */
-		template<typename T>
-		inline ssize_t recv(T*buff, size_t N) {
-			return ::recv(handle, (char*)buff, N*sizeof(T), MSG_NOSIGNAL);
-		}
+	template<>
+	inline std::string recv<std::string>() {
 
-		template<typename T, size_t N>
-		inline ssize_t recv(T (&buff)[N]) {
-			return ::recv(handle, (char*)buff, N*sizeof(T), MSG_NOSIGNAL);
-		}
+		size_t size = recv<uint32_t>();
+		std::string ret(size);
 
-		template<typename T>
-		inline ssize_t recv(std::vector<T> &v) {
-		    return ::recv(handle, (char*)&v[0], v.size()*sizeof(T), MSG_NOSIGNAL);
-		}
-	};
+		if(recv(&ret[0], size)!= size)
+			throw errno;
 
-	class socket_listener : public socket_base {
-	public:
-		socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol = IPPROTO_TCP, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT, int q_size = DEFAULT_QUEUE_SIZE);
-        socket_stream accept();
-	};
+		return ret;
+	}
+};
+
+class socket_listener: public socket_base {
+public:
+	socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol =
+	IPPROTO_TCP, uint32_t ip = INADDR_ANY, in_port_t port = DEFAULT_PORT,
+			int q_size = DEFAULT_QUEUE_SIZE);
+	socket_stream accept();
+};
 
 } /* namespace utilities */
 #endif /* SOCKET_H_ */

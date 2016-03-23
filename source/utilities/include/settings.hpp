@@ -65,9 +65,9 @@ public:
 template<typename T>
 class settings_entry {
 	const char* const name;
-	T value;
 	settings_io* const &io;
 public:
+	T value;
 	settings_entry(const settings_entry<T> &) = delete; // no copy
 	settings_entry<T>& operator=(const settings_entry<T>&) = delete; // no assign
 
@@ -79,9 +79,11 @@ public:
 	inline operator T() const noexcept {
 		return value;
 	}
+
 	inline T operator=(const T& val) {
 		return value = val;
 	}
+
 	void operator<<(const std::unordered_map<std::string, std::stringstream>*map) {
 		if(map)
 			if(map->count(name))
@@ -95,15 +97,17 @@ public:
 	inline ~settings_entry() {
 		*this >> *io;
 	}
+
+
 };
 
 template<>
 class settings_entry<std::wstring> {
 	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	const char* const name;
-	std::wstring value;
 	settings_io* &io;
 public:
+	std::wstring value;
 	settings_entry(const settings_entry<std::wstring> &) = delete; // no copy
 	settings_entry<std::wstring>& operator=(const settings_entry<std::wstring>&) = delete; // no assign
 
@@ -112,6 +116,35 @@ public:
 	}
 
 	inline std::wstring operator=(const std::wstring& val) {
+		return value = val;
+	}
+
+	settings_entry(const char*_name, settings_io* &_io);
+
+	void operator<<(const std::unordered_map<std::string, std::stringstream>*map);
+
+	void operator>>(std::ofstream*out);
+
+	inline ~settings_entry() {
+		*this >> *io;
+	}
+};
+
+
+template<>
+class settings_entry<std::string> {
+	const char* const name;
+	settings_io* &io;
+public:
+	std::string value;
+	settings_entry(const settings_entry<std::string> &) = delete; // no copy
+	settings_entry<std::string>& operator=(const settings_entry<std::string>&) = delete; // no assign
+
+	inline operator std::string() const noexcept {
+		return value;
+	}
+
+	inline std::string operator=(const std::string& val) {
 		return value = val;
 	}
 
