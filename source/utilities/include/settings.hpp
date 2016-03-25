@@ -1,9 +1,13 @@
 #ifndef SOURCE_UTILITIES_INCLUDE_SETTINGS_HPP_
 #define SOURCE_UTILITIES_INCLUDE_SETTINGS_HPP_
 
+#include <utilities/include/singleton.hpp>
+
 #include <unordered_map>
 #include <string>
+#include <sstream>
 #include <iostream>
+#include <fstream>
 #include <cwchar>
 #include <locale>
 #include <codecvt>
@@ -84,14 +88,15 @@ public:
 		return value = val;
 	}
 
-	void operator<<(const std::unordered_map<std::string, std::stringstream>*map) {
+	void operator<<(std::unordered_map<std::string, std::stringstream>*map) {
 		if(map)
 			if(map->count(name))
-				(*map)[name] >> value;
+				map->at(name) >> value;
 	}
 
 	void operator>>(std::ofstream*out){
-		(*out) << name << '=' << value << std::endl;
+		//fixme: che orrore!
+		(*out) << std::string(name) << '=' << value << std::endl;
 	}
 
 	inline ~settings_entry() {
@@ -121,7 +126,7 @@ public:
 
 	settings_entry(const char*_name, settings_io* &_io);
 
-	void operator<<(const std::unordered_map<std::string, std::stringstream>*map);
+	void operator<<(std::unordered_map<std::string, std::stringstream>*map);
 
 	void operator>>(std::ofstream*out);
 
@@ -150,7 +155,7 @@ public:
 
 	settings_entry(const char*_name, settings_io* &_io);
 
-	void operator<<(const std::unordered_map<std::string, std::stringstream>*map);
+	void operator<<(std::unordered_map<std::string, std::stringstream>*map);
 
 	void operator>>(std::ofstream*out);
 

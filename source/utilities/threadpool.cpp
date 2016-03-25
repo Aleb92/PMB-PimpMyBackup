@@ -8,7 +8,7 @@ void thread_pool::join_all() {
 	bool last_round = true;
 	while (running || last_round) {
 		last_round = running;
-		while (!waitingList.empty)
+		while (!waitingList.empty())
 			if (waitingList.front().joinable()) {
 				waitingList.front().join();
 				waitingList.pop_front();

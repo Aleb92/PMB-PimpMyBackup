@@ -9,18 +9,18 @@
 using namespace std;
 using namespace utilities;
 
-static wstring_convert<codecvt_utf8<wchar_t>> settings_entry<wstring>::converter;
+wstring_convert<codecvt_utf8<wchar_t>> settings_entry<wstring>::converter;
 
 settings_entry<wstring>::settings_entry(const char*_name, settings_io* &_io) :
 		name(_name), io(_io) {
 	*this << *io;
 }
 
-void settings_entry<wstring>::operator<<(const std::unordered_map<std::string, std::stringstream>*map) {
+void settings_entry<wstring>::operator<<(std::unordered_map<std::string, std::stringstream>*map) {
 	if(map)
 		if(map->count(name)) {
 			string tmp;
-			getline(((*map)[name]), tmp);
+			getline(map->at(name), tmp);
 			value = converter.from_bytes(tmp);
 		}
 }
@@ -35,10 +35,10 @@ settings_entry<string>::settings_entry(const char*_name, settings_io* &_io) :
 	*this << *io;
 }
 
-void settings_entry<string>::operator<<(const std::unordered_map<std::string, std::stringstream>*map) {
+void settings_entry<string>::operator<<(std::unordered_map<std::string, std::stringstream>*map) {
 	if(map)
 		if(map->count(name)) {
-			getline(((*map)[name]), value);
+			getline(map->at(name), value);
 		}
 }
 

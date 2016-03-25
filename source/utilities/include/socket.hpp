@@ -196,39 +196,7 @@ public:
 		return ::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL);
 	}
 
-	template<>
-	inline ssize_t send<uint16_t>(const uint16_t val) {
-		val = htons(val);
-		return ::send(handle, (const char*) &val, sizeof(uint16_t), MSG_NOSIGNAL);
-	}
 
-	template<>
-	inline ssize_t send<uint32_t>(const uint32_t val) {
-		val = htons(val);
-		return ::send(handle, (const char*) &val, sizeof(uint32_t), MSG_NOSIGNAL);
-	}
-
-	template<>
-	inline ssize_t send<int16_t>(const int16_t val) {
-		val = htons(val);
-		return ::send(handle, (const char*) &val, sizeof(int16_t), MSG_NOSIGNAL);
-	}
-
-	template<>
-	inline ssize_t send<int32_t>(const int32_t val) {
-		val = htons(val);
-		return ::send(handle, (const char*) &val, sizeof(int32_t), MSG_NOSIGNAL);
-	}
-
-	template<>
-	inline ssize_t send<const std::string&>(const std::string& str) {
-		uint32_t size= str.length();
-
-		if(send(size)!= sizeof(uint32_t))
-			throw errno;
-
-		return send(str.c_str(), size);
-	}
 
 	/**
 	 * Invia un array di oggetti di tipo T, deducendone la dimensione in automatico.
@@ -277,49 +245,6 @@ public:
 		return ret;
 	}
 
-	template<>
-	inline uint16_t recv<uint16_t>() {
-		uint16_t ret;
-		if (::recv(handle, (char*) &ret, sizeof(uint16_t), MSG_NOSIGNAL)
-				!= sizeof(uint16_t)) {
-			int err = _serrno;
-			throw err;
-		}
-		return ntohs(ret);
-	}
-
-	template<>
-	inline uint32_t recv<uint32_t>() {
-		uint32_t ret;
-		if (::recv(handle, (char*) &ret, sizeof(uint32_t), MSG_NOSIGNAL)
-				!= sizeof(uint32_t)) {
-			int err = _serrno;
-			throw err;
-		}
-		return ntohl(ret);
-	}
-
-	template<>
-	inline int16_t recv<int16_t>() {
-		int16_t ret;
-		if (::recv(handle, (char*) &ret, sizeof(int16_t), MSG_NOSIGNAL)
-				!= sizeof(int16_t)) {
-			int err = _serrno;
-			throw err;
-		}
-		return ntohs(ret);
-	}
-
-	template<>
-	inline int32_t recv<int32_t>() {
-		int32_t ret;
-		if (::recv(handle, (char*) &ret, sizeof(int32_t), MSG_NOSIGNAL)
-				!= sizeof(int32_t)) {
-			int err = _serrno;
-			throw err;
-		}
-		return ntohl(ret);
-	}
 
 	template<typename T>
 	inline ssize_t recv(const T); // Empty
@@ -344,19 +269,39 @@ public:
 	inline ssize_t recv(std::vector<T> &v) {
 		return ::recv(handle, (char*) &v[0], v.size() * sizeof(T), MSG_NOSIGNAL);
 	}
-
-	template<>
-	inline std::string recv<std::string>() {
-
-		size_t size = recv<uint32_t>();
-		std::string ret(size);
-
-		if(recv(&ret[0], size)!= size)
-			throw errno;
-
-		return ret;
-	}
 };
+
+// Qui dichiaro le specializzazioni template complete di size e recv
+template<>
+inline ssize_t socket_stream::send<uint16_t>(const uint16_t val) ;
+
+template<>
+inline ssize_t socket_stream::send<uint32_t>(const uint32_t val) ;
+
+template<>
+inline ssize_t socket_stream::send<int16_t>(const int16_t val) ;
+
+template<>
+inline ssize_t socket_stream::send<int32_t>(const int32_t val) ;
+
+template<>
+inline ssize_t socket_stream::send<const std::string&>(const std::string& str) ;
+
+template<>
+inline uint16_t socket_stream::recv<uint16_t>();
+
+template<>
+inline uint32_t socket_stream::recv<uint32_t>();
+
+template<>
+inline int16_t socket_stream::recv<int16_t>();
+
+template<>
+inline int32_t socket_stream::recv<int32_t>();
+
+template<>
+inline std::string socket_stream::recv<std::string>();
+
 
 class socket_listener: public socket_base {
 public:

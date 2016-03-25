@@ -19,6 +19,6 @@ std::vector<std::wstring> &split(const std::wstring &s, wchar_t delim,
 		std::vector<std::wstring> &elems);
 
 std::pair<std::wstring, std::wstring> splitOnce(const std::wstring &s, wchar_t delim);
-std::pair<std::string, std::string> splitOnce(const std::string &s, char delim);
+std::pair<std::string, std::stringstream> splitOnce(const std::string &s, char delim);
 }
 #endif /* SOURCE_UTILITIES_INCLUDE_STRINGS_HPP_ */

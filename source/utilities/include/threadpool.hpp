@@ -2,6 +2,7 @@
 #define SOURCE_UTILITIES_THREADPOOL_HPP_
 
 #include <functional>
+#include <deque>
 #include <future>
 #include <thread>
 #include <atomic>

@@ -27,12 +27,8 @@ pair<wstring, wstring> splitOnce(const wstring &s, wchar_t delim){
 }
 
 pair<string, stringstream> splitOnce(const string &s, char delim){
-	stringstream ss(s);
-	string item;
-	pair<string, stringstream> p;
-	getline(ss, item, delim);
-	p.first = item;
-	p.second = ss;
+	pair<string, stringstream> p = make_pair(string(), stringstream(s));
+	getline(p.second, p.first, delim);
 	return p;
 }
 
