@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 
 	if(argc > 1 && argv[1][1] == 'v') {
 		//TODO scegliere una licenza e aggiungere nota et similia..
-		cout << "Pimp My Backup Client Copyright (C) 2016  Alessio Bonato and Marco Manino \r\n\r\n"
+		cout << "Pimp My Backup Client version 0." PMB_VERSION " Copyright (C) 2016  Alessio Bonato and Marco Manino \r\n\r\n"
 		"This program comes with ABSOLUTELY NO WARRANTY; for details see "
 		"<http://www.gnu.org/licenses/gpl.html>.\r\n"
 		"This is free software, and you are welcome to redistribute it"
