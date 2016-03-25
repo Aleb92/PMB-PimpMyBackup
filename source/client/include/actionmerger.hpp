@@ -55,7 +55,6 @@ public:
 	 * @param Info sull'entita' modificata
 	 */
 	void add_change(const change_entity&);
-	//TODO
 	void add_change(std::wstring& fileName, file_action& action);
 
 	/**

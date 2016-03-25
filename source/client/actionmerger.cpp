@@ -42,6 +42,21 @@ action_merger::action_merger(size_t estimatedFileNum) :
 	it = map.begin();
 }
 
+void action_merger::add_change(std::wstring& fileName, file_action& action) {
+	if(open) {
+		if(map.count(fileName)) {
+			file_action& up = map[fileName];
+			up.op_code |= action.op_code;
+			for(int i = 0; i < 8; i++)
+				if (CompareFileTime(&action.timestamps[i], &up.timestamps[i]) == 1)
+						up.timestamps = action.timestamps[i];
+			//FIXME: è possibile avere un rename quì? Secondo me non dovrebbe...
+		}
+		else
+			map[fileName] = action;
+	}
+}
+
 void action_merger::add_change(const change_entity& che) {
 	if(open) {
 		file_action& fa = map[wstring(che->FileName, che->FileNameLength)];

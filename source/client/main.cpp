@@ -1,9 +1,11 @@
-#include <directorylistener.hpp>
+#include <client.hpp>
+#include <settings.hpp>
 
 #include <iostream>
 #include <iterator>
 
 using namespace std;
+using namespace client;
 
 int main() {
 	/*

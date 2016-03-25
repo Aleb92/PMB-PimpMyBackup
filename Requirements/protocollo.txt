@@ -15,13 +15,13 @@ _
 Nella richiesta i parametri dei vari comandi sono scritti IN SERIE, nell'ordine dei bit.
 L'header delle richieste è composto da i dati di autenticazione (username, hash(password)) seguito da:
 - OPCODE (8bit)
-- FILE_ID (32 bit)
 - TIMESTAMP per ogni operazione, anche nel caso non serva (8x64 bit)
+- FILE_ID (32 bit)
 - Gli argomenti in ordine, per ogni operazione
 
 Le operazioni svolte dal protocollo sono:
 - Client si connette.
-- Server invia subito salt (32 bit)
+//- Server invia subito salt (32 bit)
 - Client invia richiesta e contemporaneamente aspetta acknowledge da parte del server
 - Server chiude connessione nel caso di login errato
 - Server esegue le richieste e invia ack. Gli ack possono essere raggruppati tranquillamente 
