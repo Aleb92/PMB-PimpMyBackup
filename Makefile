@@ -1,7 +1,9 @@
 # Per prima cosa le flags globali
 
+PMB_VERSION := $(shell git rev-parse HEAD | cut -c1-10)
+
 # Prima il c++
-export CXXFLAGS := -g -std=c++11
+export CXXFLAGS := -g -std=c++11 -DPMB_VERSION=\"$(PMB_VERSION)\"
 
 # Poi il linker!
 export LDFLAGS := -lpthread -lsqlite3 -lcrypto
