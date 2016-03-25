@@ -14,16 +14,6 @@
 # include <utilities/include/atbegin.hpp>
 # include <utilities/include/atend.hpp>
 
-//WSAStartup call
-int init_winsock(void);
-int WSACleanupWrap();
-
-//Alla fine ripuliamo
-atEnd(WSACleanupWrap);
-
-//All'inizio inizializziamo
-atBegin(init_winsock);
-
 // COMPATIBILITY define
 
 # ifndef _serrno
@@ -31,7 +21,7 @@ atBegin(init_winsock);
 # endif
 
 # define hValid(h) ((h) != INVALID_SOCKET)
-# define close(A) closesocket(A)
+
 # define inet_network(a) ntohl(inet_addr(a))
 
 # define MSG_NOSIGNAL 0
@@ -53,6 +43,8 @@ typedef int socket_t;
 
 #define _serrno errno
 
+#define closesocket(A) close(A)
+
 #define hValid(h) ((h) >= 0)
 
 #endif
@@ -64,6 +56,16 @@ typedef int socket_t;
 #define DEFAULT_QUEUE_SIZE 16
 
 namespace utilities {
+
+//WSAStartup call
+int init_winsock(void);
+int WSACleanupWrap();
+
+//Alla fine ripuliamo
+atEnd(WSACleanupWrap);
+
+//All'inizio inizializziamo
+atBegin(init_winsock);
 
 /**
  * Classe di base per i socket. E' semplicemente un contenitore per un descrittore di risorsa.
@@ -131,7 +133,7 @@ public:
 	 */
 	inline ~socket_base() {
 		if (hValid(handle))
-			if (close(handle))
+			if (closesocket(handle))
 				throw _serrno;
 	}
 };

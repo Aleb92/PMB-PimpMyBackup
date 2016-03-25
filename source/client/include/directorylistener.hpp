@@ -35,7 +35,7 @@ class change_entity {
 	FILE_NOTIFY_INFORMATION*data;
 public:
 
-	const FILETIME time;
+	FILETIME time;
 
 	/**
 	 * L'oggetto è copiabile.
@@ -43,6 +43,7 @@ public:
 	 */
 	change_entity(const change_entity&) = default;
 	change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*);
+
 
 	FILE_NOTIFY_INFORMATION& operator*();
 	FILE_NOTIFY_INFORMATION* operator->();

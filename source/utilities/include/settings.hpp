@@ -18,22 +18,20 @@ template<typename T>
 class settings_entry;
 
 class settings_io {
-	const char* const filename;
 public:
-	settings_io(const char*file); // : filename(file) { }
 	virtual ~settings_io();
-
-	// Visitor-like pattern :)
-	template<typename T>
-	inline void operator>>(settings_entry<T>& out) noexcept {
-		// Semplicemente uso l'operatore della settings per gestire le cose! ;)
-		out << *this;
-	}
-
-	template<typename T>
-	inline void operator<<(const settings_entry<T>& in) noexcept {
-		in >> *this;
-	}
+//
+//	// Visitor-like pattern :)
+//	template<typename T>
+//	inline void operator>>(settings_entry<T>& out) noexcept {
+//		// Semplicemente uso l'operatore della settings per gestire le cose! ;)
+//		out << *this;
+//	}
+//
+//	template<typename T>
+//	inline void operator<<(const settings_entry<T>& in) noexcept {
+//		in >> *this;
+//	}
 
 	virtual operator std::unordered_map<std::string, std::stringstream>*()
 			noexcept;
@@ -171,6 +169,12 @@ public:
 		public: \
 		friend class utilities::singleton<name>
 
+
+/**
+ * Dichiara e implementa una impostazione di tipo T e nome name nella classe di impostazioni corrente.
+ * Sarei potuto andare oltre e esporre un riferimento diretto alla variabile con il tipo corretto, ma per
+ * ora mi accontento e lascio questo come TODO .
+ */
 #define SETTINGS_ENTRY(T, name) utilities::settings_entry<T> name {#name, io};
 
 #define SETTINGS_END( name ) ~name () { \

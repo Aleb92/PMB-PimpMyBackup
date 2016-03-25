@@ -1,8 +1,9 @@
 
+#include <settings.hpp>
 #include <utilities/include/strings.hpp>
 #include <utilities/include/fsutil.hpp>
 #include <filesystem.hpp>
-#include <settings.hpp>
+
 #include <string>
 #include <cstring>
 #include <cwchar>
@@ -127,14 +128,14 @@ directory& filesystem::new_dir(const wchar_t*name, size_t length) {
 	return ret;
 }
 
-bool filesystem::isDir(const wchar_t* name, size_t length = 0){
+bool filesystem::isDir(const wchar_t* name, size_t length){
 	if(length == 0)
 		length = wcslen(name);
 
 	return directories.count(wstring(name, length));
 }
 
-bool filesystem::isFile(const wchar_t* name, size_t length = 0){
+bool filesystem::isFile(const wchar_t* name, size_t length){
 	auto name_info = file_dir_name(name, length);
 	if(directories.count(name_info.first)){
 		return directories[name_info.first].files.count(name_info.second);

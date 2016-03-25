@@ -3,6 +3,7 @@
 #define SOURCE_CLIENT_INCLUDE_LOG_HPP_
 
 #include <directorylistener.hpp>
+#include <actionmerger.hpp>
 #include <utilities/include/singleton.hpp>
 
 #include <string>
@@ -32,7 +33,7 @@ public:
 
 	void issue(const change_entity&);
 
-	void close(const file_action&, const std::wstring&);
+	void finalize(const file_action&, const std::wstring&);
 };
 
 } /* namespace client */

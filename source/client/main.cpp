@@ -1,5 +1,6 @@
-#include <client.hpp>
+
 #include <settings.hpp>
+#include <client.hpp>
 
 #include <iostream>
 #include <iterator>

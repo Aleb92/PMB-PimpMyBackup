@@ -1,22 +1,29 @@
+#include <utilities/include/socket.hpp>
 #include <client.hpp>
 #include <directorylistener.hpp>
 #include <settings.hpp>
-#include <utilities/include/socket.hpp>
+#include <actionmerger.hpp>
 
 #include <thread>
+#include <string>
 
 using namespace std;
 using namespace utilities;
-using namespace client;
 using namespace server;
 
-static std::wstring_convert<std::codecvt_utf8<wchar_t>> client::converter;
+namespace client {
+std::wstring_convert<std::codecvt_utf8<wchar_t>> client::converter;
 
 client::client() :
-		dirListener(settings::inst().watched_dir) {
+		dirListener(settings::inst().watched_dir.value.c_str()) {
 }
 
 client::~client() {
+}
+
+bool client::synchronize() {
+	//TODO
+	return true;
 }
 
 void client::start() {
@@ -28,10 +35,10 @@ void client::start() {
 
 void client::merge() {
 
-	change_entity che; // = shq::inst().dequeue();
+	change_entity che = shq::inst().dequeue();
 
-	//Questo continua finche l'azione che non viene fuori e 0 che significa chiusura
-	while ((che = shq::inst().dequeue())->Action) {
+	//Questo continua finche l'azione che non viene fuori e' 0 che significa chiusura
+	while (che->Action) {
 
 		if (fs.isDir(che->FileName,
 				che->FileNameLength) && che->Action == FILE_ACTION_MODIFIED)
@@ -42,6 +49,7 @@ void client::merge() {
 
 		log::inst().issue(che);
 		action_merger::inst().add_change(che);
+		che = shq::inst().dequeue();
 	}
 }
 
@@ -54,19 +62,16 @@ void client::dispatch() {
 	file_action newAction;
 
 	while (action_merger::inst().remove(fileName, newAction)) {
-		thPool.execute(sendAction, this, fileName, newAction);
+		thPool.execute(sendAction, this, std::ref(fileName),
+				std::ref(newAction));
 	}
 }
 
 void client::sendAction(std::wstring& fileName, file_action& action,
-		std::atomic<bool>&) {
+		volatile bool &run) {
 	const pair<opcode, bool (client::*)(std::wstring&)> flag[] = {
-			{ MOVE, move },
-			{ CREATE, create },
-			{ REMOVE, remove },
-			{ CHMOD, chmod },
-			{ VERSION, version }
-	};
+			{ MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
+					chmod }, { VERSION, version } };
 
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
 	// Questa funzione quindi invia l'header generico,
@@ -78,26 +83,34 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 	file_action result = action;
 
 	// Per prima cosa mi aggancio al server
-	socket_stream sock(settings::inst().server_host, settings::inst().server_port);
+	socket_stream sock(settings::inst().server_host,
+			settings::inst().server_port);
 
-	if(sock.send(settings::inst().username)!= settings::inst().username.value.length())
+	if (sock.send(settings::inst().username.value)
+			!= settings::inst().username.value.length())
 		goto retry;
 
-	sock.send(settings::inst().password);
-	sock.send(action.op_code);
-	sock.send(action.timestamps);
-	sock.send(fileName);
+	if (sock.send(settings::inst().password.value)
+			!= settings::inst().password.value.length())
+		goto retry;
 
-	for(auto f : flag){
-		if(action.op_code & f.first){
-			if(!(this->*f.second)(realName))
+	if (sock.send(action.op_code) != sizeof(server::opcode))
+		goto retry;
+	if (sock.send(action.timestamps) != sizeof(action.timestamps))
+		goto retry;
+	if (sock.send(fileName) != fileName.length())
+		goto retry;
+
+	for (auto f : flag) {
+		if (action.op_code & f.first) {
+			if (!(this->*f.second)(realName) || !run)
 				goto retry;
-		}//TODO: Mettere atomic<bool> anche qua (leggi sotto)
+		}	//TODO: Mettere atomic<bool> anche qua (leggi sotto)
 	}
 
 	result.op_code &= ~WRITE;
 	result.op_code ^= sock.recv<opcode>();
-	if(result.op_code)
+	if (result.op_code)
 		action_merger::inst().add_change(fileName, action);
 
 	//TODO: continuare con la WRITE e ricordare atomic<bool> per dirgli di fermarsi quando scrive
@@ -105,8 +118,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 	return;
 
-retry:
-	action_merger::inst().add_change(fileName, action);
+	retry: action_merger::inst().add_change(fileName, action);
 }
 
 void client::stop() {
@@ -132,4 +144,40 @@ void client::stop() {
 
 	if (dispatcher.joinable())
 		dispatcher.join();
+}
+
+//////////////////////////////////////////////
+/// 	PROTOCOL CLIENT IMPLEMENTATION     ///
+//////////////////////////////////////////////
+
+bool client::move(std::wstring&) {
+	//TODO
+	return true;
+}
+
+bool client::create(std::wstring&) {
+	//TODO
+	return true;
+}
+
+bool client::remove(std::wstring&) {
+	//TODO
+	return true;
+}
+
+bool client::chmod(std::wstring&) {
+	//TODO
+	return true;
+}
+
+bool client::version(std::wstring&) {
+	//TODO
+	return true;
+}
+
+bool client::write(std::wstring&, volatile bool*) {
+	//TODO
+	return true;
+}
+
 }

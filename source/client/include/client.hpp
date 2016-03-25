@@ -5,6 +5,8 @@
 #include <directorylistener.hpp>
 #include <filesystem.hpp>
 #include <log.hpp>
+#include <utilities/include/threadpool.hpp>
+
 #include <thread>
 #include <locale>
 #include <codecvt>
@@ -27,14 +29,14 @@ class client {
 	void merge();
 	void dispatch();
 
-	void sendAction(std::wstring&, file_action&, std::atomic<bool>&);
+	void sendAction(std::wstring&, file_action&, volatile bool&);
 
 	bool move(std::wstring&);
 	bool create(std::wstring&);
 	bool remove(std::wstring&);
 	bool chmod(std::wstring&);
 	bool version(std::wstring&);
-	bool write(std::wstring&);
+	bool write(std::wstring&, volatile bool*);
 
 public:
 	client();

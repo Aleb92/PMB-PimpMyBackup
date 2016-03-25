@@ -11,7 +11,7 @@ namespace utilities {
 
 class thread_pool {
 
-	std::atomic<bool> running;
+	volatile bool running;
 	std::deque<std::thread> waitingList;
 	// Thread di attesa per terminare i vari thread aperti...
 	// mi ricorda molto quello che fa init in un sistema unix...
@@ -19,7 +19,7 @@ class thread_pool {
 
 public:
 
-	thread_pool() :
+	inline thread_pool() :
 			running(true), joiner(join_all, this) { }
 
 	inline void stop(void) {
@@ -37,7 +37,7 @@ public:
 	void execute(T&& f, A&&... args) {
 		if (!running)
 			return;
-		waitingList.push_back(std::thread(f, args..., running));
+		waitingList.push_back(std::thread(f, args..., std::ref(running)));
 	}
 
 	void join_all();

@@ -1,9 +1,6 @@
-/*
- * actionmerger.cpp
- *
- *  Created on: 30 ott 2015
- *      Author: alessio
- */
+#include <server/include/protocol.hpp>
+#include <actionmerger.hpp>
+#include <log.hpp>
 
 #include <functional>
 #include <unordered_map>
@@ -11,14 +8,11 @@
 #include <Windows.h>
 #include <limits>
 
-#include <server/include/protocol.hpp>
-#include <actionmerger.hpp>
-
 using namespace std;
 using namespace client;
 using namespace server;
 
-inline opcode client::get_flag_bit(DWORD event) {
+opcode client::get_flag_bit(DWORD event) {
 	switch (event) {
 	case FILE_ACTION_ADDED:
 		return CREATE;
@@ -49,7 +43,7 @@ void action_merger::add_change(std::wstring& fileName, file_action& action) {
 			up.op_code |= action.op_code;
 			for(int i = 0; i < 8; i++)
 				if (CompareFileTime(&action.timestamps[i], &up.timestamps[i]) == 1)
-						up.timestamps = action.timestamps[i];
+						up.timestamps[i] = action.timestamps[i];
 			//FIXME: è possibile avere un rename quì? Secondo me non dovrebbe...
 		}
 		else
@@ -64,9 +58,9 @@ void action_merger::add_change(const change_entity& che) {
 		fa.op_code |= flag;
 
 		if (che->Action == FILE_ACTION_RENAMED_OLD_NAME) {
-			change_entity newNameEntity;
-			if ((newNameEntity =
-					utilities::shared_queue<change_entity>::inst().dequeue())->Action
+			change_entity newNameEntity =
+					utilities::shared_queue<change_entity>::inst().dequeue();
+			if (newNameEntity->Action
 					!= FILE_ACTION_RENAMED_NEW_NAME)
 				//TODO ECCEZIONE
 				throw errno;
@@ -98,7 +92,7 @@ file_action& file_action::operator ^=(const log_entry_header& entry) {
 			FILETIME& _t = timestamps[i];
 			if (CompareFileTime(&entry.timestamp, &_t) == 1) {
 				_t = {0};
-				opcode ^= j;
+				op_code ^= j;
 			}
 		}
 	}

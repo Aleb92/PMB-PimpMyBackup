@@ -1,22 +1,31 @@
 #ifndef SOURCE_CLIENT_INCLUDE_ACTIONMERGER_HPP_
 #define SOURCE_CLIENT_INCLUDE_ACTIONMERGER_HPP_
 
+#include <utilities/include/singleton.hpp>
+#include <directorylistener.hpp>
+#include <server/include/protocol.hpp>
+
 #include <functional>
 #include <unordered_map>
 #include <cstdint>
 #include <string>
 #include <mutex>
+#include <condition_variable>
 #include <Windows.h>
 
 namespace client {
 
-inline server::opcode get_flag_bit(DWORD);
+
+server::opcode get_flag_bit(DWORD);
+
+// Forward declaration per evitare dipendenze circolari degli headers
+struct log_entry_header;
+class log;
 
 /**
  * Struttura per memorizzare lo stato attuale di una modifica al file
  * non ancora inviata al server.
  */
-
 //TODO: Implementare move constructor per velocità?
 struct file_action {
 	uint8_t op_code;///< bitmask delle operazioni da inviare

@@ -3,6 +3,7 @@
 
 #define SETTINGS_FILE_NAME "settings.ini"
 
+#include <utilities/include/socket.hpp>
 #include <utilities/include/singleton.hpp>
 #include <utilities/include/settings.hpp>
 
@@ -36,8 +37,8 @@ namespace client {
 	/**
 	 * indirizzo ip (stringa) del server
 	 */
-	SETTINGS_ENTRY(std::wstring, server_host);
-	SETTINGS_ENTRY(uint16_t, server_port);
+	SETTINGS_ENTRY(std::string, server_host);
+	SETTINGS_ENTRY(in_port_t, server_port);
 
 	/**
 	 * Questa variabile indica se sincronizzare o no (ovvero se scaricare di nuovo tutto dal server)
