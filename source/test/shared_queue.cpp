@@ -86,22 +86,22 @@ public:
 	}
 };
 cbk cbk::c;
-
-BOOST_AUTO_TEST_CASE(callbacks) {
-	int num = rand() % 1000;
-	int vett[1000];
-
-	typedef shared_queue<int, cbk, &cbk::push, &cbk::pop> sq;
-
-	for(int i = 0; i < num; i++) {
-		vett[i]=rand()%10000;
-		sq::inst().enqueue(vett[i]);
-	}
-	BOOST_CHECK(cbk::c.count == num);
-	for(int i = 0; i < num; i++)
-		BOOST_CHECK_EQUAL(vett[i], sq::inst().dequeue());
-	BOOST_CHECK(cbk::c.count == 0);
-}
+//
+//BOOST_AUTO_TEST_CASE(callbacks) {
+//	int num = rand() % 1000;
+//	int vett[1000];
+//
+//	typedef shared_queue<int, cbk, &cbk::push, &cbk::pop> sq;
+//
+//	for(int i = 0; i < num; i++) {
+//		vett[i]=rand()%10000;
+//		sq::inst().enqueue(vett[i]);
+//	}
+//	BOOST_CHECK(cbk::c.count == num);
+//	for(int i = 0; i < num; i++)
+//		BOOST_CHECK_EQUAL(vett[i], sq::inst().dequeue());
+//	BOOST_CHECK(cbk::c.count == 0);
+//}
 
 
 

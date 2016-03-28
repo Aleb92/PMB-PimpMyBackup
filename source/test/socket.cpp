@@ -21,10 +21,10 @@ void server() {
 		sem.unlock();
 		socket_stream ss = ls.accept();
 
-		(void)ss.send(ss.recv<int>()*ss.recv<int>());
+		ss.send(ss.recv<int>()*ss.recv<int>());
 		char str[10];
-		(void)ss.recv(str);
-		(void)ss.send("ciao");
+		ss.recv(str);
+		ss.send("ciao");
 	}
 	catch (...) { }
 }
@@ -34,11 +34,11 @@ void client() {
 		socket_stream ss("127.0.0.1", DEFAULT_PORT);
 		ss.send(10);
 		ss.send(44);
-		(void)ss.recv<int>();
+		ss.recv<int>();
 		ss.send("bonnyculo");
 		char pp[5];
 		char *p = pp;
-		(void)ss.recv(p, 5);
+		ss.recv(p, 5);
 	}
 	catch (...) {}
 }
@@ -54,17 +54,17 @@ BOOST_AUTO_TEST_CASE(stream)
 	lock_guard<mutex> gd(sem);
 
 	// Divento io stesso il client
-	{
+	BOOST_CHECK_NO_THROW({
 		socket_stream ss  = socket_stream("127.0.0.1", DEFAULT_PORT);
-		BOOST_CHECK(ss.send(10) == sizeof(10));
-		BOOST_CHECK(ss.send(44) == sizeof(44));
-		BOOST_CHECK(ss.recv<int>() == 440);
-		BOOST_CHECK(ss.send("bonnycul0") == 10);
+		ss.send(10);
+		ss.send(44);;
+		BOOST_CHECK_EQUAL(ss.recv<int>(), 440);
+		ss.send("bonnycul0");
 		char pp[5];
 		char *p = pp;
-		BOOST_CHECK(ss.recv(p, 5) == 5);
-		BOOST_CHECK(strcmp(p, "ciao") == 0);
-	}
+		BOOST_CHECK_EQUAL(ss.recv(p, 5), 5);
+		BOOST_CHECK_EQUAL(strcmp(p, "ciao"), 0);
+	});
 	//Adesso aspetto l'altro thread
 	if(s.joinable()) s.join();
 }
@@ -76,16 +76,19 @@ BOOST_AUTO_TEST_CASE(listener)
 
 	// Faccio partire il client visto che sono pronto a ricevere
 	thread c(client);
-	// Accetto connessioni
-	socket_stream ss = ls.accept();
 
-	// Test case
-	BOOST_CHECK(ss.recv<int>() == 10);
-	BOOST_CHECK(ss.recv<int>() == 44);
-	BOOST_CHECK(ss.send(440) == sizeof(440));
-	char str[10];
-	BOOST_CHECK(ss.recv(str) == sizeof(str));
-	BOOST_CHECK(ss.send("ciao") == 5);
+	BOOST_CHECK_NO_THROW({
+		// Accetto connessioni
+		socket_stream ss = ls.accept();
+
+		// Test case
+		BOOST_CHECK_EQUAL(ss.recv<int>(), 10);
+		BOOST_CHECK_EQUAL(ss.recv<int>(), 44);
+		ss.send(440);
+		char str[10];
+		BOOST_CHECK_EQUAL(ss.recv(str), sizeof(str));
+		ss.send("ciao");
+	});
 
 	//Join per evitare problemi
 	if(c.joinable()) c.join();

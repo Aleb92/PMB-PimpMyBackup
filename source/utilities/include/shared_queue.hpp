@@ -49,9 +49,9 @@ namespace utilities {
 			return data.front();
 		}
 
-		inline bool empty() const {
+		inline bool empty() {
 			//FIXME: Serve sincronizzare?
-			std::unique_lock<std::mutex> guard(lk);
+			std::lock_guard<std::mutex> guard(lk);
 			return data.empty();
 		}
 

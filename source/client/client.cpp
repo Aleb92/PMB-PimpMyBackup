@@ -86,20 +86,21 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 	socket_stream sock(settings::inst().server_host,
 			settings::inst().server_port);
 
-	if (sock.send(settings::inst().username.value)
-			!= settings::inst().username.value.length())
-		goto retry;
-
-	if (sock.send(settings::inst().password.value)
-			!= settings::inst().password.value.length())
-		goto retry;
-
-	if (sock.send(action.op_code) != sizeof(server::opcode))
-		goto retry;
-	if (sock.send(action.timestamps) != sizeof(action.timestamps))
-		goto retry;
-	if (sock.send(fileName) != fileName.length())
-		goto retry;
+	// TODO Sostituire il tutto con un try-catch
+//	if (sock.send(settings::inst().username.value)
+//			!= settings::inst().username.value.length())
+//		goto retry;
+//
+//	if (sock.send(settings::inst().password.value)
+//			!= settings::inst().password.value.length())
+//		goto retry;
+//
+//	if (sock.send(action.op_code) != sizeof(server::opcode))
+//		goto retry;
+//	if (sock.send(action.timestamps) != sizeof(action.timestamps))
+//		goto retry;
+//	if (sock.send(fileName) != fileName.length())
+//		goto retry;
 
 	for (auto f : flag) {
 		if (action.op_code & f.first) {
