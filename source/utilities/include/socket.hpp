@@ -194,11 +194,11 @@ public:
 	 * @return The number of bytes sent or -1
 	 */
 	template<typename T>
-	inline ssize_t send(const T val) {
-		return ::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL);
+	void send(const T val) {
+		if(::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
+			//TODO
+			throw errno;
 	}
-
-
 
 	/**
 	 * Invia un array di oggetti di tipo T, deducendone la dimensione in automatico.
@@ -206,9 +206,39 @@ public:
 	 * @return
 	 */
 	template<typename T, size_t s>
-	inline ssize_t send(const T (&buff)[s]) {
-		return ::send(handle, (const char*) buff, sizeof(buff), MSG_NOSIGNAL);
+	void send(const T (&buff)[s]) {
+		if(::send(handle, (const char*) buff, sizeof(buff), MSG_NOSIGNAL) != sizeof(buff))
+			throw errno;
 	}
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+
+	// TODO: uniformare il tutto con le eccezioni. Sono più lente, ma amen
+	// avere due(tre) interfacce (a volte ritorna -1, a volte un numero troppo basso, a
+	// volte un'eccezione) non va per niente bene.
+
+	template<size_t s>
+	void send(const FILETIME(&val)[s]) {
+		// TODO: Non possiamo mandare a caso dei FILETIME che sono una struttura di windows!
+		// in particolare perchè c'è da dividere questo valore per 10 per ottenere le cose giuste...
+		// Quindi o ce ne fottiamo altamente e inviamo di brutto il valore di windows (che tanto
+		// viene piazzato nel database) o ci facciamo la conversione...
+		// Per ora in questa implementazione invio il valore di FILETIME, senza conversione.
+		for(unsigned int i = 0; i < s; i++){
+			send<uint32_t>((uint32_t)val[i].dwHighDateTime);
+			send<uint32_t>((uint32_t)val[i].dwLowDateTime);
+		}
+	}
+
+	template<size_t N>
+	void recv(FILETIME (&buff)[N]) {
+		for(unsigned int i = 0; i < N; i++){
+			buff[i].dwHighDateTime = recv<uint32_t>();
+			buff[i].dwLowDateTime = recv<uint32_t>();
+		}
+	}
+
+#endif
 
 	// Questa è vuota
 	template<typename T>
@@ -221,14 +251,9 @@ public:
 	 * @return
 	 */
 	template<typename T>
-	inline ssize_t send(const T*buff, size_t N) {
-		return ::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL);
-	}
-
-	template<typename T>
-	inline ssize_t send(const std::vector<T> &v) {
-		return ::send(handle, (const char*) &v[0], v.size() * sizeof(T),
-		MSG_NOSIGNAL);
+	void send(const T*buff, size_t N) {
+		if(::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL) != N)
+			throw errno;
 	}
 
 	/**
@@ -237,7 +262,7 @@ public:
 	 * @return the object received
 	 */
 	template<typename T>
-	inline T recv() {
+	T recv() {
 		T ret;
 		if (::recv(handle, (char*) &ret, sizeof(T), MSG_NOSIGNAL)
 				!= sizeof(T)) {
@@ -258,51 +283,50 @@ public:
 	 * @return
 	 */
 	template<typename T>
-	inline ssize_t recv(T* buff, size_t N) {
-		return ::recv(handle, (char*) buff, N * sizeof(T), MSG_NOSIGNAL);
+	ssize_t recv(T* buff, size_t N) {
+		ssize_t ret = ::recv(handle, (char*) buff, N * sizeof(T), MSG_NOSIGNAL);
+		if(ret < 0)
+			throw errno;
+		return ret;
 	}
 
 	template<typename T, size_t N>
 	inline ssize_t recv(T (&buff)[N]) {
-		return ::recv(handle, (char*) buff, N * sizeof(T), MSG_NOSIGNAL);
+		return recv(buff, N);
 	}
 
-	template<typename T>
-	inline ssize_t recv(std::vector<T> &v) {
-		return ::recv(handle, (char*) &v[0], v.size() * sizeof(T), MSG_NOSIGNAL);
-	}
 };
 
 // Qui dichiaro le specializzazioni template complete di size e recv
 template<>
-inline ssize_t socket_stream::send<uint16_t>(const uint16_t val) ;
+void socket_stream::send<uint16_t>(const uint16_t val) ;
 
 template<>
-inline ssize_t socket_stream::send<uint32_t>(const uint32_t val) ;
+void socket_stream::send<uint32_t>(const uint32_t val);
 
 template<>
-inline ssize_t socket_stream::send<int16_t>(const int16_t val) ;
+void socket_stream::send<int16_t>(const int16_t val) ;
 
 template<>
-inline ssize_t socket_stream::send<int32_t>(const int32_t val) ;
+void socket_stream::send<int32_t>(const int32_t val) ;
 
 template<>
-inline ssize_t socket_stream::send<const std::string&>(const std::string& str) ;
+void socket_stream::send<const std::string&>(const std::string& str) ;
 
 template<>
-inline uint16_t socket_stream::recv<uint16_t>();
+uint16_t socket_stream::recv<uint16_t>();
 
 template<>
-inline uint32_t socket_stream::recv<uint32_t>();
+uint32_t socket_stream::recv<uint32_t>();
 
 template<>
-inline int16_t socket_stream::recv<int16_t>();
+int16_t socket_stream::recv<int16_t>();
 
 template<>
-inline int32_t socket_stream::recv<int32_t>();
+int32_t socket_stream::recv<int32_t>();
 
 template<>
-inline std::string socket_stream::recv<std::string>();
+std::string socket_stream::recv<std::string>();
 
 
 class socket_listener: public socket_base {

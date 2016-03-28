@@ -1,13 +1,12 @@
 #include <utilities/include/socket.hpp>
 #include <iostream> // Per std::cerr
-#include <cstdlib> // Per onexit
+#include <cstdlib>
 
 using namespace std;
 
 namespace utilities {
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-//WSAStartup call
 
 /**
  * Questa funzione l'ho scopiazzata dalla guida windows
@@ -137,37 +136,38 @@ socket_stream socket_listener::accept() {
 // specializzazioni template di send e recv
 
 template<>
-ssize_t socket_stream::send<uint16_t>(const uint16_t val) {
+void socket_stream::send<uint16_t>(const uint16_t val) {
 	uint16_t snd = htons(val);
-	return ::send(handle, (const char*) &snd, sizeof(uint16_t), MSG_NOSIGNAL);
-}
-
-template<>
-ssize_t socket_stream::send<uint32_t>(const uint32_t val) {
-	uint32_t snd = htons(val);
-	return ::send(handle, (const char*) &snd, sizeof(uint32_t), MSG_NOSIGNAL);
-}
-
-template<>
-ssize_t socket_stream::send<int16_t>(const int16_t val) {
-	int16_t snd = htons(val);
-	return ::send(handle, (const char*) &snd, sizeof(int16_t), MSG_NOSIGNAL);
-}
-
-template<>
-ssize_t socket_stream::send<int32_t>(const int32_t val) {
-	int32_t snd = htons(val);
-	return ::send(handle, (const char*) &snd, sizeof(int32_t), MSG_NOSIGNAL);
-}
-
-template<>
-ssize_t socket_stream::send<const std::string&>(const std::string& str) {
-	uint32_t size = str.length();
-
-	if (send(size) != sizeof(uint32_t))
+	if(::send(handle, (const char*) &snd, sizeof(uint16_t), MSG_NOSIGNAL) != sizeof(val))
 		throw errno;
+}
 
-	return send(str.c_str(), size);
+template<>
+void socket_stream::send<uint32_t>(const uint32_t val) {
+	uint32_t snd = htons(val);
+	if(::send(handle, (const char*) &snd, sizeof(uint32_t), MSG_NOSIGNAL) != sizeof(val))
+		throw errno;
+}
+
+template<>
+void socket_stream::send<int16_t>(const int16_t val) {
+	int16_t snd = htons(val);
+	if(::send(handle, (const char*) &snd, sizeof(int16_t), MSG_NOSIGNAL) != sizeof(val))
+		throw errno;
+}
+
+template<>
+void socket_stream::send<int32_t>(const int32_t val) {
+	int32_t snd = htons(val);
+	if(::send(handle, (const char*) &snd, sizeof(int32_t), MSG_NOSIGNAL) != sizeof(val))
+		throw errno;
+}
+
+template<>
+void socket_stream::send<const std::string&>(const std::string& str) {
+	uint32_t size = str.length();
+	send(size);
+	send(str.c_str(), size);
 }
 
 template<>
@@ -225,6 +225,5 @@ std::string socket_stream::recv<std::string>() {
 
 	return ret;
 }
-}
 
-/* namespace utilities */
+}/* namespace utilities */
