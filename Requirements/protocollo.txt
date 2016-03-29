@@ -8,7 +8,7 @@ _
 4| Permessi
 5| [Riservato per uso futuro (ignorato)]
 6| Version change
-7| Modifier (directory/file | list/insert version)
+7| Modifier (list/insert(0) version)
 8| Scrittura
 -
 
@@ -40,13 +40,13 @@ la transazione sia già presente).
 <size><data>
 
 == Spostamento ==
-Solo una stringa stile C (null-terminated)
+Solo una stringa
 
 == Creazione == 
-Solo una stringa stile C (null-terminated)
+<'f'/'d'><Nome>
 
 == Cancellazione ==
-Solo una stringa stile C (null-terminated)
+EMPTY
 
 == Permessi ==
 16bit di permessi, unix-like
