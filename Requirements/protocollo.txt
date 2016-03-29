@@ -60,7 +60,7 @@ EMPTY
 == Modifier (directory/file | list/insert version) ==
 
 == Scrittura ==
-<binary data>
+<size><binary data>
 
 Formato per il listing
 -----------------------------------
