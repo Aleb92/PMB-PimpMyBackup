@@ -3,7 +3,9 @@
 #include <directorylistener.hpp>
 #include <settings.hpp>
 #include <actionmerger.hpp>
+#include <utilities/include/atend.hpp>
 
+#include <windows.h>
 #include <thread>
 #include <string>
 
@@ -69,8 +71,8 @@ void client::dispatch() {
 
 void client::sendAction(std::wstring& fileName, file_action& action,
 		volatile bool &run) {
-	const pair<opcode, bool (client::*)(std::wstring&)> flag[] = {
-			{ MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
+	const pair<opcode, bool (client::*)(socket_stream&, std::wstring&)> flag[] =
+			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
 					chmod }, { VERSION, version } };
 
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
@@ -81,6 +83,8 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 	wstring realName = (action.op_code & MOVE) ? action.newName : fileName;
 	file_action result = action;
+	result.op_code = 0;
+
 	try {
 		// Per prima cosa mi aggancio al server
 		socket_stream sock(settings::inst().server_host,
@@ -89,27 +93,40 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		// TODO Sostituire il tutto con un try-catch
 		sock.send(settings::inst().username.value);
 		sock.send(settings::inst().password.value);
+
+		if (!sock.recv<bool>())
+			throw errno; // mettere eccezione username/password
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
 		sock.send(fileName);
 
 		for (auto f : flag) {
 			if ((action.op_code & f.first) && run) {
-				(this->*f.second)(realName);//TODO: Mettere atomic<bool> anche qua (leggi sotto)
-				action.op_code ^= f.first;	// TODO: settare quì la flag giusta
+				(this->*f.second)(sock, realName);
+				if (sock.recv<bool>()) {
+					result.op_code |= f.first;
+					action.op_code &= ~f.first;
+				}
 			}
 		}
-		// TODO FLAGS
-		result.op_code &= ~WRITE;
-		result.op_code ^= sock.recv<opcode>();
-		if (result.op_code)
+
+		if ((action.op_code & WRITE) && run) {
+			this->write(sock, realName, run);
+			if (sock.recv<bool>()) {
+				result.op_code |= WRITE;
+				action.op_code &= ~WRITE;
+			}
+		}
+
+		if (action.op_code != 0)
 			action_merger::inst().add_change(fileName, action);
 
-		//TODO: continuare con la WRITE e ricordare atomic<bool> per dirgli di fermarsi quando scrive
-		//visto che e una operazione lunga
 	} catch (...) { // ECCEZIONI
 		action_merger::inst().add_change(fileName, action);
 	}
+
+	if (result.op_code != 0)
+		log::inst().finalize(result, fileName);
 }
 
 void client::stop() {
@@ -141,34 +158,51 @@ void client::stop() {
 /// 	PROTOCOL CLIENT IMPLEMENTATION     ///
 //////////////////////////////////////////////
 
-bool client::move(std::wstring&) {
-	//TODO
-	return true;
+void client::move(socket_stream& sock, std::wstring& fileName) {
+	sock.send(fileName);
 }
 
-bool client::create(std::wstring&) {
-	//TODO
-	return true;
+void client::create(socket_stream& sock, std::wstring& fileName) {
+	if (fs.isDir(fileName.c_str(), fileName.length()))
+		sock.send('d');
+	else
+		sock.send('f');
+
+	sock.send(fileName);
 }
 
-bool client::remove(std::wstring&) {
-	//TODO
-	return true;
+void client::remove(socket_stream& sock, std::wstring& fileName) {
 }
 
-bool client::chmod(std::wstring&) {
-	//TODO
-	return true;
+void client::chmod(socket_stream& sock, std::wstring& fileName) {
+	uint16_t mods = fs.get_file(fileName.c_str(), fileName.length()).mod;
+
+	sock.send(mods);
 }
 
-bool client::version(std::wstring&) {
-	//TODO
-	return true;
+void client::version(socket_stream& sock, std::wstring& fileName) {
 }
 
-bool client::write(std::wstring&, volatile bool*) {
-	//TODO
-	return true;
+void client::write(socket_stream& sock, std::wstring& fileName,
+		volatile bool& run) {
+
+	char buffer[BUFF_LENGHT] = { 0 };
+	FILE* file = _wfopen(fileName.c_str(), L"rb");
+	if (file == NULL)
+		throw errno;
+
+	on_return<> ret([file](){
+		fclose(file);
+	});
+
+	fseek(file, 0, SEEK_END);
+	uint32_t size = ftell(file);
+	sock.send(size);
+
+	while (feof(file) && run) {
+		size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
+		sock.send(buffer, readn);
+	}
 }
 
 }

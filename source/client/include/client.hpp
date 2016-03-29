@@ -31,12 +31,12 @@ class client {
 
 	void sendAction(std::wstring&, file_action&, volatile bool&);
 
-	bool move(std::wstring&);
-	bool create(std::wstring&);
-	bool remove(std::wstring&);
-	bool chmod(std::wstring&);
-	bool version(std::wstring&);
-	bool write(std::wstring&, volatile bool*);
+	void move(utilities::socket_stream&, std::wstring&);
+	void create(utilities::socket_stream&, std::wstring&);
+	void remove(utilities::socket_stream&, std::wstring&);
+	void chmod(utilities::socket_stream&, std::wstring&);
+	void version(utilities::socket_stream&, std::wstring&);
+	void write(utilities::socket_stream&, std::wstring&, volatile bool&);
 
 public:
 	client();

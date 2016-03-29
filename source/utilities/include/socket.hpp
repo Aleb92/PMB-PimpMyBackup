@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <vector>
 
+#define BUFF_LENGHT 4096
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <windows.h>
@@ -213,17 +215,9 @@ public:
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
-	// TODO: uniformare il tutto con le eccezioni. Sono più lente, ma amen
-	// avere due(tre) interfacce (a volte ritorna -1, a volte un numero troppo basso, a
-	// volte un'eccezione) non va per niente bene.
-
 	template<size_t s>
 	void send(const FILETIME(&val)[s]) {
-		// TODO: Non possiamo mandare a caso dei FILETIME che sono una struttura di windows!
-		// in particolare perchè c'è da dividere questo valore per 10 per ottenere le cose giuste...
-		// Quindi o ce ne fottiamo altamente e inviamo di brutto il valore di windows (che tanto
-		// viene piazzato nel database) o ci facciamo la conversione...
-		// Per ora in questa implementazione invio il valore di FILETIME, senza conversione.
+		//FIXME e' giusto l'ordine?
 		for(unsigned int i = 0; i < s; i++){
 			send<uint32_t>((uint32_t)val[i].dwHighDateTime);
 			send<uint32_t>((uint32_t)val[i].dwLowDateTime);
