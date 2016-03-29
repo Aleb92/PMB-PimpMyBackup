@@ -228,7 +228,7 @@ void filesystem::loadFS(const wstring& name, const wstring& prefix) {
         	file_info& fi = new_file(full_file_name.c_str(), full_file_name.length());
         	// Carico i dati!
         	fi.lastModified = file_data.ftLastWriteTime;
-        	fi.mod = file_mod(file_data.dwFileAttributes);
+        	fi.mod = file_mod(file_data.dwFileAttributes);//FIXME il formato è corretto?
         	fileMD5((name + L"/" + file_name).c_str(), fi.checksum);
         }
 

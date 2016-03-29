@@ -65,6 +65,26 @@ socket_base::socket_base(int af, int type, int protocol) :
 		throw _serrno;
 }
 
+
+socket_base::SOCK_STATE socket_base::getState() {
+	fd_set read, write;
+
+	FD_ZERO(&read);
+	FD_ZERO(&write);
+	FD_SET(handle, &read);
+	FD_SET(handle, &write);
+
+	SOCK_STATE ret = NOT_READY;
+	if(select(handle+1, &read, &write, nullptr, nullptr)){ // FIXME: questo potrebbe dare errore in teoria(quando?)
+		if(FD_ISSET(handle, &read))
+			ret = READ_READY;
+		if(FD_ISSET(handle, &write))
+			ret |= WRITE_READY;
+	}
+
+	return ret;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 socket_stream::socket_stream(socket_stream&& ss) :

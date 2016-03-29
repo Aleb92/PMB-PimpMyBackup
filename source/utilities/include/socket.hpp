@@ -136,6 +136,15 @@ public:
 			if (closesocket(handle))
 				throw _serrno;
 	}
+
+	enum SOCK_STATE {
+		NOT_READY = 0,
+		READ_READY = 1,
+		WRITE_READY = 2,
+		BOTH_READY = READ_READY | WRITE_READY
+	};
+
+	SOCK_STATE getState();
 };
 
 class socket_stream: public socket_base {
