@@ -200,6 +200,11 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 	sock.send(size);
 
 	while (feof(file) && run) {
+		socket_base::SOCK_STATE state = sock.getState();
+		if(state & socket_base::READ_READY){
+			if(sock.recv<bool>())
+				return;
+		}
 		size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
 		sock.send(buffer, readn);
 	}
