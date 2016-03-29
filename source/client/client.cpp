@@ -81,45 +81,35 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 	wstring realName = (action.op_code & MOVE) ? action.newName : fileName;
 	file_action result = action;
+	try {
+		// Per prima cosa mi aggancio al server
+		socket_stream sock(settings::inst().server_host,
+				settings::inst().server_port);
 
-	// Per prima cosa mi aggancio al server
-	socket_stream sock(settings::inst().server_host,
-			settings::inst().server_port);
+		// TODO Sostituire il tutto con un try-catch
+		sock.send(settings::inst().username.value);
+		sock.send(settings::inst().password.value);
+		sock.send(action.op_code);
+		sock.send(action.timestamps);
+		sock.send(fileName);
 
-	// TODO Sostituire il tutto con un try-catch
-//	if (sock.send(settings::inst().username.value)
-//			!= settings::inst().username.value.length())
-//		goto retry;
-//
-//	if (sock.send(settings::inst().password.value)
-//			!= settings::inst().password.value.length())
-//		goto retry;
-//
-//	if (sock.send(action.op_code) != sizeof(server::opcode))
-//		goto retry;
-//	if (sock.send(action.timestamps) != sizeof(action.timestamps))
-//		goto retry;
-//	if (sock.send(fileName) != fileName.length())
-//		goto retry;
+		for (auto f : flag) {
+			if ((action.op_code & f.first) && run) {
+				(this->*f.second)(realName);//TODO: Mettere atomic<bool> anche qua (leggi sotto)
+				action.op_code ^= f.first;	// TODO: settare quì la flag giusta
+			}
+		}
+		// TODO FLAGS
+		result.op_code &= ~WRITE;
+		result.op_code ^= sock.recv<opcode>();
+		if (result.op_code)
+			action_merger::inst().add_change(fileName, action);
 
-	for (auto f : flag) {
-		if (action.op_code & f.first) {
-			if (!(this->*f.second)(realName) || !run)
-				goto retry;
-		}	//TODO: Mettere atomic<bool> anche qua (leggi sotto)
-	}
-
-	result.op_code &= ~WRITE;
-	result.op_code ^= sock.recv<opcode>();
-	if (result.op_code)
+		//TODO: continuare con la WRITE e ricordare atomic<bool> per dirgli di fermarsi quando scrive
+		//visto che e una operazione lunga
+	} catch (...) { // ECCEZIONI
 		action_merger::inst().add_change(fileName, action);
-
-	//TODO: continuare con la WRITE e ricordare atomic<bool> per dirgli di fermarsi quando scrive
-	//visto che e una operazione lunga
-
-	return;
-
-	retry: action_merger::inst().add_change(fileName, action);
+	}
 }
 
 void client::stop() {

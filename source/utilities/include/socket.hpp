@@ -240,10 +240,6 @@ public:
 
 #endif
 
-	// Questa è vuota
-	template<typename T>
-	inline ssize_t send(const T, size_t); // empty
-
 	/**
 	 * recives an array of T
 	 * @param buff array
