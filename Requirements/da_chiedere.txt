@@ -1,2 +1,3 @@
 - Dobbiamo usare le checksum?
 - Grafica in C#? (E quindi niente servizio?)
+- Quale politica per le versioni?

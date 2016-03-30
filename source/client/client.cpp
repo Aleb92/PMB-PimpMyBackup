@@ -181,6 +181,7 @@ void client::chmod(socket_stream& sock, std::wstring& fileName) {
 }
 
 void client::version(socket_stream& sock, std::wstring& fileName) {
+	//todo: Scaricare e aggiornare il file di cui è richiesta un'altra versione.
 }
 
 void client::write(socket_stream& sock, std::wstring& fileName,
