@@ -8,17 +8,78 @@
 #ifndef SOURCE_SERVER_INCLUDE_DATABASE_HPP_
 #define SOURCE_SERVER_INCLUDE_DATABASE_HPP_
 
+#include <settings.hpp>
+
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
 #include <sqlite3.h>
+
+
+
+namespace std {
+template<>
+struct default_delete<sqlite3> {
+	constexpr default_delete() = default;
+	inline void operator()(sqlite3*p) const {
+		sqlite3_close(p);
+	}
+};
+
+template<>
+struct default_delete<sqlite3_stmt> {
+	constexpr default_delete() = default;
+	inline void operator()(sqlite3_stmt*p) const {
+		sqlite3_finalize(p);
+	}
+};
+}
 
 namespace server {
 
-class database {
-	sqlite3_stmt * auth;
-public:
+#define SQL_INIT "PRAGMA foreign_keys = ON;PRAGMA journal_mode=WAL;"
+#define SQL_AUTH "SELECT username, password WHERE username=?"
+#define SQL_CREATE "INSERT INTO files (username, path, time_stamp) VALUES(?,?,?)"
+#define SQL_CHMOD "UPDATE files SET time_stamp=?, mod=? WHERE username=? AND path=?"
+#define SQL_WRITE "UPDATE files SET time_stamp=?, file_id=? WHERE username=? AND path=?"
+#define SQL_MOVE "UPDATE files SET time_stamp=?, path=? WHERE username=? AND path=?"
+#define SQL_DELETE "DELETE FROM files WHERE username=? AND path=?"
+#define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE WHERE username=?1 AND path=?2 AND time_stamp=?3) UPDATE files SET time_stamp=(SELECT time_stamp FROM tmp),mod=(SELECT mod FROM tmp),file_id=(SELECT file_id FROM tmp) WHERE username=?1 AND path=?2"
+#define SQL_LIST_V "SELECT time_stamp FROM history WHERE username=? AND path=?"
 
+class database;
+
+class user_context {
+	std::string& usr, &pass, &path;
+	database& db;
+
+	friend class database;
+	user_context(std::string&, std::string&, std::string&, database&);
+public:
+	bool auth();
+	void create(int64_t);
+	void chmod(int64_t, uint16_t);
+	void write(int64_t);
+	void move(int64_t, std::string&);
+	void remove();
+	void version(int64_t);
+	std::vector<std::string> versions();
+};
+
+
+class database {
+	std::unique_ptr<sqlite3> connection;
+	std::unique_ptr<sqlite3_stmt> auth, create,
+			chmod, write, move, remove, version, list;
+	std::mutex busy;
+	friend class user_context;
+public:
+	database(const char*db_name = settings::inst().db_name.value.c_str());
+	user_context getUserContext(std::string&, std::string&, std::string&);
+	~database();
 };
 
 }
-
 
 #endif /* SOURCE_SERVER_INCLUDE_DATABASE_HPP_ */

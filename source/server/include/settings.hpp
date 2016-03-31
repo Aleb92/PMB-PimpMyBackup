@@ -11,7 +11,6 @@
 
 namespace server {
 	SETTINGS_BEGIN(settings, SETTINGS_FILE_NAME);
-
 	/**
 	 * Host ip
 	 */

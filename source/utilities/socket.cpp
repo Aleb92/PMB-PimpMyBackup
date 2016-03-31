@@ -79,7 +79,7 @@ socket_base::SOCK_STATE socket_base::getState() {
 		if(FD_ISSET(handle, &read))
 			ret = READ_READY;
 		if(FD_ISSET(handle, &write))
-			ret |= WRITE_READY;
+			ret = ret | WRITE_READY;
 	}
 
 	return ret;

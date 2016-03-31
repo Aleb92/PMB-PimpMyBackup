@@ -149,6 +149,10 @@ public:
 	SOCK_STATE getState();
 };
 
+inline socket_base::SOCK_STATE operator|(socket_base::SOCK_STATE lh, socket_base::SOCK_STATE rh) {
+	return static_cast<socket_base::SOCK_STATE>(lh | rh);
+}
+
 class socket_stream: public socket_base {
 	/**
 	 * permetto alla classe listener di accedere al costruttore protetto. Questa classe � in pratica l'unica

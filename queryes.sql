@@ -1,3 +1,6 @@
+/* AUTH */
+SELECT username, password WHERE username=?;
+
 /* CREATE! */
 INSERT INTO files (username, path, time_stamp) VALUES(?,?,?);
 
