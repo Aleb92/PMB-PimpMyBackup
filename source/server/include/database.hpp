@@ -39,14 +39,14 @@ struct default_delete<sqlite3_stmt> {
 namespace server {
 
 #define SQL_INIT "PRAGMA foreign_keys = ON;PRAGMA journal_mode=WAL;"
-#define SQL_AUTH "SELECT username, password WHERE username=?"
-#define SQL_CREATE "INSERT INTO files (username, path, time_stamp) VALUES(?,?,?)"
-#define SQL_CHMOD "UPDATE files SET time_stamp=?, mod=? WHERE username=? AND path=?"
-#define SQL_WRITE "UPDATE files SET time_stamp=?, file_id=? WHERE username=? AND path=?"
-#define SQL_MOVE "UPDATE files SET time_stamp=?, path=? WHERE username=? AND path=?"
-#define SQL_DELETE "DELETE FROM files WHERE username=? AND path=?"
+#define SQL_AUTH "SELECT password WHERE username=?1"
+#define SQL_CREATE "INSERT INTO files (username, path, time_stamp) VALUES(?1,?2,?3)"
+#define SQL_CHMOD "UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2"
+#define SQL_WRITE "UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2"
+#define SQL_MOVE "UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2"
+#define SQL_DELETE "DELETE FROM files WHERE username=?1 AND path=?2"
 #define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE WHERE username=?1 AND path=?2 AND time_stamp=?3) UPDATE files SET time_stamp=(SELECT time_stamp FROM tmp),mod=(SELECT mod FROM tmp),file_id=(SELECT file_id FROM tmp) WHERE username=?1 AND path=?2"
-#define SQL_LIST_V "SELECT time_stamp FROM history WHERE username=? AND path=?"
+#define SQL_LIST_V "SELECT time_stamp FROM history WHERE username=?1 AND path=?2 ORDER BY time_stamp DESC"
 
 class database;
 
@@ -64,7 +64,7 @@ public:
 	void move(int64_t, std::string&);
 	void remove();
 	void version(int64_t);
-	std::vector<std::string> versions();
+	std::vector<int64_t> versions();
 };
 
 

@@ -4,15 +4,6 @@ CREATE TABLE users (
 	password VARCHAR(16) NOT NULL
 );
 
-/* Trigger per avere come minimo una password di 8 caratteri */
-CREATE TRIGGER pwd8
-BEFORE INSERT ON users
-FOR EACH ROW
-BEGIN
-	SELECT RAISE(ABORT, "Password must be at leasto of 8 chars")
-	WHERE (length(NEW.password) < 8);
-END;
-
 -- TODO: mod deve avere un valore di default durante la creazione!
 CREATE TABLE files (
 	username VARCHAR(32) NOT NULL,
@@ -39,7 +30,7 @@ CREATE TRIGGER historic_up
 AFTER UPDATE ON files
 FOR EACH ROW
 BEGIN
-	INSERT INTO history (username, path, time_stamp, mod, file_id)
+	INSERT OR IGNORE INTO history (username, path, time_stamp, mod, file_id)
 	VALUES (OLD.username, OLD.path, OLD.time_stamp, OLD.mod, OLD.file_id);
 END;
 
