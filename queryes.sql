@@ -1,20 +1,20 @@
 /* AUTH */
-SELECT username, password WHERE username=?;
+SELECT password WHERE username=?1;
 
 /* CREATE! */
-INSERT INTO files (username, path, time_stamp) VALUES(?,?,?);
+INSERT INTO files (username, path, time_stamp) VALUES(?1,?2,?3);
 
 /* CHMOD */
-UPDATE files SET time_stamp=?, mod=? WHERE username=? AND path=?;
+UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2;
 
 /* WRITE */
-UPDATE files SET time_stamp=?, file_id=? WHERE username=? AND path=?;
+UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2;
 
 /* MOVE */ 
-UPDATE files SET time_stamp=?, path=? WHERE username=? AND path=?;
+UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2;
 
 /* DELETE */
-DELETE FROM files WHERE username=? AND path=?;
+DELETE FROM files WHERE username=?1 AND path=?2;
 
 /* VERSION CHANGE */
 WITH tmp AS (
@@ -24,4 +24,4 @@ UPDATE files SET
 	time_stamp=(SELECT time_stamp FROM tmp),mod=(SELECT mod FROM tmp),file_id=(SELECT file_id FROM tmp) WHERE username=?1 AND path=?2;
 
 /* LIST VERSIONS */
-SELECT time_stamp FROM history WHERE username=? AND path=?;
+SELECT time_stamp FROM history WHERE username=?1 AND path=?2 ORDER BY time_stamp DESC;

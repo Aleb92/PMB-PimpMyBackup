@@ -31,6 +31,8 @@ namespace server {
 	 */
 	SETTINGS_ENTRY(std::string, db_name);
 
+	SETTINGS_ENTRY(int, db_connection_number);
+
 	/**
 	 * Folder used to save user data
 	 */
