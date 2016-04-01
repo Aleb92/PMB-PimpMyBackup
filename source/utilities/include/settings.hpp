@@ -163,7 +163,7 @@ public:
 };
 
 #define SETTINGS_BEGIN(name, file) class name : public utilities::settings_base<name> { \
-			name() : utilities::settings_base<name>(file) {\
+			inline name() : utilities::settings_base<name>(file) {\
 				delete io;\
 			}\
 		public: \

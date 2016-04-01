@@ -1,4 +1,5 @@
 #include <utilities/include/socket.hpp>
+
 #include <iostream> // Per std::cerr
 #include <cstdlib>
 
@@ -43,12 +44,12 @@ void socket_base::setBlocking(bool b) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	u_long val = (int) !b;
 	int code;
-	if ((code = ioctlsocket(handle, FIONBIO, &val)))
-		throw code;
+	if (ioctlsocket(handle, FIONBIO, &val) != 0)
+		throw socket_exception();
 #else
 	int flags = fcntl(handle, F_GETFL, 0);
-	if(flags < 0) throw _serrno;
-	if(fcntl(handle, F_SETFL, flags | O_NONBLOCK)!=0) throw _serrno;
+	if(flags < 0) throw socket_exception();
+	if(fcntl(handle, F_SETFL, flags | O_NONBLOCK)!=0) throw socket_exception();
 #endif
 	blocking = b;
 }
@@ -62,7 +63,7 @@ socket_base::socket_base(int af, int type, int protocol) :
 		handle(::socket(af, type, protocol)), blocking(true) {
 	// Controllo che tutto sia andato a buon fine, se no trow dell'eccezione
 	if (!hValid(handle))
-		throw _serrno;
+		throw socket_exception();
 }
 
 
@@ -101,7 +102,7 @@ socket_stream::socket_stream(uint32_t ip, in_port_t port, int af, int type,
 	addr.sin_family = AF_INET;
 
 	if (connect(handle, (struct sockaddr*) &addr, sizeof(addr)))
-		throw _serrno;
+		throw socket_exception();
 }
 
 socket_stream::socket_stream(const char * ip, in_port_t port, int af, int type,
@@ -116,7 +117,7 @@ socket_stream::socket_stream(const char * ip, in_port_t port, int af, int type,
 
 	if (connect(handle, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
 		cout << "Client: connet did not work" << endl;
-		throw errno;
+		throw socket_exception();
 	}
 }
 
@@ -135,9 +136,9 @@ socket_listener::socket_listener(int af, int type, int protocol, uint32_t ip,
 	addr.sin_port = htons(port);
 
 	if (::bind(handle, (struct sockaddr*) &addr, addr_len) < 0)
-		throw _serrno;
+		throw socket_exception();
 	if (::listen(handle, q_size))
-		throw _serrno;
+		throw socket_exception();
 }
 
 socket_stream socket_listener::accept() {
@@ -148,7 +149,7 @@ socket_stream socket_listener::accept() {
 
 	if ((new_sock = ::accept(handle, (struct sockaddr *) &client,
 			(socklen_t*) &len)) < 0)
-		throw _serrno;
+		throw socket_exception();
 
 	return socket_stream(new_sock, client.sin_addr.s_addr, client.sin_port);
 }
@@ -159,28 +160,28 @@ template<>
 void socket_stream::send<uint16_t>(const uint16_t val) {
 	uint16_t snd = htons(val);
 	if(::send(handle, (const char*) &snd, sizeof(uint16_t), MSG_NOSIGNAL) != sizeof(val))
-		throw errno;
+		throw socket_exception();
 }
 
 template<>
 void socket_stream::send<uint32_t>(const uint32_t val) {
 	uint32_t snd = htons(val);
 	if(::send(handle, (const char*) &snd, sizeof(uint32_t), MSG_NOSIGNAL) != sizeof(val))
-		throw errno;
+		throw socket_exception();
 }
 
 template<>
 void socket_stream::send<int16_t>(const int16_t val) {
 	int16_t snd = htons(val);
 	if(::send(handle, (const char*) &snd, sizeof(int16_t), MSG_NOSIGNAL) != sizeof(val))
-		throw errno;
+		throw socket_exception();
 }
 
 template<>
 void socket_stream::send<int32_t>(const int32_t val) {
 	int32_t snd = htons(val);
 	if(::send(handle, (const char*) &snd, sizeof(int32_t), MSG_NOSIGNAL) != sizeof(val))
-		throw errno;
+		throw socket_exception();
 }
 
 template<>
@@ -195,8 +196,7 @@ uint16_t socket_stream::recv<uint16_t>() {
 	uint16_t ret;
 	if (::recv(handle, (char*) &ret, sizeof(uint16_t), MSG_NOSIGNAL)
 			!= sizeof(uint16_t)) {
-		int err = _serrno;
-		throw err;
+		throw socket_exception();
 	}
 	return ntohs(ret);
 }
@@ -206,8 +206,7 @@ uint32_t socket_stream::recv<uint32_t>() {
 	uint32_t ret;
 	if (::recv(handle, (char*) &ret, sizeof(uint32_t), MSG_NOSIGNAL)
 			!= sizeof(uint32_t)) {
-		int err = _serrno;
-		throw err;
+		throw socket_exception();
 	}
 	return ntohl(ret);
 }
@@ -217,8 +216,7 @@ int16_t socket_stream::recv<int16_t>() {
 	int16_t ret;
 	if (::recv(handle, (char*) &ret, sizeof(int16_t), MSG_NOSIGNAL)
 			!= sizeof(int16_t)) {
-		int err = _serrno;
-		throw err;
+		throw socket_exception();
 	}
 	return ntohs(ret);
 }
@@ -228,8 +226,7 @@ int32_t socket_stream::recv<int32_t>() {
 	int32_t ret;
 	if (::recv(handle, (char*) &ret, sizeof(int32_t), MSG_NOSIGNAL)
 			!= sizeof(int32_t)) {
-		int err = _serrno;
-		throw err;
+		throw socket_exception();
 	}
 	return ntohl(ret);
 }
@@ -241,7 +238,7 @@ std::string socket_stream::recv<std::string>() {
 	std::string ret(size, '\0');
 
 	if (recv(&ret[0], size) != size)
-		throw errno;
+		throw socket_exception();
 
 	return ret;
 }

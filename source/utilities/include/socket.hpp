@@ -5,6 +5,8 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
+#include <utilities/include/exceptions.hpp>
+
 #include <stdint.h>
 #include <vector>
 
@@ -15,12 +17,6 @@
 # include <windows.h>
 # include <utilities/include/atbegin.hpp>
 # include <utilities/include/atend.hpp>
-
-// COMPATIBILITY define
-
-# ifndef _serrno
-#  define _serrno WSAGetLastError()
-# endif
 
 # define hValid(h) ((h) != INVALID_SOCKET)
 
@@ -33,7 +29,6 @@ typedef u_short in_port_t;
 typedef int socklen_t;
 
 #else
-# include <cerrno>
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
@@ -43,7 +38,6 @@ typedef int socklen_t;
 
 typedef int socket_t;
 
-#define _serrno errno
 
 #define closesocket(A) close(A)
 
@@ -94,7 +88,7 @@ protected:
 	inline socket_base(socket_t _hnd) :
 			handle(_hnd), blocking(true) {
 		if (!hValid(handle))
-			throw errno;
+			throw socket_exception();
 	}
 public:
 
@@ -136,7 +130,7 @@ public:
 	inline ~socket_base() {
 		if (hValid(handle))
 			if (closesocket(handle))
-				throw _serrno;
+				throw socket_exception();
 	}
 
 	enum SOCK_STATE {
@@ -211,8 +205,7 @@ public:
 	template<typename T>
 	void send(const T val) {
 		if(::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
-			//TODO
-			throw errno;
+			throw socket_exception();
 	}
 
 	/**
@@ -223,7 +216,7 @@ public:
 	template<typename T, size_t s>
 	void send(const T (&buff)[s]) {
 		if(::send(handle, (const char*) buff, sizeof(buff), MSG_NOSIGNAL) != sizeof(buff))
-			throw errno;
+			throw socket_exception();
 	}
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -256,7 +249,7 @@ public:
 	template<typename T>
 	void send(const T*buff, size_t N) {
 		if(::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL) != N)
-			throw errno;
+			throw socket_exception();
 	}
 
 	/**
@@ -269,8 +262,7 @@ public:
 		T ret;
 		if (::recv(handle, (char*) &ret, sizeof(T), MSG_NOSIGNAL)
 				!= sizeof(T)) {
-			int err = _serrno;
-			throw err;
+			throw socket_exception();
 		}
 		return ret;
 	}
@@ -289,7 +281,7 @@ public:
 	ssize_t recv(T* buff, size_t N) {
 		ssize_t ret = ::recv(handle, (char*) buff, N * sizeof(T), MSG_NOSIGNAL);
 		if(ret < 0)
-			throw errno;
+			throw socket_exception();
 		return ret;
 	}
 

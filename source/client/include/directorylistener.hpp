@@ -2,6 +2,7 @@
 #define SOURCE_CLIENT_DIRECTORYLISTENER_H_
 
 #include <utilities/include/shared_queue.hpp>
+#include <utilities/include/exceptions.hpp>
 
 #include <Windows.h>
 #include <ostream>
@@ -94,7 +95,7 @@ public:
 			if (ReadDirectoryChangesW(dir, (LPVOID) current,
 			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, FILTERS,
 					&dwBytesReturned, NULL, NULL) == 0)
-				throw GetLastError();
+				throw utilities::fs_exception();
 			lock.unlock();
 
 			std::shared_ptr<char> whole(current);

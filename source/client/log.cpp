@@ -1,5 +1,7 @@
 #include <settings.hpp>
 #include <log.hpp>
+#include <utilities/include/exceptions.hpp>
+
 #include <windows.h>
 #include <io.h>
 #include <cstdio>
@@ -7,6 +9,7 @@
 
 using namespace std;
 using namespace client;
+using namespace utilities;
 
 log::log() {
 	wstring oldfile_name = settings::inst().log_filename.value + L".old";
@@ -17,7 +20,7 @@ log::log() {
 
 		FILE* old_log = _wfopen(oldfile_name.c_str(), L"rb");
 		if (old_log == NULL)
-			throw errno;
+			throw fs_exception();
 
 		log_entry_header entry;
 
@@ -64,7 +67,7 @@ log::log() {
 			log_file = _fdopen(file_descriptor, "wb");
 
 			if (log_file != NULL) {
-				throw errno;
+				throw fs_exception();
 			}
 
 			/*
