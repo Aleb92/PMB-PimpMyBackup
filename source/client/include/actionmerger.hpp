@@ -26,7 +26,7 @@ class log;
  * Struttura per memorizzare lo stato attuale di una modifica al file
  * non ancora inviata al server.
  */
-//TODO: Implementare move constructor per velocità?
+//FIXME: Implementare move constructor per velocità?
 struct file_action {
 	uint8_t op_code;///< bitmask delle operazioni da inviare
 	FILETIME timestamps[8];///< timestamp di ognuna delle operazioni

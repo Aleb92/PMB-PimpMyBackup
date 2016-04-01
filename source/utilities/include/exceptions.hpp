@@ -13,13 +13,20 @@
 #include <sqlite3.h>
 
 namespace utilities {
+
+/**
+ *	Classe di base per tutte le nostre eccezioni,
+ *	non istanziabile di per se
+ */
 class base_exception: public std::exception {
 protected:
 	std::string msg; //FIXME: const char* non ci piace?
+
+	base_exception(const std::string&) noexcept;
+	base_exception(std::string&&) noexcept;
+	base_exception(void) noexcept;
+
 public:
-	base_exception(const std::string&);
-	base_exception(std::string&&);
-	base_exception(void);
 	virtual const char* what() const noexcept;
 };
 
@@ -35,16 +42,16 @@ IMPLEMENT_EXCEPTION(memory_exception);
 
 class socket_exception: public base_exception {
 public:
-	socket_exception(void);
+	socket_exception(void) noexcept;
 };
 
 class db_exception: public base_exception {
 public:
 	using base_exception::base_exception;
 	db_exception(void) = delete;
-	db_exception(int);
-	db_exception(sqlite3*);
-	db_exception(char *);
+	db_exception(int) noexcept;
+	db_exception(sqlite3*) noexcept;
+	db_exception(char *) noexcept;
 };
 
 }

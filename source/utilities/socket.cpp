@@ -96,6 +96,7 @@ socket_stream::socket_stream(socket_stream&& ss) :
 socket_stream::socket_stream(uint32_t ip, in_port_t port, int af, int type,
 		int protocol) :
 		socket_base(af, type, protocol), oppositeIp(ip), oppositePort(port) {
+
 	struct sockaddr_in addr = { 0 };
 	addr.sin_addr.s_addr = htonl(ip); // FIXME: questa serve?? devo davvero usare htonl?
 	addr.sin_port = htons(port);
@@ -116,7 +117,6 @@ socket_stream::socket_stream(const char * ip, in_port_t port, int af, int type,
 	addr.sin_family = AF_INET;
 
 	if (connect(handle, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
-		cout << "Client: connet did not work" << endl;
 		throw socket_exception();
 	}
 }

@@ -173,7 +173,7 @@ public:
 /**
  * Dichiara e implementa una impostazione di tipo T e nome name nella classe di impostazioni corrente.
  * Sarei potuto andare oltre e esporre un riferimento diretto alla variabile con il tipo corretto, ma per
- * ora mi accontento e lascio questo come TODO .
+ * ora mi accontento e lascio questo come TODO.
  */
 #define SETTINGS_ENTRY(T, name) utilities::settings_entry<T> name {#name, io};
 

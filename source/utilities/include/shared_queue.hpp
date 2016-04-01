@@ -17,6 +17,9 @@
 
 namespace utilities {
 
+/**
+ * Classe generale che implementa una coda condivisa da piu' thread
+ */
 	template<typename T>
 	class shared_queue : public singleton<shared_queue<T>> {
 		std::deque<T> data;
@@ -28,6 +31,10 @@ namespace utilities {
 		shared_queue(){};
 	public:
 
+		/**
+		 * Accoda un elemento nella coda
+		 * @param Elemento da accodare nella coda
+		 */
 		void enqueue(const T obj) {
 			std::lock_guard<std::mutex> guard(lk);
 			data.push_back(obj);
@@ -35,6 +42,10 @@ namespace utilities {
 			cv.notify_all();
 		}
 
+		/**
+		 * Elimina il primo elemento dalla coda e lo ritorna
+		 * @return Elemento estratto dalla coda
+		 */
 		T dequeue(void){
 			std::unique_lock<std::mutex> guard(lk);
 

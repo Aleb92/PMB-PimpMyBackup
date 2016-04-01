@@ -15,8 +15,6 @@ using namespace server;
 
 void worker(socket_stream, database&, volatile bool&);
 
-void pp(unique_ptr<int>) {}
-
 int main() {
 	// Questo genera tutte le connesioni
 	vector<database> db_connections(
@@ -26,7 +24,7 @@ int main() {
 	thread_pool tPool;
 
 	// Questo solo e unicamente per "eleganza"...
-	on_return<>([&](){
+	on_return<>([&]() {
 		tPool.stop();
 	});
 
@@ -34,20 +32,23 @@ int main() {
 	size_t rRobin = 0;
 
 	// Ora inizializzo il socket
-	socket_listener listener(2, 1, 6,
+	socket_listener listener(AF_INET, SOCK_STREAM, IPPROTO_TCP,
 			inet_network(settings::inst().server_host.value.c_str()),
 			settings::inst().server_port.value,
 			settings::inst().queue_size.value);
 
-	while(1) {
-		tPool.execute(worker, listener.accept(), std::ref(db_connections[rRobin++]));
+	while (1) {
+		tPool.execute(worker, listener.accept(),
+				std::ref(db_connections[rRobin++]));
+		if (rRobin == db_connections.size())
+			rRobin = 0;
 	}
 
 	return -1; // Should never get here!
 }
 
 void worker(socket_stream sock, database& db, volatile bool&) {
-	//STUB: invia "fatto" a tutti
-	for(int i = 0; i < 8; i++)
+	//TODO: invia "fatto" a tutti
+	for (int i = 0; i < 8; i++)
 		sock.send(true);
 }

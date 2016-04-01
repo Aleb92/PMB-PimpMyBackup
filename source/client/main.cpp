@@ -11,14 +11,15 @@ using namespace client;
 
 int main(int argc, char *argv[]) {
 
-	if(argc > 1 && argv[1][1] == 'v') {
-		//TODO scegliere una licenza e aggiungere nota et similia..
+	if(argc > 1 && argv[1][0] == '-' && argv[1][1] == 'v') {
 		cout << "Pimp My Backup Client version 0." PMB_VERSION " Copyright (C) 2016  Alessio Bonato and Marco Manino \r\n\r\n"
 		"This program comes with ABSOLUTELY NO WARRANTY; for details see "
 		"<http://www.gnu.org/licenses/gpl.html>.\r\n"
 		"This is free software, and you are welcome to redistribute it"
 		"under certain conditions.\r\n";
 		return 0;
+	}else{
+		cout << "Argument not recgnized...";
 	}
 
 	/*

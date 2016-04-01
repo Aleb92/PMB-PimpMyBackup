@@ -82,7 +82,7 @@ public:
 	template<typename T, void (T::*func)(const change_entity)>
 	void scan(T* _t) {
 		if(running)
-			return; // TODO: eccezione?
+			return;
 		running = true;
 		DWORD dwBytesReturned = 0;
 
