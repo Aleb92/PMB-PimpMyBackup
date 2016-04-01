@@ -37,7 +37,7 @@ public:
 	void execute(T&& f, A&&... args) {
 		if (!running)
 			return;
-		waitingList.push_back(std::thread(f, args..., std::ref(running)));
+		waitingList.push_back(std::thread(f, std::forward<A>(args)..., std::ref(running)));
 	}
 
 	void join_all();

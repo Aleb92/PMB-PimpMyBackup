@@ -77,7 +77,6 @@ class database {
 public:
 	database(const char*db_name = settings::inst().db_name.value.c_str());
 	user_context getUserContext(std::string&, std::string&, std::string&);
-	~database();
 };
 
 }
