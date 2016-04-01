@@ -9,6 +9,13 @@
 
 namespace utilities {
 
+/**
+ * Implementa una pool di thread. In questa semplice implementazione
+ * ad ogni azione corrisponde la creazione di un nuovo thread.
+ * Come funzionalità aggiuntiva è presente uno zombie che si assicura
+ * la chiusura di tutti i thread e una funzione di stop per essere sicuri
+ * che tutti i thread abbiamo finito di lavorare.
+ */
 class thread_pool {
 
 	volatile bool running;
@@ -17,22 +24,43 @@ class thread_pool {
 	// mi ricorda molto quello che fa init in un sistema unix...
 	std::thread joiner;
 
+	/**
+	 * metodo demone per fare join su tutti i thread e liberare risorse.
+	 */
+	void join_all();
+
 public:
 
+	/**
+	 * Inizializza una nuova pool
+	 */
 	inline thread_pool() :
 			running(true), joiner(join_all, this) { }
 
+	/**
+	 * Interrompe questa pool. Una volta interrotta una thread_pool
+	 * non può più tornare operativa.
+	 */
 	inline void stop(void) {
 		running = false;
 		if(joiner.joinable())
 			joiner.join();
 	}
 
+	/**
+	 * @return Restituisce lo stato della thread_pool
+	 */
 	inline bool isRunning() {
 		return running;
 	}
 
-	// Alla fine, serve un template...
+	/**
+	 * Esegue su un thread una funzione qualsiasi: accetta
+	 * lambda, funzioni statiche, bindings di funzioni,
+	 * metodi etc...
+	 * @param f funzione
+	 * @param args argomenti
+	 */
     template<typename T, typename... A>
 	void execute(T&& f, A&&... args) {
 		if (!running)
@@ -40,7 +68,6 @@ public:
 		waitingList.push_back(std::thread(f, std::forward<A>(args)..., std::ref(running)));
 	}
 
-	void join_all();
 };
 
 }

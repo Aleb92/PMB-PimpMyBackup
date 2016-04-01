@@ -71,7 +71,7 @@ void client::dispatch() {
 
 void client::sendAction(std::wstring& fileName, file_action& action,
 		volatile bool &run) {
-	const pair<opcode, bool (client::*)(socket_stream&, std::wstring&)> flag[] =
+	const pair<opcode, void (client::*)(socket_stream&, std::wstring&)> flag[] =
 			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
 					chmod }, { VERSION, version } };
 

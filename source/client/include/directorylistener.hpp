@@ -39,9 +39,9 @@ public:
 
 	/**
 	 * L'oggetto è copiabile.
-	 * @param old copy
+	 * @param old old copy
 	 */
-	change_entity(const change_entity&) = default;
+	change_entity(const change_entity&old) = default;
 	change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*);
 
 
@@ -76,7 +76,7 @@ public:
 	 * Questa funzione inoltre richiama a ogni modifica la funzione passata
 	 * come template. La funzione è un template per permettere un maggior
 	 * grado di ottimizzazione!
-	 * @param stopper
+	 * @param _t istanza della classe su cui chiamare il callback
 	 */
 	template<typename T, void (T::*func)(const change_entity)>
 	void scan(T* _t) {

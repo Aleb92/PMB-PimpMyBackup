@@ -20,18 +20,6 @@ class settings_entry;
 class settings_io {
 public:
 	virtual ~settings_io();
-//
-//	// Visitor-like pattern :)
-//	template<typename T>
-//	inline void operator>>(settings_entry<T>& out) noexcept {
-//		// Semplicemente uso l'operatore della settings per gestire le cose! ;)
-//		out << *this;
-//	}
-//
-//	template<typename T>
-//	inline void operator<<(const settings_entry<T>& in) noexcept {
-//		in >> *this;
-//	}
 
 	virtual operator std::unordered_map<std::string, std::stringstream>*()
 			noexcept;
@@ -60,9 +48,11 @@ public:
 /**
  * Automazione per le impostazioni: carica e salva una variabile...
  * DA NON USARE PER DEL TESTO CON PIU' DI UNA RIGA.
- * Da usare insieme alla sua macro @see SETTINGS_ENTRY .
+ * Da usare insieme alla sua macro SETTINGS_ENTRY .
  * RENDIAMO GRAZIA a c++11 che con le sue nuove funzionalità
  * ha reso questo semplice da implementare
+ *
+ * @see SETTINGS_ENTRY
  */
 template<typename T>
 class settings_entry {
@@ -162,6 +152,12 @@ public:
 	}
 };
 
+/**
+ * Segnala (e implementa) l'inizio della specifica di una classe di impostazioni.
+ * Va usata sempre prima di ogni SETTINGS_ENTRY e SETTIGNS_END
+ *
+ * @see SETTINGS_ENTRY @see SETTIGNS_END
+ */
 #define SETTINGS_BEGIN(name, file) class name : public utilities::settings_base<name> { \
 			name() : utilities::settings_base<name>(file) {\
 				delete io;\
@@ -177,11 +173,18 @@ public:
  */
 #define SETTINGS_ENTRY(T, name) utilities::settings_entry<T> name {#name, io};
 
+
+/**
+ * Segnala la fine di una definiizone di una classe di impostazioni.
+ */
 #define SETTINGS_END( name ) ~name () { \
 			io = new utilities::settings_saver(filename); \
 		} \
 	}
 
+/**
+ * Implementazione dell'interfaccia settings base. Si è deciso che fosse un singleton.
+ */
 template <typename B>
 class settings_base : public singleton<B> {
 protected:

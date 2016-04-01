@@ -144,14 +144,20 @@ public:
 
 
 	/**
-	 *
-	 * @param
-	 * @param s
-	 * @return
+	 * @param f Filename
+	 * @param s lunghezza del nome del file
+	 * @return informazioni sul file
 	 * @remarks Il file aggiunto va riempito!!!!
 	 */
-	file_info& new_file(const wchar_t*, size_t s = 0);
-	directory& new_dir(const wchar_t*, size_t s = 0);
+	file_info& new_file(const wchar_t*f, size_t s = 0);
+
+	/**
+	 * @param d dirname
+	 * @param s lunghezza del nome della cartella
+	 * @return informazioni sulla directory
+	 * @remarks Il file aggiunto va riempito!!!!
+	 */
+	directory& new_dir(const wchar_t*d, size_t s = 0);
 };
 
 } /* namespace client */

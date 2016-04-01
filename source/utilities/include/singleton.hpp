@@ -10,6 +10,12 @@
 
 namespace utilities {
 
+	/**
+	 * Classe di helper che serve a definire un singleton
+	 * tramite il paradigma CRTP.
+	 * La politica di gestione di vita del singleton è
+	 * statica con lazy initializzation.
+	 */
 	template <typename T>
 	class singleton{
 	public:

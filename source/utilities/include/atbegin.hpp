@@ -24,6 +24,9 @@ namespace utilities {
 	 * completamente i rifierimenti inutilizzati a queste classi, linkare staticamente
 	 * la funzione chiamata o addirittura (quando possibile) eseguirne l'inlining, per
 	 * rendere il codice più veloce.
+	 * Da utilizzare tramite atBegin
+	 *
+	 * @see at_end @see atBegin
 	 */
 	template <typename T, T (*func)()>
 	class at_begin {

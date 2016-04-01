@@ -17,11 +17,14 @@ namespace utilities {
 
 	/**
 	 *  Questa classe è la controparte di at_begin. Serve a fare pulizia.
+	 *  Da utilzzare tramite atEnd
+	 *
+	 *  @see at_begin @see atEnd
 	 */
 	template <typename T, T (*func)()>
 	class at_end {
 	private:
-		at_end() {}
+		constexpr at_end() {}
 		inline ~at_end() {
 			(void)func();
 		}
@@ -31,6 +34,9 @@ namespace utilities {
 	template <typename T, T (*func)()> 
 	const at_end<T, func> at_end<T, func>::caller = at_end<T, func>();
 
+	/**
+	 * Questa classe esegue del codice poco prima della fine di un blocco
+	 */
 	template <typename T = void()>
 	class on_return{
 
