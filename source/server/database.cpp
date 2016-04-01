@@ -1,4 +1,6 @@
 #include <database.hpp>
+
+#include <utilities/include/exceptions.hpp>
 #include <utilities/include/atend.hpp>
 
 #include <cassert>
@@ -10,6 +12,7 @@
 using namespace std;
 using namespace server;
 using namespace utilities;
+
 
 template<typename T>
 inline T db_column(sqlite3_stmt * stmt, int i);
@@ -59,21 +62,21 @@ template<>
 inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
 	int v = sqlite3_bind_int(stmt, i, val);
 	if (v != SQLITE_OK)
-		throw v;
+		throw db_exception(v);
 }
 
 template<>
 inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
 	int v = sqlite3_bind_text(stmt, i, val.c_str(), -1, nullptr);
 	if (v != SQLITE_OK)
-		throw v;
+		throw db_exception(v);
 }
 
 template<>
 inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t& val, int i) {
 	int v = sqlite3_bind_int64(stmt, val, i);
 	if (v != SQLITE_OK)
-		throw v;
+		throw db_exception(v);
 }
 
 inline void bind_db(sqlite3_stmt*, int) {
@@ -95,17 +98,17 @@ database::database(const char*db_name) {
 	sqlite3*c;
 	char*err;
 	int r = sqlite3_open_v2(db_name, &c,
-	SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
+			SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
 	//Inserisco subito il risultato in un oggetto che mi gestisca la memoria da solo
 	connection = unique_ptr<sqlite3>(c);
-	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
-
+	if (r != SQLITE_OK){
+		if(c == nullptr)
+			throw memory_exception();
+		throw db_exception(r);
+	}
 	// Ok ora devo attivare i vincoli per le chiavi esterne
 	if (sqlite3_exec(c, SQL_INIT, nullptr, nullptr, &err) != SQLITE_OK) {
-		string s(err);
-		sqlite3_free(err);
-		throw s;
+		throw db_exception(err);
 	}
 
 	// BENE! Ora ho un database attivo! Devo generare tutte le prepared statement
@@ -115,55 +118,55 @@ database::database(const char*db_name) {
 	r = sqlite3_prepare_v2(c, SQL_AUTH, sizeof(SQL_AUTH), &statement, nullptr);
 	auth = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
+		throw db_exception(r);
 
 	// create
 	r = sqlite3_prepare_v2(c, SQL_CREATE, sizeof(SQL_CREATE), &statement,
 			nullptr);
 	create = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
+		throw db_exception(r);
 
 	// chmod
 	r = sqlite3_prepare_v2(c, SQL_CHMOD, sizeof(SQL_CHMOD), &statement,
 			nullptr);
 	chmod = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
+		throw db_exception(r);
 
 	//write
 	r = sqlite3_prepare_v2(c, SQL_WRITE, sizeof(SQL_WRITE), &statement,
 			nullptr);
 	write = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
+		throw db_exception(r);
 
 	//move
 	r = sqlite3_prepare_v2(c, SQL_MOVE, sizeof(SQL_MOVE), &statement, nullptr);
 	move = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
+		throw db_exception(r);
 
 	//remove
 	r = sqlite3_prepare_v2(c, SQL_DELETE, sizeof(SQL_DELETE), &statement,
 			nullptr);
 	remove = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
+		throw db_exception(r);
 
 	//version
 	r = sqlite3_prepare_v2(c, SQL_VERSION, sizeof(SQL_VERSION), &statement,
 			nullptr);
 	version = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
+		throw db_exception(r);
 
 	//list
 	r = sqlite3_prepare_v2(c, SQL_LIST_V, sizeof(SQL_LIST_V), &statement,
 			nullptr);
 	list = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw sqlite3_errmsg(c);
+		throw db_exception(r);
 }
 
 user_context database::getUserContext(string&user, string&pass, string&path) {
@@ -200,12 +203,11 @@ bool user_context::auth() {
 			// Poi riprovo.
 			break;
 		default:
-			throw sqlite3_errmsg(db.connection.get());
+			throw db_exception(db.connection.get());
 		}
 	}
 }
 
-//TODO
 void user_context::chmod(int64_t timestamp, uint16_t mod) {
 	lock_guard<mutex> guard(db.busy);
 

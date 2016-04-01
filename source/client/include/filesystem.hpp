@@ -72,7 +72,7 @@ public:
 	typedef dir_list::const_iterator const_dir_iterator;
 	typedef file_table::const_iterator const_file_iterator;
 
-	//TODO: in seguito sarebbe carino implementare il move costructor
+	//FIXME: in seguito sarebbe carino implementare il move costructor
 	//		per evitare una copia delle liste/tabelle.
 
 	directory() = default;

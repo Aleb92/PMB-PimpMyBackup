@@ -10,15 +10,56 @@ namespace utilities{
 
 const wchar_t* wcsrchr (const wchar_t*, wchar_t, size_t);
 
+/**
+ * Splitta la stringa in tante parti tutte le volte che trova un'occorrenza del carattere separatore
+ * @param Stringa da dividere
+ * @param Carattere separatore
+ * @return Vector di stringhe contenente le divisioni
+ */
 std::vector<std::string> split(const std::string &, char);
-std::vector<std::string> &split(const std::string &s, char delim,
-		std::vector<std::string> &elems);
 
+/**
+ * Come la split normale ma agisce su un vector che gia potrebbe contenere delle stringhe e aggiunge
+ * @param Stringa da dividere
+ * @param Carattere separatore
+ * @param Vector a cui aggiungere le nuove suddivioni
+ * @return Lo stesso vector (viene ritornato per comodità solo per poter usare split."metodo del vettore riempito")
+ */
+std::vector<std::string> &split(const std::string &, char,
+		std::vector<std::string> &);
+
+/**
+ * Splitta la stringa in tante parti tutte le volte che trova un'occorrenza del carattere separatore (WCHAR)
+ * @param Stringa da dividere
+ * @param Carattere separatore
+ * @return Vector di stringhe contenente le divisioni
+ */
 std::vector<std::wstring> split(const std::wstring &, wchar_t);
-std::vector<std::wstring> &split(const std::wstring &s, wchar_t delim,
-		std::vector<std::wstring> &elems);
 
-std::pair<std::wstring, std::wstring> splitOnce(const std::wstring &s, wchar_t delim);
-std::pair<std::string, std::stringstream> splitOnce(const std::string &s, char delim);
+/**
+ * Come la split normale ma agisce su un vector che gia potrebbe contenere delle stringhe e aggiunge (WCHAR)
+ * @param Stringa da dividere
+ * @param Carattere separatore
+ * @param Vector a cui aggiungere le nuove suddivioni
+ * @return Lo stesso vector (viene ritornato per comodità solo per poter usare split."metodo del vettore riempito")
+ */
+std::vector<std::wstring> &split(const std::wstring &, wchar_t,
+		std::vector<std::wstring> &);
+
+/**
+ * Questo metodo divide la stringa come la split ma solo una volta quindi ritorna un pair (WCHAR)
+ * @param Stringa da dividere
+ * @param Carattere separatore
+ * @return Coppia di stringhe splittate
+ */
+std::pair<std::wstring, std::wstring> splitOnce(const std::wstring &, wchar_t);
+
+/**
+ * Questo metodo divide la stringa come la split ma solo una volta quindi ritorna un pair
+ * @param Stringa da dividere
+ * @param Carattere separatore
+ * @return Coppia di stringhe splittate
+ */
+std::pair<std::string, std::stringstream> splitOnce(const std::string &, char);
 }
 #endif /* SOURCE_UTILITIES_INCLUDE_STRINGS_HPP_ */

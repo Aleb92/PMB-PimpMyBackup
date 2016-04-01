@@ -4,6 +4,7 @@
 #include <settings.hpp>
 #include <actionmerger.hpp>
 #include <utilities/include/atend.hpp>
+#include <utilities/include/exceptions.hpp>
 
 #include <windows.h>
 #include <thread>
@@ -73,7 +74,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		volatile bool &run) {
 	const pair<opcode, void (client::*)(socket_stream&, std::wstring&)> flag[] =
 			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
-					chmod }, { VERSION, version } };
+					chmod } };
 
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
 	// Questa funzione quindi invia l'header generico,
@@ -90,12 +91,11 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		socket_stream sock(settings::inst().server_host,
 				settings::inst().server_port);
 
-		// TODO Sostituire il tutto con un try-catch
 		sock.send(settings::inst().username.value);
 		sock.send(settings::inst().password.value);
 
 		if (!sock.recv<bool>())
-			throw errno; // mettere eccezione username/password
+			throw auth_exception("username and/or password incorrect.");
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
 		sock.send(fileName);
@@ -107,6 +107,14 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 					result.op_code |= f.first;
 					action.op_code &= ~f.first;
 				}
+			}
+		}
+
+		if ((action.op_code & VERSION) && run) {
+			this->version(sock, realName, run);
+			if (sock.recv<bool>()) {
+				result.op_code |= WRITE;
+				action.op_code &= ~WRITE;
 			}
 		}
 
@@ -180,8 +188,28 @@ void client::chmod(socket_stream& sock, std::wstring& fileName) {
 	sock.send(mods);
 }
 
-void client::version(socket_stream& sock, std::wstring& fileName) {
-	//todo: Scaricare e aggiornare il file di cui è richiesta un'altra versione.
+void client::version(socket_stream& sock, std::wstring& fileName,
+		volatile bool& run) {
+
+	FILE* file = _wfopen(fileName.c_str(), L"wb");
+	char buffer[BUFF_LENGHT] = { 0 };
+	uint32_t n = 0;
+
+	if (file == NULL)
+		throw fs_exception();
+
+	on_return<> ret([file]() {
+		fclose(file);
+	});
+
+	uint32_t size = sock.recv<uint32_t>();
+
+	while ((n < size) && run) {
+		size_t i = sock.recv(buffer, BUFF_LENGHT);
+		fwrite(buffer, i, 1, file);
+		n += i;
+	}
+
 }
 
 void client::write(socket_stream& sock, std::wstring& fileName,
@@ -190,9 +218,9 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 	char buffer[BUFF_LENGHT] = { 0 };
 	FILE* file = _wfopen(fileName.c_str(), L"rb");
 	if (file == NULL)
-		throw errno;
+		throw fs_exception();
 
-	on_return<> ret([file](){
+	on_return<> ret([file]() {
 		fclose(file);
 	});
 
@@ -202,8 +230,8 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 
 	while (feof(file) && run) {
 		socket_base::SOCK_STATE state = sock.getState();
-		if(state & socket_base::READ_READY){
-			if(sock.recv<bool>())
+		if (state & socket_base::READ_READY) {
+			if (sock.recv<bool>())
 				return;
 		}
 		size_t readn = fread(buffer, BUFF_LENGHT, 1, file);

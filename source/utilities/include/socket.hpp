@@ -5,6 +5,8 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
+#include <utilities/include/exceptions.hpp>
+
 #include <stdint.h>
 #include <vector>
 
@@ -15,12 +17,6 @@
 # include <windows.h>
 # include <utilities/include/atbegin.hpp>
 # include <utilities/include/atend.hpp>
-
-// COMPATIBILITY define
-
-# ifndef _serrno
-#  define _serrno WSAGetLastError()
-# endif
 
 # define hValid(h) ((h) != INVALID_SOCKET)
 
@@ -33,7 +29,6 @@ typedef u_short in_port_t;
 typedef int socklen_t;
 
 #else
-# include <cerrno>
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
@@ -43,7 +38,6 @@ typedef int socklen_t;
 
 typedef int socket_t;
 
-#define _serrno errno
 
 #define closesocket(A) close(A)
 
@@ -55,7 +49,7 @@ typedef int socket_t;
  * Porta di default, scelta da bonetto
  */
 #define DEFAULT_PORT 6000
-#define DEFAULT_QUEUE_SIZE 16
+#define DEFAULT_QUEUE_SIZE 5
 
 namespace utilities {
 
@@ -71,7 +65,7 @@ atBegin(init_winsock);
 
 /**
  * Classe di base per i socket. E' semplicemente un contenitore per un descrittore di risorsa.
- * Gestisce anche il cambio dalla modalit� blocking a quella non blocking
+ * Gestisce anche il cambio dalla modalità blocking a quella non blocking
  */
 class socket_base {
 
@@ -94,49 +88,48 @@ protected:
 	inline socket_base(socket_t _hnd) :
 			handle(_hnd), blocking(true) {
 		if (!hValid(handle))
-			throw errno;
+			throw socket_exception();
 	}
 public:
 
 	/**
-	 * Imposta la modalit� blocking della risorsa
-	 * @param b
+	 * Imposta la modalità blocking della risorsa
 	 */
 	inline void setBlocking(bool b = true);
 
 	/**
-	 * returns the mode of the socket.
-	 * @return
+	 * Ritorna se il socket e blocking o no
+	 * @return true se blocking
 	 */
 	inline bool getBlocking() {
 		return blocking;
 	}
 
 	/**
-	 * not assignable
+	 * La classe socket_base non è assegnabile
 	 */
 	const socket_base& operator=(const socket_base&) = delete;
 
 	/**
-	 * not copyable
+	 * La classe socket_base non è copiabile
 	 */
 	socket_base(const socket_base&) = delete;
 
 	/**
-	 * this just allocates system resources (e.g. calls "socket" function)
-	 * @param af
-	 * @param type
-	 * @param protocol
+	 * Alloca le risorse di sistema e chiama effettivamente la funzione "socket"
+	 * @param Family
+	 * @param Type
+	 * @param Protocol
 	 */
 	socket_base(int af, int type, int protocol);
 
 	/**
-	 * rilascia le risorse, se presenti. Lancia un'eccezione di tipo int in caso di errore.
+	 * Rilascia le risorse, se presenti. Lancia un'eccezione in caso di errore.
 	 */
 	inline ~socket_base() {
 		if (hValid(handle))
 			if (closesocket(handle))
-				throw _serrno;
+				throw socket_exception();
 	}
 
 	enum SOCK_STATE {
@@ -153,15 +146,19 @@ inline socket_base::SOCK_STATE operator|(socket_base::SOCK_STATE lh, socket_base
 	return static_cast<socket_base::SOCK_STATE>(lh | rh);
 }
 
+/**
+ * Classe socket dedicata ai socket di tipo stream (TCP)
+ */
 class socket_stream: public socket_base {
 	/**
 	 * permetto alla classe listener di accedere al costruttore protetto. Questa classe � in pratica l'unica
-	 * che pu� instanziare in questo modo questa classe (e quindi anche la sua base)
+	 * che può instanziare in questo modo questa classe (e quindi anche la sua base)
 	 */
 	friend class socket_listener;
 protected:
 	/**
-	 * Inizializza la classe a partire da una risorsa di sistema gi� ottenuta.
+	 * Inizializza la classe a partire da una risorsa di sistema gi� ottenuta tramite il costruttore della
+	 * classe base @link socket_base.
 	 * @param _h handle alla risorsa
 	 * @param ip address
 	 * @param port number
@@ -205,25 +202,23 @@ public:
 
 	/**
 	 * Invia un singolo oggetto di tipo T
-	 * @param val
+	 * @param Valore da mandare
 	 * @return The number of bytes sent or -1
 	 */
 	template<typename T>
 	void send(const T val) {
 		if(::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
-			//TODO
-			throw errno;
+			throw socket_exception();
 	}
 
 	/**
 	 * Invia un array di oggetti di tipo T, deducendone la dimensione in automatico.
 	 * @param buff
-	 * @return
 	 */
 	template<typename T, size_t s>
 	void send(const T (&buff)[s]) {
 		if(::send(handle, (const char*) buff, sizeof(buff), MSG_NOSIGNAL) != sizeof(buff))
-			throw errno;
+			throw socket_exception();
 	}
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -256,7 +251,7 @@ public:
 	template<typename T>
 	void send(const T*buff, size_t N) {
 		if(::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL) != N)
-			throw errno;
+			throw socket_exception();
 	}
 
 	/**
@@ -269,8 +264,7 @@ public:
 		T ret;
 		if (::recv(handle, (char*) &ret, sizeof(T), MSG_NOSIGNAL)
 				!= sizeof(T)) {
-			int err = _serrno;
-			throw err;
+			throw socket_exception();
 		}
 		return ret;
 	}
@@ -289,7 +283,7 @@ public:
 	ssize_t recv(T* buff, size_t N) {
 		ssize_t ret = ::recv(handle, (char*) buff, N * sizeof(T), MSG_NOSIGNAL);
 		if(ret < 0)
-			throw errno;
+			throw socket_exception();
 		return ret;
 	}
 
@@ -331,7 +325,10 @@ int32_t socket_stream::recv<int32_t>();
 template<>
 std::string socket_stream::recv<std::string>();
 
-
+/**
+ * Socket dedicato solo ad accettare connesioni e a generare dei nuovi socket_stream (solitamente
+ * usato lato server...)
+ */
 class socket_listener: public socket_base {
 public:
 	socket_listener(int af = AF_INET, int type = SOCK_STREAM, int protocol =

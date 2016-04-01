@@ -159,7 +159,7 @@ public:
  * @see SETTINGS_ENTRY @see SETTIGNS_END
  */
 #define SETTINGS_BEGIN(name, file) class name : public utilities::settings_base<name> { \
-			name() : utilities::settings_base<name>(file) {\
+			inline name() : utilities::settings_base<name>(file) {\
 				delete io;\
 			}\
 		public: \
@@ -169,7 +169,7 @@ public:
 /**
  * Dichiara e implementa una impostazione di tipo T e nome name nella classe di impostazioni corrente.
  * Sarei potuto andare oltre e esporre un riferimento diretto alla variabile con il tipo corretto, ma per
- * ora mi accontento e lascio questo come TODO .
+ * ora mi accontento e lascio questo come TODO.
  */
 #define SETTINGS_ENTRY(T, name) utilities::settings_entry<T> name {#name, io};
 

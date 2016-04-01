@@ -1,4 +1,5 @@
 #include <server/include/protocol.hpp>
+#include <utilities/include/exceptions.hpp>
 #include <actionmerger.hpp>
 #include <log.hpp>
 
@@ -11,6 +12,7 @@
 using namespace std;
 using namespace client;
 using namespace server;
+using namespace utilities;
 
 opcode client::get_flag_bit(DWORD event) {
 	switch (event) {
@@ -62,8 +64,8 @@ void action_merger::add_change(const change_entity& che) {
 					utilities::shared_queue<change_entity>::inst().dequeue();
 			if (newNameEntity->Action
 					!= FILE_ACTION_RENAMED_NEW_NAME)
-				//TODO ECCEZIONE
-				throw errno;
+				throw fs_exception("Wrong action order \"FILE_ACTION_RENAMED_NEW_NAME\" expected.");
+
 			log::inst().issue(newNameEntity);
 			fa.newName = wstring(newNameEntity->FileName,
 					newNameEntity->FileNameLength);
