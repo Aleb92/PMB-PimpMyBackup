@@ -8,9 +8,8 @@ using namespace client;
 
 
 change_entity::change_entity(std::shared_ptr<char>&whole,
-		FILE_NOTIFY_INFORMATION*chunk) :
-		container(whole), data(chunk){
-
+		FILE_NOTIFY_INFORMATION*chunk, DWORD filter) :
+		container(whole), data(chunk), filters(filter){
 	::GetSystemTimeAsFileTime(const_cast<FILETIME*>(&time));
 }
 

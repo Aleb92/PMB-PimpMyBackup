@@ -13,14 +13,14 @@
 using namespace utilities;
 using namespace std;
 
-base_exception::base_exception(const string& str) : msg(str) {}
-base_exception::base_exception(string&& str) : msg(str) {}
+base_exception::base_exception(const string& str) noexcept : msg(str) {}
+base_exception::base_exception(string&& str) noexcept : msg(str) {}
 
 const char* base_exception::what() const noexcept {
 	return msg.c_str();
 }
 
-base_exception::base_exception(){
+base_exception::base_exception() noexcept {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
 	char *s = NULL;
@@ -36,7 +36,7 @@ base_exception::base_exception(){
 #endif
 }
 
-socket_exception::socket_exception(){
+socket_exception::socket_exception() noexcept {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
 	char *s = NULL;
@@ -52,13 +52,13 @@ socket_exception::socket_exception(){
 #endif
 }
 
-db_exception::db_exception(int err) : base_exception(sqlite3_errstr(err)){
+db_exception::db_exception(int err) noexcept : base_exception(sqlite3_errstr(err)){
 }
 
-db_exception::db_exception(sqlite3* db): base_exception(sqlite3_errmsg(db)){
+db_exception::db_exception(sqlite3* db) noexcept : base_exception(sqlite3_errmsg(db)){
 }
 
-db_exception::db_exception(char* err) : base_exception(err){
+db_exception::db_exception(char* err) noexcept : base_exception(err){
 	sqlite3_free(err);
 }
 

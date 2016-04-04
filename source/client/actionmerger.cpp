@@ -14,6 +14,7 @@ using namespace client;
 using namespace server;
 using namespace utilities;
 
+// TODO: aggiungere uno switch per i filtri!
 opcode client::get_flag_bit(DWORD event) {
 	switch (event) {
 	case FILE_ACTION_ADDED:

@@ -42,13 +42,10 @@ void client::merge() {
 
 	//Questo continua finche l'azione che non viene fuori e' 0 che significa chiusura
 	while (che->Action) {
-
-		if (fs.isDir(che->FileName,
-				che->FileNameLength) && che->Action == FILE_ACTION_MODIFIED)
-			continue;
-
-		//TODO: Se serve controllare il checksum dei file quando ci arriva un file modified e se uguale
-		// 		saltare
+		// TODO: ora possiamo distinguere senza nessun problema tra dir e non dir
+//		if (fs.isDir(che->FileName,
+//				che->FileNameLength) && che->Action == FILE_ACTION_MODIFIED)
+//			continue;
 
 		log::inst().issue(che);
 		action_merger::inst().add_change(che);
@@ -141,7 +138,7 @@ void client::stop() {
 
 	FILE_NOTIFY_INFORMATION fni = { 0 };
 	shared_ptr<char> shptr;
-	const change_entity stop = change_entity(shptr, &fni);
+	const change_entity stop = change_entity(shptr, &fni, 0);
 
 	dirListener.stop();
 
@@ -171,10 +168,11 @@ void client::move(socket_stream& sock, std::wstring& fileName) {
 }
 
 void client::create(socket_stream& sock, std::wstring& fileName) {
-	if (fs.isDir(fileName.c_str(), fileName.length()))
-		sock.send('d');
-	else
-		sock.send('f');
+	// TODO: utilizziamo qualche altro modo per fare questo
+	// if (fs.isDir(fileName.c_str(), fileName.length()))
+	//	sock.send('d');
+	// else
+	//	sock.send('f');
 
 	sock.send(fileName);
 }
@@ -183,7 +181,8 @@ void client::remove(socket_stream& sock, std::wstring& fileName) {
 }
 
 void client::chmod(socket_stream& sock, std::wstring& fileName) {
-	uint16_t mods = fs.get_file(fileName.c_str(), fileName.length()).mod;
+	// TODO: leggere i mod da file
+	uint16_t mods = 0;//fs.get_file(fileName.c_str(), fileName.length()).mod;
 
 	sock.send(mods);
 }

@@ -2,6 +2,7 @@
 #define SOURCE_CLIENT_DIRECTORYLISTENER_H_
 
 #include <utilities/include/shared_queue.hpp>
+#include <settings.hpp>
 #include <utilities/include/exceptions.hpp>
 
 #include <Windows.h>
@@ -9,9 +10,15 @@
 #include <functional>
 #include <memory>
 
-#define FILTERS FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME|\
-		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE|\
-		FILE_NOTIFY_CHANGE_SECURITY
+#define FIRST_FILTER FILE_NOTIFY_CHANGE_FILE_NAME|\
+		FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE
+
+#define SECOND_FILTER FILE_NOTIFY_CHANGE_DIR_NAME|\
+		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SECURITY
+
+//#define FILTERS FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME|\
+//		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE|\
+//		FILE_NOTIFY_CHANGE_SECURITY
 
 #define K 1024
 #define NOTIF_INFO_BUFF_LENGHT 8*K
@@ -37,14 +44,14 @@ class change_entity {
 public:
 
 	FILETIME time;
+	DWORD filters;
 
 	/**
 	 * L'oggetto è copiabile.
 	 * @param old old copy
 	 */
 	change_entity(const change_entity&old) = default;
-	change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*);
-
+	change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*, DWORD);
 
 	FILE_NOTIFY_INFORMATION& operator*();
 	FILE_NOTIFY_INFORMATION* operator->();
@@ -53,7 +60,7 @@ public:
 	const FILE_NOTIFY_INFORMATION* operator->() const;
 };
 
-std::wostream& operator<< (std::wostream&, const change_entity);
+std::wostream& operator<<(std::wostream&, const change_entity);
 
 /**
  * Questa classe serve a monitorare i cambiamenti effettuati in
@@ -65,7 +72,6 @@ class directory_listener {
 	 * Risorsa di sistema riferita alla cartella.
 	 */
 	HANDLE dir;
-	std::mutex lock;
 	volatile bool running;
 
 public:
@@ -81,41 +87,103 @@ public:
 	 */
 	template<typename T, void (T::*func)(const change_entity)>
 	void scan(T* _t) {
-		if(running)
+		//FIXME: RIVEDERE!!! Ho vatto modifiche pesanti e non ho il coraggio di testarle!
+		if (running)
 			return;
 		running = true;
-		DWORD dwBytesReturned = 0;
 
-		std::lock_guard<std::mutex> guard (lock);
+		// Eventi per la sincronizzazione
+		HANDLE hEvents[2] = { 0 };
 
-		while (running)
-		{
-			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
+		hEvents[0] = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+		if (!hEvents[0])
+			throw utilities::io_exception();
 
-			if (ReadDirectoryChangesW(dir, (LPVOID) current,
-			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, FILTERS,
-					&dwBytesReturned, NULL, NULL) == 0)
+		utilities::on_return<>([hEvents]() {
+			CloseHandle(hEvents[0]);
+		});
+
+		hEvents[1] = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+		if (!hEvents[1])
+			throw utilities::io_exception();
+
+		utilities::on_return<>([hEvents]() {
+			CloseHandle(hEvents[1]);
+		});
+
+		// BENE! Ora gli oggetti OVERLAPPED
+		OVERLAPPED ovr[2] = { { 0 }, { 0 } };
+
+		// Setto gli eventi...
+		ovr[0].hEvent = hEvents[0];
+		ovr[1].hEvent = hEvents[1];
+
+		// Chiamo subito le due funzioni
+		std::shared_ptr<char> buffs[2] { std::shared_ptr<char>(
+				new char[NOTIF_INFO_BUFF_LENGHT]), std::shared_ptr<char>(
+				new char[NOTIF_INFO_BUFF_LENGHT]) };
+		while (running) {
+
+			// Faccio partire entrambe le richieste
+			if (ReadDirectoryChangesW(dir, static_cast<LPVOID>(buffs[0].get()),
+			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, FIRST_FILTER,
+			NULL, ovr, NULL) == 0
+					|| ReadDirectoryChangesW(dir,
+							static_cast<LPVOID>(buffs[0].get()),
+							NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE,
+							SECOND_FILTER, NULL, ovr + 1, NULL) == 0)
 				throw utilities::fs_exception();
-			lock.unlock();
 
-			std::shared_ptr<char> whole(current);
+			// Ora aspetto sugli eventi!
+			int id;
+			DWORD garbage, flags;
+			while (running) {
+				// Aspetto
+				switch (WaitForMultipleObjects(2, hEvents,
+				FALSE, settings::inst().io_wait_ms.value)) {
+				case WAIT_OBJECT_0:
+					id = 0;
+					flags = FIRST_FILTER;
+					goto out_while;
+				case WAIT_OBJECT_0 + 1:
+					id = 1;
+					flags = SECOND_FILTER;
+					goto out_while;
+				case WAIT_TIMEOUT:
+					continue;
+				default:
+					throw utilities::io_exception();
+				};
+			}
+out_while:
+			if (!GetOverlappedResult(dir, ovr, &garbage, TRUE))
+				throw utilities::io_exception();
+			// Ci siamo! HO i dati! Ora devo solo scriverli!
+			char*current = buffs[id].get();
 
-#define buffFNI ((FILE_NOTIFY_INFORMATION*)(current))
-			(_t->*func)(change_entity(whole, buffFNI));
+#define buffFNI (reinterpret_cast<FILE_NOTIFY_INFORMATION*>(current))
+			(_t->*func)(change_entity(buffs[id], buffFNI, flags));
 			while (buffFNI->NextEntryOffset != 0) {
 				current += buffFNI->NextEntryOffset;
-				(_t->*func)(change_entity(whole, buffFNI));
+				(_t->*func)(change_entity(buffs[id], buffFNI, flags));
 			}
-
 #undef buffFNI
-			lock.lock();
+			// Perfetto, ora genero un nuovo buffer
+			buffs[id].reset(new char[NOTIF_INFO_BUFF_LENGHT]);
+			//E faccio una nuova richiesta.
+			if (ReadDirectoryChangesW(dir, static_cast<LPVOID>(buffs[id].get()),
+			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, flags,
+			NULL, ovr + id, NULL) == 0)
+				throw utilities::io_exception();
+
 		}
 	}
 
 	void stop();
 
 	~directory_listener();
-};
+}
+;
 
 }
 

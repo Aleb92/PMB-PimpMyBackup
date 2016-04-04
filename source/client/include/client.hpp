@@ -3,7 +3,6 @@
 #define SOURCE_CLIENT_INCLUDE_CLIENT_HPP_
 
 #include <directorylistener.hpp>
-#include <filesystem.hpp>
 #include <log.hpp>
 #include <utilities/include/threadpool.hpp>
 
@@ -21,7 +20,6 @@ class client {
 	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	utilities::thread_pool thPool;
 
-	filesystem fs;
 	directory_listener dirListener;
 
 	using shq = utilities::shared_queue<change_entity>;

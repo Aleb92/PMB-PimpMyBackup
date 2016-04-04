@@ -21,12 +21,10 @@ namespace utilities {
 class base_exception: public std::exception {
 protected:
 	std::string msg; //FIXME: const char* non ci piace?
-
+public:
 	base_exception(const std::string&) noexcept;
 	base_exception(std::string&&) noexcept;
 	base_exception(void) noexcept;
-
-public:
 	virtual const char* what() const noexcept;
 };
 
@@ -39,6 +37,11 @@ public:
 IMPLEMENT_EXCEPTION(fs_exception);
 IMPLEMENT_EXCEPTION(auth_exception);
 IMPLEMENT_EXCEPTION(memory_exception);
+
+class io_exception : public base_exception {
+public:
+	using base_exception::base_exception;
+};
 
 class socket_exception: public base_exception {
 public:
