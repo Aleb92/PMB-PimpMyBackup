@@ -45,6 +45,9 @@ public:
 	virtual ~settings_saver();
 };
 
+template<typename B>
+class settings_base;
+
 /**
  * Automazione per le impostazioni: carica e salva una variabile...
  * DA NON USARE PER DEL TESTO CON PIU' DI UNA RIGA.
@@ -58,9 +61,13 @@ template<typename T>
 class settings_entry {
 	const char* const name;
 	settings_io* const &io;
+
+	template <typename B>
+	friend class utilities::settings_base;
+
+	settings_entry(const settings_entry<T> &) = default; // no copy
 public:
 	T value;
-	settings_entry(const settings_entry<T> &) = delete; // no copy
 	settings_entry<T>& operator=(const settings_entry<T>&) = delete; // no assign
 
 	settings_entry(const char*_name, settings_io* &_io) :
@@ -99,9 +106,9 @@ class settings_entry<std::wstring> {
 	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	const char* const name;
 	settings_io* &io;
+	settings_entry(const settings_entry<std::wstring> &) = default; // no copy
 public:
 	std::wstring value;
-	settings_entry(const settings_entry<std::wstring> &) = delete; // no copy
 	settings_entry<std::wstring>& operator=(const settings_entry<std::wstring>&) = delete; // no assign
 
 	inline operator std::wstring() const noexcept {
@@ -128,9 +135,9 @@ template<>
 class settings_entry<std::string> {
 	const char* const name;
 	settings_io* &io;
+	settings_entry(const settings_entry<std::string> &) = default; // private copy
 public:
 	std::string value;
-	settings_entry(const settings_entry<std::string> &) = delete; // no copy
 	settings_entry<std::string>& operator=(const settings_entry<std::string>&) = delete; // no assign
 
 	inline operator std::string() const noexcept {
@@ -193,6 +200,10 @@ protected:
 public:
 	settings_base(const char*f) : filename(f) {
 		io = new settings_loader(f);
+	}
+
+	void refresh() {
+		B::inst() = B();
 	}
 
 	~settings_base(){

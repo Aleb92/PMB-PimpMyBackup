@@ -2,8 +2,8 @@
 #define SOURCE_CLIENT_DIRECTORYLISTENER_H_
 
 #include <utilities/include/shared_queue.hpp>
-#include <settings.hpp>
 #include <utilities/include/exceptions.hpp>
+#include <settings.hpp>
 
 #include <Windows.h>
 #include <ostream>
