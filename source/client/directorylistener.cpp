@@ -36,7 +36,15 @@ directory_listener::~directory_listener() {
 }
 
 void directory_listener::stop() {
-	running = false;
+	if(running) {
+		running = false;
+		while(!lock.try_lock()){
+			this_thread::yield();
+			// Interrompi l'attesa!
+			CancelIoEx(dir, NULL);
+		}
+		lock.unlock();
+	}
 }
 
 } /* namespace client */

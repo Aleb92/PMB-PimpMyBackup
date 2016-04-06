@@ -40,8 +40,6 @@ namespace client {
 	SETTINGS_ENTRY(std::string, server_host);
 	SETTINGS_ENTRY(in_port_t, server_port);
 
-	SETTINGS_ENTRY(int, io_wait_ms);
-
 	/**
 	 * Questa variabile indica se sincronizzare o no (ovvero se scaricare di nuovo tutto dal server)
 	 * La sincronizzazione deve avvvenire nel main prima che parta la pipeline, per evitare problemi
