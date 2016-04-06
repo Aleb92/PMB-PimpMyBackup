@@ -39,6 +39,8 @@ class client {
 public:
 	client();
 
+	client& operator=(client&&)= default;
+
 	void start();
 	void stop();
 

@@ -54,8 +54,8 @@ settings_saver::~settings_saver() {
 
 // ora le entry vere e proprie
 settings_entry<wstring>::settings_entry(const char*_name, settings_io* &_io) :
-		name(_name), io(_io) {
-	*this << *io;
+		name(_name), io(&_io) {
+	*this << **io;
 }
 
 void settings_entry<wstring>::operator<<(std::unordered_map<std::string, std::stringstream>*map) {
@@ -73,8 +73,8 @@ void settings_entry<wstring>::operator>>(std::ofstream*out){
 }
 
 settings_entry<string>::settings_entry(const char*_name, settings_io* &_io) :
-		name(_name), io(_io) {
-	*this << *io;
+		name(_name), io(&_io) {
+	*this << **io;
 }
 
 void settings_entry<string>::operator<<(std::unordered_map<std::string, std::stringstream>*map) {

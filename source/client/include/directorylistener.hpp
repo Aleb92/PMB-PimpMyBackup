@@ -64,10 +64,12 @@ class directory_listener {
 	HANDLE dir;
 	std::mutex lock;
 	volatile bool running;
-    const DWORD flags;
+    DWORD flags;
 
 public:
 	directory_listener(const wchar_t*, DWORD);
+
+	directory_listener& operator=(directory_listener&&);
 
 	/**
 	 * Questa funzione template prende in input una funzione di interruzione

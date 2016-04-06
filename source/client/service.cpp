@@ -1,21 +1,16 @@
 #include <settings.hpp>
-
-#include <utilities/include/socket.hpp>
-#include <utilities/include/threadpool.hpp>
-#include <utilities/include/atend.hpp>
+#include <client.hpp>
 
 #include <thread>
 #include <mutex>
-#include <vector>
-#include <memory>
 #include <Windows.h>
 
 using namespace std;
 using namespace utilities;
 using namespace client;
 
-client c;
-mutex lock;
+client::client c;
+mutex l;
 
 SERVICE_STATUS g_ServiceStatus = { SERVICE_WIN32_OWN_PROCESS,
 SERVICE_START_PENDING };
@@ -37,7 +32,7 @@ void start_service() {
 
 VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
 	try {
-	    lock_guard<mutex> guard(lock);
+	    lock_guard<mutex> guard(l);
 		DWORD Status = E_FAIL;
 
 		if (!SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
@@ -60,7 +55,7 @@ VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
 		// Start a thread that will perform the main task of the service
         c.start();
 
-        lock.lock();
+        l.lock();
 
         c.stop();
 
@@ -80,7 +75,8 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode)
 
     case SERVICE_ACCEPT_PARAMCHANGE:
         settings::refresh();
-        c = std::move(client());
+        c.stop();
+        c = std::move(client::client());
         break;
 
     case SERVICE_CONTROL_SHUTDOWN :
@@ -93,7 +89,7 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode)
         if (!SetServiceStatus (g_StatusHandle, &g_ServiceStatus))
             OutputDebugString("Errore in chiusura");
 
-        lock.unlock();
+        l.unlock();
 
         break;
 

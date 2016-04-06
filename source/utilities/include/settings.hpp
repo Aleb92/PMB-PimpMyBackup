@@ -59,8 +59,8 @@ class settings_base;
  */
 template<typename T>
 class settings_entry {
-	const char* const name;
-	settings_io* const &io;
+	const char* name;
+	settings_io** io;
 
 	template <typename B>
 	friend class utilities::settings_base;
@@ -68,11 +68,11 @@ class settings_entry {
 	settings_entry(const settings_entry<T> &) = default; // no copy
 public:
 	T value;
-	settings_entry<T>& operator=(const settings_entry<T>&) = delete; // no assign
+	settings_entry<T>& operator=(const settings_entry<T>&) = default;
 
 	settings_entry(const char*_name, settings_io* &_io) :
-			name(_name), io(_io) {
-		*this << *io;
+			name(_name), io(&_io) {
+		*this << **io;
 	}
 
 	inline operator T() const noexcept {
@@ -95,7 +95,7 @@ public:
 	}
 
 	inline ~settings_entry() {
-		*this >> *io;
+		*this >> **io;
 	}
 
 
@@ -104,12 +104,13 @@ public:
 template<>
 class settings_entry<std::wstring> {
 	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-	const char* const name;
-	settings_io* &io;
+	const char* name;
+	settings_io** io;
 	settings_entry(const settings_entry<std::wstring> &) = default; // no copy
 public:
 	std::wstring value;
-	settings_entry<std::wstring>& operator=(const settings_entry<std::wstring>&) = delete; // no assign
+
+	settings_entry<std::wstring>& operator=(const settings_entry<std::wstring>&) = default;
 
 	inline operator std::wstring() const noexcept {
 		return value;
@@ -126,19 +127,19 @@ public:
 	void operator>>(std::ofstream*out);
 
 	inline ~settings_entry() {
-		*this >> *io;
+		*this >> **io;
 	}
 };
 
 
 template<>
 class settings_entry<std::string> {
-	const char* const name;
-	settings_io* &io;
+	const char* name;
+	settings_io** io;
 	settings_entry(const settings_entry<std::string> &) = default; // private copy
 public:
 	std::string value;
-	settings_entry<std::string>& operator=(const settings_entry<std::string>&) = delete; // no assign
+	settings_entry<std::string>& operator=(const settings_entry<std::string>&) = default;
 
 	inline operator std::string() const noexcept {
 		return value;
@@ -155,7 +156,7 @@ public:
 	void operator>>(std::ofstream*out);
 
 	inline ~settings_entry() {
-		*this >> *io;
+		*this >> **io;
 	}
 };
 
@@ -170,7 +171,8 @@ public:
 				delete io;\
 			}\
 		public: \
-		friend class utilities::singleton<name>
+		friend class utilities::singleton<name>;\
+		friend class utilities::settings_base<name>
 
 
 /**
@@ -195,7 +197,7 @@ public:
 template <typename B>
 class settings_base : public singleton<B> {
 protected:
-	const char*const filename;
+	const char* filename;
 	settings_io*io;
 public:
 	settings_base(const char*f) : filename(f) {
