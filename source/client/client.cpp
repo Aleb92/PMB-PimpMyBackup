@@ -25,7 +25,8 @@ namespace client {
 std::wstring_convert<std::codecvt_utf8<wchar_t>> client::converter;
 
 client::client() :
-		dirListener(settings::inst().watched_dir.value.c_str()) {
+		dirListener(settings::inst().watched_dir.value.c_str(), DIR_FILTER),
+		fileListener(settings::inst().watched_dir.value.c_str(), FILE_FILTER) {
 }
 
 client::~client() {

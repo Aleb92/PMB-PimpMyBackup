@@ -13,7 +13,7 @@ using namespace std;
 
 namespace client {
 
-directory_listener::directory_listener(const wchar_t* path) : running(false) {
+directory_listener::directory_listener(const wchar_t* path, DWORD f) : running(false), flags(f) {
 	dir = CreateFileW(path, GENERIC_READ,
 			FILE_SHARE_READ | FILE_SHARE_DELETE | FILE_SHARE_WRITE, 0, OPEN_EXISTING,
 			FILE_FLAG_BACKUP_SEMANTICS, 0);
@@ -27,7 +27,6 @@ directory_listener::directory_listener(const wchar_t* path) : running(false) {
 				FILE_SHARE_READ | FILE_SHARE_DELETE | FILE_SHARE_WRITE, 0,
 				OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0);
 	}
-
 }
 
 directory_listener::~directory_listener() {
