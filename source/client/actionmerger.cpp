@@ -14,7 +14,6 @@ using namespace client;
 using namespace server;
 using namespace utilities;
 
-// TODO: aggiungere uno switch per i filtri!
 opcode client::get_flag_bit(DWORD event, DWORD flags) {
 	switch (event) {
 	case FILE_ACTION_ADDED:
@@ -33,7 +32,7 @@ opcode client::get_flag_bit(DWORD event, DWORD flags) {
 	case FILE_ACTION_RENAMED_NEW_NAME:
 		if(flags & FILE_NOTIFY_CHANGE_DIR_NAME)
 			return MOVE_DIR;
-		return MOVE_DIR;
+		return MOVE;
 	}
 	return INVALID;
 }

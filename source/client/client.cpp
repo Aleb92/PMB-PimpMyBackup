@@ -25,16 +25,11 @@ namespace client {
 std::wstring_convert<std::codecvt_utf8<wchar_t>> client::converter;
 
 client::client() :
-		dirListener(settings::inst().watched_dir.value.c_str(), DIR_FILTER),
-		fileListener(settings::inst().watched_dir.value.c_str(), FILE_FILTER) {
+		dirListener(settings::inst().watched_dir.value.c_str(), DIR_FILTER), fileListener(
+				settings::inst().watched_dir.value.c_str(), FILE_FILTER) {
 }
 
 client::~client() {
-}
-
-bool client::synchronize() {
-	//TODO
-	return true;
 }
 
 void client::start() {
@@ -52,13 +47,12 @@ void client::merge() {
 
 	//Questo continua finche l'azione che non viene fuori e' 0 che significa chiusura
 	while (che->Action) {
-		// TODO: ora possiamo distinguere senza nessun problema tra dir e non dir
-//		if (fs.isDir(che->FileName,
-//				che->FileNameLength) && che->Action == FILE_ACTION_MODIFIED)
-//			continue;
 
-		log::inst().issue(che);
-		action_merger::inst().add_change(che);
+		if (get_flag_bit(che->Action, che.flags) != INVALID) {
+
+			log::inst().issue(che);
+			action_merger::inst().add_change(che);
+		}
 		che = shq::inst().dequeue();
 	}
 }
@@ -81,7 +75,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		volatile bool &run) {
 	const pair<opcode, void (client::*)(socket_stream&, std::wstring&)> flag[] =
 			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
-					chmod } };
+					chmod }, { MOVE_DIR, moveDir } };
 
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
 	// Questa funzione quindi invia l'header generico,
@@ -156,7 +150,7 @@ void client::stop() {
 	// E aspettare che tutto sia effettivamento chiuso
 	if (dirWatcher.joinable())
 		dirWatcher.join();
-	if(fileWatcher.joinable())
+	if (fileWatcher.joinable())
 		fileWatcher.join();
 
 	shq::inst().enqueue(stop);
@@ -181,12 +175,6 @@ void client::move(socket_stream& sock, std::wstring& fileName) {
 }
 
 void client::create(socket_stream& sock, std::wstring& fileName) {
-	// TODO: utilizziamo qualche altro modo per fare questo
-	// if (fs.isDir(fileName.c_str(), fileName.length()))
-	//	sock.send('d');
-	// else
-	//	sock.send('f');
-
 	sock.send(fileName);
 }
 
@@ -194,10 +182,15 @@ void client::remove(socket_stream& sock, std::wstring& fileName) {
 }
 
 void client::chmod(socket_stream& sock, std::wstring& fileName) {
-	// TODO: leggere i mod da file
-	uint16_t mods = 0;//fs.get_file(fileName.c_str(), fileName.length()).mod;
 
+	uint32_t mods;
+	if ((mods = GetFileAttributesW(fileName.c_str())) == INVALID_FILE_ATTRIBUTES)
+		throw base_exception();
 	sock.send(mods);
+}
+
+void client::moveDir(socket_stream& sock, wstring& fileName) {
+	sock.send(fileName);
 }
 
 void client::version(socket_stream& sock, std::wstring& fileName,
