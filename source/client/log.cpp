@@ -86,7 +86,7 @@ void log::issue(const change_entity& entity) {
 		fwrite(&length, sizeof(size_t), 1, log_file);
 		fwrite(entity->FileName, length, 1, log_file);
 	} else {
-		log_entry_header h = { 'i', get_flag_bit(entity->Action), entity.time,
+		log_entry_header h = { 'i', get_flag_bit(entity->Action, entity.flags), entity.time,
 				static_cast<size_t>(entity->FileNameLength) };
 
 		fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
