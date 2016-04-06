@@ -9,10 +9,6 @@
 #include <functional>
 #include <memory>
 
-#define FILTERS FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME|\
-		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE|\
-		FILE_NOTIFY_CHANGE_SECURITY
-
 #define K 1024
 #define NOTIF_INFO_BUFF_LENGHT 8*K
 
@@ -37,13 +33,14 @@ class change_entity {
 public:
 
 	FILETIME time;
+	DWORD flags;
 
 	/**
 	 * L'oggetto è copiabile.
 	 * @param old old copy
 	 */
 	change_entity(const change_entity&old) = default;
-	change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*);
+	change_entity(std::shared_ptr<char>&, FILE_NOTIFY_INFORMATION*, DWORD flags);
 
 
 	FILE_NOTIFY_INFORMATION& operator*();
@@ -67,9 +64,10 @@ class directory_listener {
 	HANDLE dir;
 	std::mutex lock;
 	volatile bool running;
+    const DWORD flags;
 
 public:
-	directory_listener(const wchar_t*);
+	directory_listener(const wchar_t*, DWORD);
 
 	/**
 	 * Questa funzione template prende in input una funzione di interruzione
@@ -93,7 +91,7 @@ public:
 			char *current = new char[NOTIF_INFO_BUFF_LENGHT];
 
 			if (ReadDirectoryChangesW(dir, (LPVOID) current,
-			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, FILTERS,
+			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, flags,
 					&dwBytesReturned, NULL, NULL) == 0)
 				throw utilities::fs_exception();
 			lock.unlock();
@@ -101,10 +99,10 @@ public:
 			std::shared_ptr<char> whole(current);
 
 #define buffFNI ((FILE_NOTIFY_INFORMATION*)(current))
-			(_t->*func)(change_entity(whole, buffFNI));
+			(_t->*func)(change_entity(whole, buffFNI, flags));
 			while (buffFNI->NextEntryOffset != 0) {
 				current += buffFNI->NextEntryOffset;
-				(_t->*func)(change_entity(whole, buffFNI));
+				(_t->*func)(change_entity(whole, buffFNI, flags));
 			}
 
 #undef buffFNI
@@ -120,3 +118,5 @@ public:
 }
 
 #endif /* SOURCE_CLIENT_DIRECTORYLISTENER_H_ */
+
+

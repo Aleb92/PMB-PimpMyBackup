@@ -13,14 +13,14 @@
 namespace client {
 
 class client {
-	std::thread watcher, merger, dispatcher;
+	std::thread fileWatcher, dirWatcher, merger, dispatcher;
 
 	friend class std::thread;
 
 	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	utilities::thread_pool thPool;
 
-	directory_listener dirListener;
+	directory_listener dirListener, fileListener;
 
 	using shq = utilities::shared_queue<change_entity>;
 

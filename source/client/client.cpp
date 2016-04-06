@@ -15,6 +15,13 @@ using namespace utilities;
 using namespace server;
 
 namespace client {
+
+#define FILE_FILTER FILE_NOTIFY_CHANGE_FILE_NAME|\
+		FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE
+
+#define DIR_FILTER FILE_NOTIFY_CHANGE_DIR_NAME|\
+		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SECURITY
+
 std::wstring_convert<std::codecvt_utf8<wchar_t>> client::converter;
 
 client::client() :
@@ -30,8 +37,10 @@ bool client::synchronize() {
 }
 
 void client::start() {
-	watcher = thread(&directory_listener::scan<shq, &shq::enqueue>,
+	dirWatcher = thread(&directory_listener::scan<shq, &shq::enqueue>,
 			&dirListener, &shq::inst());
+	fileWatcher = thread(&directory_listener::scan<shq, &shq::enqueue>,
+			&fileListener, &shq::inst());
 	merger = thread(&client::merge, this);
 	dispatcher = thread(&client::dispatch, this);
 }
@@ -141,10 +150,13 @@ void client::stop() {
 	const change_entity stop = change_entity(shptr, &fni, 0);
 
 	dirListener.stop();
+	fileListener.stop();
 
 	// E aspettare che tutto sia effettivamento chiuso
-	if (watcher.joinable())
-		watcher.join();
+	if (dirWatcher.joinable())
+		dirWatcher.join();
+	if(fileWatcher.joinable())
+		fileWatcher.join();
 
 	shq::inst().enqueue(stop);
 
