@@ -202,7 +202,7 @@ public:
 		io = new settings_loader(f);
 	}
 
-	void refresh() {
+	static void refresh() {
 		B::inst() = B();
 	}
 

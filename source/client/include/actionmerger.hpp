@@ -16,7 +16,7 @@
 namespace client {
 
 
-server::opcode get_flag_bit(DWORD);
+server::opcode get_flag_bit(DWORD, DWORD);
 
 // Forward declaration per evitare dipendenze circolari degli headers
 struct log_entry_header;

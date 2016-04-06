@@ -15,17 +15,25 @@ using namespace server;
 using namespace utilities;
 
 // TODO: aggiungere uno switch per i filtri!
-opcode client::get_flag_bit(DWORD event) {
+opcode client::get_flag_bit(DWORD event, DWORD flags) {
 	switch (event) {
 	case FILE_ACTION_ADDED:
+		if(flags & FILE_NOTIFY_CHANGE_DIR_NAME)
+			return INVALID;
 		return CREATE;
 	case FILE_ACTION_REMOVED:
+		if(flags & FILE_NOTIFY_CHANGE_DIR_NAME)
+			return INVALID;
 		return REMOVE;
 	case FILE_ACTION_MODIFIED:
+		if(flags & FILE_NOTIFY_CHANGE_DIR_NAME)
+			return INVALID;
 		return WRITE;
 	case FILE_ACTION_RENAMED_OLD_NAME:
 	case FILE_ACTION_RENAMED_NEW_NAME:
-		return MOVE;
+		if(flags & FILE_NOTIFY_CHANGE_DIR_NAME)
+			return MOVE_DIR;
+		return MOVE_DIR;
 	}
 	return INVALID;
 }
@@ -57,7 +65,7 @@ void action_merger::add_change(std::wstring& fileName, file_action& action) {
 void action_merger::add_change(const change_entity& che) {
 	if(open) {
 		file_action& fa = map[wstring(che->FileName, che->FileNameLength)];
-		opcode flag = get_flag_bit(che->Action);
+		opcode flag = get_flag_bit(che->Action, che.flags);
 		fa.op_code |= flag;
 
 		if (che->Action == FILE_ACTION_RENAMED_OLD_NAME) {

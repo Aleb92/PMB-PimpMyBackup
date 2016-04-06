@@ -12,7 +12,7 @@ namespace server {
 		CREATE		= 1<<1,
 		REMOVE		= 1<<2,
 		CHMOD		= 1<<3,
-		RESERVED	= 1<<4,
+		MOVE_DIR	= 1<<4,
 		VERSION		= 1<<5,
 		MODIFIER	= 1<<6,
 		WRITE		= 1<<7
