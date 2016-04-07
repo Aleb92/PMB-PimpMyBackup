@@ -38,22 +38,26 @@ namespace server {
 #define SQL_WRITE "UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2"
 #define SQL_MOVE "UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2"
 #define SQL_DELETE "DELETE FROM files WHERE username=?1 AND path=?2"
-#define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE WHERE username=?1 AND path=?2 AND time_stamp=?3) UPDATE files SET time_stamp=(SELECT time_stamp FROM tmp),mod=(SELECT mod FROM tmp),file_id=(SELECT file_id FROM tmp) WHERE username=?1 AND path=?2"
+#define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE WHERE username=?1"\
+		" AND path=?2 AND time_stamp=?3) UPDATE files SET time_stamp=(SELECT time_stamp FROM tmp), "\
+		"mod=(SELECT mod FROM tmp),file_id=(SELECT file_id FROM tmp) WHERE username=?1 AND path=?2;"\
+		"SELECT file_id FROM tmp"
 #define SQL_LIST_V "SELECT time_stamp FROM history WHERE username=?1 AND path=?2 ORDER BY time_stamp DESC"
 
 class database;
 
 class user_context {
-	std::string& usr, &pass, &path;
 	database& db;
 
 	friend class database;
 	user_context(std::string&, std::string&, std::string&, database&);
 public:
+	const std::string& usr, &pass, &path;
+
 	bool auth();
 	void create(int64_t);
-	void chmod(int64_t, uint16_t);
 	std::string write(int64_t);
+	void chmod(int64_t, uint32_t);
 	void move(int64_t, std::string&);
 	void remove();
 	std::string version(int64_t);

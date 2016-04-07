@@ -49,20 +49,21 @@ int main() {
 	return -1; // Should never get here!
 }
 
-void move(socket_stream&, user_context&, int64_t) {
-
+void move(socket_stream& sock, user_context& context, int64_t ts){
+	string mv = sock.recv<string>();
+	context.move(ts, mv);
 }
 
 void create(socket_stream& sock, user_context& context, int64_t ts) {
 	context.create(ts);
 }
 
-void remove(socket_stream&, user_context&, int64_t) {
-
+void remove(socket_stream& sock, user_context& context, int64_t){
+	context.remove();
 }
 
-void chmodFile(socket_stream&, user_context&, int64_t) {
-
+void chmodFile(socket_stream& sock, user_context& context, int64_t ts){
+	context.chmod(ts, sock.recv<int32_t>());
 }
 
 void moveDir(socket_stream&, user_context&, int64_t) {
@@ -93,7 +94,7 @@ void version(socket_stream& sock, user_context& context, int64_t ts) {
 	uint32_t size = ftell(file);
 	sock.send(size);
 
-	while (feof(file) && run) {
+	while (feof(file)) {
 		socket_base::SOCK_STATE state = sock.getState();
 		if (state & socket_base::READ_READY) {
 			if (sock.recv<bool>())

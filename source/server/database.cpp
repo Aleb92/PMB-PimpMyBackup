@@ -21,6 +21,7 @@ template<>
 inline int32_t db_column<int32_t>(sqlite3_stmt * stmt, int i) {
 	return sqlite3_column_int(stmt, i);
 }
+<<<<<<< HEAD
 
 template<>
 inline uint32_t db_column<uint32_t>(sqlite3_stmt * stmt, int i) {
@@ -208,7 +209,7 @@ bool user_context::auth() {
 	}
 }
 
-void user_context::chmod(int64_t timestamp, uint16_t mod) {
+void user_context::chmod(int64_t timestamp, uint32_t mod) {
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
@@ -434,4 +435,3 @@ string user_context::write(int64_t time) {
 	}
 
 }
-
