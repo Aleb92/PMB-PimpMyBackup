@@ -249,7 +249,7 @@ int32_t socket_stream::recv<int32_t>() {
 
 template<>
 int64_t socket_stream::recv<int64_t>(){
-	return (recv<int32_t>()<< 32LLU) | (recv<int32_t>());
+	return (static_cast<int64_t>(recv<int32_t>())<< 32) | (recv<int32_t>());
 }
 
 template<>
