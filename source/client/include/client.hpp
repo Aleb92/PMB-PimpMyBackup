@@ -7,8 +7,6 @@
 #include <utilities/include/threadpool.hpp>
 
 #include <thread>
-#include <locale>
-#include <codecvt>
 
 namespace client {
 
