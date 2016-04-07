@@ -3,7 +3,6 @@
 #include <utilities/include/exceptions.hpp>
 #include <utilities/include/atend.hpp>
 
-#include <openssl/md5.h>
 #include <cassert>
 #include <vector>
 #include <string>
@@ -389,9 +388,8 @@ vector<int64_t> user_context::versions() {
 	}
 }
 
-string user_context::write(int64_t time) {
+string user_context::write(int64_t time, string& fileID) {
 
-	unsigned char buff[MD5_DIGEST_LENGTH];
 
 	on_return<> ret([&] {
 		// On return resetto statement e bindings
@@ -399,16 +397,6 @@ string user_context::write(int64_t time) {
 			sqlite3_clear_bindings(db.write.get());
 		});
 
-	MD5(reinterpret_cast<const unsigned char*>(path.c_str()), path.length(), buff);
-
-	stringstream fileIDss;
-	fileIDss << hex << time << '.';
-	for (int i = 0; i < MD5_DIGEST_LENGTH; i++) {
-		fileIDss << "0123456789ABCDEF"[buff[i] / 16];
-		fileIDss << "0123456789ABCDEF"[buff[i] % 16];
-	}
-
-	string fileID = fileIDss.str();
 	// Ora binding degli argomenti
 	bind_db(db.write.get(), 1, usr, path, time, fileID);
 

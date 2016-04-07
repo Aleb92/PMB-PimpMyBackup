@@ -10,6 +10,7 @@
 #include <vector>
 #include <memory>
 #include <utility>
+#include <openssl/md5.h>
 
 using namespace std;
 using namespace utilities;
@@ -49,7 +50,7 @@ int main() {
 	return -1; // Should never get here!
 }
 
-void move(socket_stream& sock, user_context& context, int64_t ts){
+void move(socket_stream& sock, user_context& context, int64_t ts) {
 	string mv = sock.recv<string>();
 	context.move(ts, mv);
 }
@@ -58,11 +59,11 @@ void create(socket_stream& sock, user_context& context, int64_t ts) {
 	context.create(ts);
 }
 
-void remove(socket_stream& sock, user_context& context, int64_t){
+void remove(socket_stream& sock, user_context& context, int64_t) {
 	context.remove();
 }
 
-void chmodFile(socket_stream& sock, user_context& context, int64_t ts){
+void chmodFile(socket_stream& sock, user_context& context, int64_t ts) {
 	context.chmod(ts, sock.recv<int32_t>());
 }
 
@@ -70,11 +71,49 @@ void moveDir(socket_stream&, user_context&, int64_t) {
 
 }
 
-void writeFile(socket_stream&, user_context&, int64_t) {
+void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
+	stringstream fileIDss;
+	{
+		unsigned char buff[MD5_DIGEST_LENGTH];
+		MD5(reinterpret_cast<const unsigned char*>(context.path.c_str()), context.path.length(),
+				buff);
 
+		fileIDss << hex << ts << '.';
+		for (int i = 0; i < MD5_DIGEST_LENGTH; i++) {
+			fileIDss << "0123456789ABCDEF"[buff[i] / 16];
+			fileIDss << "0123456789ABCDEF"[buff[i] % 16];
+		}
+	}
+	string fileID = fileIDss.str();
+
+	FILE* file = fopen(fileID.c_str(), "wb");
+
+	char buffer[BUFF_LENGHT] = { 0 };
+	uint32_t n = 0;
+
+	if (file == NULL)
+		throw fs_exception();
+
+	on_return<> ret([file]() {
+		fclose(file);
+	});
+
+	uint32_t size = sock.recv<uint32_t>();
+
+	while (n < size) {
+		size_t i = sock.recv(buffer, BUFF_LENGHT);
+		fwrite(buffer, i, 1, file);
+		n += i;
+	}
+
+	context.write(ts, fileID);
 }
 
-void list(socket_stream&, user_context&, int64_t) {
+void list(socket_stream& sock, user_context& context, int64_t) {
+	auto versions = context.versions();
+	sock.send<uint32_t>(versions.size());
+	for (int64_t t : versions)
+		sock.send(t);
 }
 
 void version(socket_stream& sock, user_context& context, int64_t ts) {
@@ -106,31 +145,36 @@ void version(socket_stream& sock, user_context& context, int64_t ts) {
 }
 
 void worker(socket_stream sock, database& db, volatile bool&) {
+	try {
+		const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] =
+				{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, {
+						CHMOD, chmodFile }, { MOVE_DIR, moveDir }, { VERSION,
+						version }, { LIST, list }, { WRITE, writeFile } };
 
-	const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] =
-			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
-					chmodFile }, { MOVE_DIR, moveDir }, { VERSION, version }, {
-					LIST, list}, { WRITE, writeFile } };
+		string username = sock.recv<string>();
+		string password = sock.recv<string>();
+		string fileName = sock.recv<string>();
 
-	string username = sock.recv<string>();
-	string password = sock.recv<string>();
-	string fileName = sock.recv<string>();
+		auto context = db.getUserContext(username, password, fileName);
+		if (!context.auth()) {
+			sock.send<bool>(false);
+			return;
+		}
+		sock.send<bool>(true);
 
-	auto context = db.getUserContext(username, password, fileName);
-	if (!context.auth()) {
-		sock.send<bool>(false);
-		return;
+		opcode opCode = sock.recv<opcode>();
+		uint64_t timestamp[8];
+
+		for (auto& ts : timestamp) {
+			ts = sock.recv<uint64_t>();
+		}
+
+		for (int i = 0; i < 8; i++) {
+			if (opCode & flag[i].first)
+				(flag[i].second)(sock, context, timestamp[i]);
+			sock.send<bool>(true);
+		}
+	} catch (base_exception& ex) {
+		cerr << ex.what();
 	}
-
-	opcode opCode = sock.recv<opcode>();
-	uint64_t timestamp[8];
-
-	for (auto& ts : timestamp)
-		ts = sock.recv<uint64_t>();
-
-	for (int i = 0; i < 8; i++) {
-		if (opCode & flag[i].first)
-			(flag[i].second)(sock, context, timestamp[i]);
-	}
-
 }
