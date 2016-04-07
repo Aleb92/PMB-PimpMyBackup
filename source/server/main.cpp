@@ -49,20 +49,21 @@ int main() {
 	return -1; // Should never get here!
 }
 
-void move(socket_stream&, user_context&, int64_t){
-
+void move(socket_stream& sock, user_context& context, int64_t ts){
+	string mv = sock.recv<string>();
+	context.move(ts, mv);
 }
 
 void create(socket_stream&, user_context&, int64_t){
 
 }
 
-void remove(socket_stream&, user_context&, int64_t){
-//
+void remove(socket_stream& sock, user_context& context, int64_t){
+	context.remove();
 }
 
-void chmodFile(socket_stream&, user_context&, int64_t){
-
+void chmodFile(socket_stream& sock, user_context& context, int64_t ts){
+	context.chmod(ts, sock.recv<int32_t>());
 }
 
 void moveDir(socket_stream&, user_context&, int64_t){
@@ -75,9 +76,7 @@ void writeFile(socket_stream&, user_context&, int64_t){
 
 void list(socket_stream&,user_context&, int64_t) { }
 
-void version(socket_stream&, user_context&, int64_t){
-
-}
+void version(socket_stream&, user_context&, int64_t){ }
 
 void worker(socket_stream sock, database& db, volatile bool&) {
 

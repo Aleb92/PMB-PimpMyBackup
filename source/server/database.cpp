@@ -208,7 +208,7 @@ bool user_context::auth() {
 	}
 }
 
-void user_context::chmod(int64_t timestamp, uint16_t mod) {
+void user_context::chmod(int64_t timestamp, uint32_t mod) {
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
