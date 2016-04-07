@@ -161,6 +161,13 @@ database::database(const char*db_name) {
 	list = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
 		throw db_exception(r);
+
+	//moveDir
+	r = sqlite3_prepare_v2(c, SQL_MOVE_DIR, sizeof(SQL_MOVE_DIR), &statement,
+			nullptr);
+	moveDir = unique_ptr<sqlite3_stmt>(statement);
+	if (r != SQLITE_OK)
+		throw db_exception(r);
 }
 
 user_context database::getUserContext(string&user, string&pass, string&path) {
@@ -388,8 +395,11 @@ vector<int64_t> user_context::versions() {
 	}
 }
 
-string user_context::write(int64_t time, string& fileID) {
+void user_context::moveDir(int64_t time, string& newdir) {
 
+}
+
+void user_context::write(int64_t time, string& fileID) {
 
 	on_return<> ret([&] {
 		// On return resetto statement e bindings

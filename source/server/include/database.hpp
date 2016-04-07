@@ -37,6 +37,7 @@ namespace server {
 #define SQL_CHMOD "UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2"
 #define SQL_WRITE "UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2"
 #define SQL_MOVE "UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2"
+#define SQL_MOVE_DIR "UPDATE files SET time_stamp=?3 path = REPLACE( path, ?2, ?4 ) WHERE username = ?1 AND path LIKE (?2 || '%')"
 #define SQL_DELETE "DELETE FROM files WHERE username=?1 AND path=?2"
 #define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE WHERE username=?1"\
 		" AND path=?2 AND time_stamp=?3) UPDATE files SET time_stamp=(SELECT time_stamp FROM tmp), "\
@@ -59,7 +60,7 @@ public:
 	void write(int64_t, std::string&);
 	void chmod(int64_t, uint32_t);
 	void move(int64_t, std::string&);
-	void moveDir();//TODO
+	void moveDir(int64_t, std::string&);
 	void remove();
 	std::string version(int64_t);
 	std::vector<int64_t> versions();
@@ -69,7 +70,7 @@ public:
 class database {
 	std::unique_ptr<sqlite3> connection;
 	std::unique_ptr<sqlite3_stmt> auth, create,
-			chmod, write, move, remove, version, list;
+			chmod, write, move, remove, version, list, moveDir;
 	std::mutex busy;
 	friend class user_context;
 public:
