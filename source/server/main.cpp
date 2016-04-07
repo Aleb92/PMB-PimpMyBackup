@@ -95,11 +95,6 @@ void version(socket_stream& sock, user_context& context, int64_t ts) {
 	sock.send(size);
 
 	while (feof(file)) {
-		socket_base::SOCK_STATE state = sock.getState();
-		if (state & socket_base::READ_READY) {
-			if (sock.recv<bool>())
-				return;
-		}
 		size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
 		sock.send(buffer, readn);
 	}
