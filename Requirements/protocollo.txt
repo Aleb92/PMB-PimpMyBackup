@@ -1,6 +1,6 @@
        OPCODE COMPRESSO, FORMATO
 
-bit a 1 significano azione richiesta, se tutti i bit a 0, richiesto listing della cartella.
+bit a 1 significano azione richiesta, se tutti i bit a 0, richiesto synchronize.
 _
 1| Spostamento
 2| Creazione
@@ -61,15 +61,3 @@ EMPTY
 
 == Scrittura ==
 <size><binary data>
-
-Formato per il listing
------------------------------------
-U1									|
-237iqyrfw							|
-u2									|
-dfashfkhas							|
-u3 => errore 						|
------------------------------------
-
-Formato per il tree
-[Dimensione della struttura]
