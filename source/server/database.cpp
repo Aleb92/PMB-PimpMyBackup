@@ -73,8 +73,7 @@ inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t& val, int i) {
 		throw db_exception(v);
 }
 
-inline void bind_db(sqlite3_stmt*, int) {
-}
+inline void bind_db(sqlite3_stmt*, int) { }
 
 template<typename A, typename ...T>
 void bind_db(sqlite3_stmt*stmt, int i, A act, T ...args) {
@@ -296,6 +295,35 @@ void user_context::move(int64_t timestamp, string& newPath) {
 	}
 }
 
+void user_context::moveDir(int64_t timestamp, string& newdir) {
+	lock_guard<mutex> guard(db.busy);
+
+	on_return<> ret([&] {
+		// On return resetto statement e bindings
+			sqlite3_reset(db.moveDir.get());
+			sqlite3_clear_bindings(db.moveDir.get());
+		});
+
+	// Ora binding degli argomenti
+	bind_db(db.moveDir.get(), 1, usr, path, timestamp, newdir);
+
+	// Quindi eseguo
+	while (1) {
+		switch (sqlite3_step(db.moveDir.get())) {
+		case SQLITE_DONE:
+			return;	// FATTO!
+		case SQLITE_BUSY:
+			// Qui non ci dovrebbe mai arrivare(WAL mode)...
+			// Comunque nel caso, prima lascio fare qualcosa agli altri
+			this_thread::yield();
+			// Poi riprovo.
+			break;
+		default:
+			throw db_exception(db.connection.get());
+		}
+	}
+}
+
 void user_context::remove() {
 	lock_guard<mutex> guard(db.busy);
 
@@ -414,7 +442,7 @@ void user_context::write(int64_t time, string& fileID) {
 	while (1) {
 		switch (sqlite3_step(db.write.get())) {
 		case SQLITE_DONE:
-			return fileID;	// FATTO!
+			return;	// FATTO!
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...
 			// Comunque nel caso, prima lascio fare qualcosa agli altri
