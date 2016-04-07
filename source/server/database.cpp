@@ -21,12 +21,6 @@ template<>
 inline int32_t db_column<int32_t>(sqlite3_stmt * stmt, int i) {
 	return sqlite3_column_int(stmt, i);
 }
-<<<<<<< HEAD
-
-template<>
-inline uint32_t db_column<uint32_t>(sqlite3_stmt * stmt, int i) {
-	return sqlite3_column_int(stmt, i);
-}
 
 template<>
 inline int16_t db_column<int16_t>(sqlite3_stmt * stmt, int i) {
