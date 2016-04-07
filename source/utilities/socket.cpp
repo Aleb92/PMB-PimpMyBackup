@@ -188,8 +188,8 @@ void socket_stream::send<int32_t>(const int32_t val) {
 
 template<>
 void socket_stream::send<int64_t>(const int64_t val){
-	send<int32_t>((val >> 32) & ((1 << 32) - 1));
-	send<int32_t>(val & ((1 << 32) - 1));
+	send<int32_t>((val >> 32) & ((1LLU << 32) - 1));
+	send<int32_t>(val & ((1LLU << 32) - 1));
 }
 
 template<>
@@ -247,7 +247,7 @@ int32_t socket_stream::recv<int32_t>() {
 
 template<>
 int64_t socket_stream::recv<int64_t>(){
-	return (recv<int32_t>()<< 32) | (recv<int32_t>());
+	return (recv<int32_t>()<< 32LLU) | (recv<int32_t>());
 }
 
 template<>
