@@ -13,6 +13,9 @@ UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2;
 /* MOVE */ 
 UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2;
 
+/* MOVE_DIR */
+UPDATE files SET time_stamp=?3 path = REPLACE( path, ?2, ?4 ) WHERE username = ?1 AND path LIKE (?2 || '%')
+
 /* DELETE */
 DELETE FROM files WHERE username=?1 AND path=?2;
 

@@ -10,7 +10,7 @@ CREATE TABLE files (
 	path	TEXT NOT NULL,
 	time_stamp DATE NOT NULL,
 	mod INTEGER NOT NULL,
-	file_id VARCHAR(255),
+	file_id VARCHAR(255) DEFAULT '/dev/null',
 	FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
 	PRIMARY KEY(username, path)
 );
