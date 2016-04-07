@@ -28,3 +28,6 @@ UPDATE files SET
 
 /* LIST VERSIONS */
 SELECT time_stamp FROM history WHERE username=?1 AND path=?2 ORDER BY time_stamp DESC;
+
+/* SYNC */
+SELECT path, file_id FROM files WHERE username=?1

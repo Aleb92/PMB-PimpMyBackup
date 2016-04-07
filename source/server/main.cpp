@@ -159,6 +159,11 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 		sock.send<bool>(true);
 
 		opcode opCode = sock.recv<opcode>();
+		if(opCode == SYNC) {
+			sync(sock, context);
+			return;
+		}
+
 		uint64_t timestamp[8];
 
 		for (auto& ts : timestamp) {

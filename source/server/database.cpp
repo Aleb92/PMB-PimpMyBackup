@@ -423,10 +423,6 @@ vector<int64_t> user_context::versions() {
 	}
 }
 
-void user_context::moveDir(int64_t time, string& newdir) {
-
-}
-
 void user_context::write(int64_t time, string& fileID) {
 
 	on_return<> ret([&] {
