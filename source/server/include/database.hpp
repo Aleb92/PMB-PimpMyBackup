@@ -39,6 +39,7 @@ namespace server {
 #define SQL_MOVE "UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2"
 #define SQL_MOVE_DIR "UPDATE files SET time_stamp=?3 path = REPLACE( path, ?2, ?4 ) WHERE username = ?1 AND path LIKE (?2 || '%')"
 #define SQL_DELETE "DELETE FROM files WHERE username=?1 AND path=?2"
+#define SQL_SYNC "SELECT path, file_id FROM files WHERE username=?1"
 #define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE WHERE username=?1"\
 		" AND path=?2 AND time_stamp=?3) UPDATE files SET time_stamp=(SELECT time_stamp FROM tmp), "\
 		"mod=(SELECT mod FROM tmp),file_id=(SELECT file_id FROM tmp) WHERE username=?1 AND path=?2;"\
@@ -62,6 +63,7 @@ public:
 	void move(int64_t, std::string&);
 	void moveDir(int64_t, std::string&);
 	void remove();
+	std::vector<std::pair<std::string,std::string>> sync();
 	std::string version(int64_t);
 	std::vector<int64_t> versions();
 };
@@ -70,7 +72,7 @@ public:
 class database {
 	std::unique_ptr<sqlite3> connection;
 	std::unique_ptr<sqlite3_stmt> auth, create,
-			chmod, write, move, remove, version, list, moveDir;
+			chmod, write, move, remove, version, list, moveDir, sync;
 	std::mutex busy;
 	friend class user_context;
 public:

@@ -76,8 +76,8 @@ void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
 	stringstream fileIDss;
 	{
 		unsigned char buff[MD5_DIGEST_LENGTH];
-		MD5(reinterpret_cast<const unsigned char*>(context.path.c_str()), context.path.length(),
-				buff);
+		MD5(reinterpret_cast<const unsigned char*>(context.path.c_str()),
+				context.path.length(), buff);
 
 		fileIDss << hex << ts << '.';
 		for (int i = 0; i < MD5_DIGEST_LENGTH; i++) {
@@ -115,6 +115,35 @@ void list(socket_stream& sock, user_context& context, int64_t) {
 	sock.send<uint32_t>(versions.size());
 	for (int64_t t : versions)
 		sock.send(t);
+}
+
+void sync(socket_stream& sock, user_context& context) {
+
+	vector<pair<string, string>> res = context.sync();
+	char buffer[BUFF_LENGHT];
+
+	sock.send<uint32_t>(res.size());
+
+	for (auto& entry : res) {
+		sock.send(entry.first);
+
+		FILE* file = fopen(entry.second.c_str(), "rb");
+		if (file == NULL)
+			throw fs_exception();
+
+		on_return<> ret([file]() {
+			fclose(file);
+		});
+
+		fseek(file, 0, SEEK_END);
+		uint32_t size = ftell(file);
+		sock.send(size);
+
+		while (feof(file)) {
+			size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
+			sock.send(buffer, readn);
+		}
+	}
 }
 
 void version(socket_stream& sock, user_context& context, int64_t ts) {

@@ -73,7 +73,8 @@ inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t& val, int i) {
 		throw db_exception(v);
 }
 
-inline void bind_db(sqlite3_stmt*, int) { }
+inline void bind_db(sqlite3_stmt*, int) {
+}
 
 template<typename A, typename ...T>
 void bind_db(sqlite3_stmt*stmt, int i, A act, T ...args) {
@@ -165,6 +166,12 @@ database::database(const char*db_name) {
 	r = sqlite3_prepare_v2(c, SQL_MOVE_DIR, sizeof(SQL_MOVE_DIR), &statement,
 			nullptr);
 	moveDir = unique_ptr<sqlite3_stmt>(statement);
+	if (r != SQLITE_OK)
+		throw db_exception(r);
+
+	//moveDir
+	r = sqlite3_prepare_v2(c, SQL_SYNC, sizeof(SQL_SYNC), &statement, nullptr);
+	sync = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
 		throw db_exception(r);
 }
@@ -423,8 +430,40 @@ vector<int64_t> user_context::versions() {
 	}
 }
 
-void user_context::moveDir(int64_t time, string& newdir) {
+vector<pair<string, string>> user_context::sync() {
+	vector<pair<string, string>> result;
 
+	//Prima cosa: lock! Dalle specifiche sqlite solo un thread alla volta può
+	//usare la connessione.
+	lock_guard<mutex> guard(db.busy);
+
+	on_return<> ret([&] {
+		// On return resetto statement e bindings
+			sqlite3_reset(db.sync.get());
+			sqlite3_clear_bindings(db.sync.get());
+		});
+
+	// Ora binding degli argomenti
+	bind_db(db.sync.get(), 1, usr);
+
+	// Quindi eseguo
+	while (1) {
+		switch (sqlite3_step(db.sync.get())) {
+		case SQLITE_DONE:
+			return result;	// No such user!
+		case SQLITE_ROW:
+			result.push_back(make_pair(db_column<string>(db.sync.get(), 0), db_column<string>(db.sync.get(), 0)));
+			break;
+		case SQLITE_BUSY:
+			// Qui non ci dovrebbe mai arrivare(WAL mode)...
+			// Comunque nel caso, prima lascio fare qualcosa agli altri
+			this_thread::yield();
+			// Poi riprovo.
+			break;
+		default:
+			throw db_exception(db.connection.get());
+		}
+	}
 }
 
 void user_context::write(int64_t time, string& fileID) {
@@ -455,3 +494,4 @@ void user_context::write(int64_t time, string& fileID) {
 	}
 
 }
+

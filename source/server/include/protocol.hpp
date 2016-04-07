@@ -6,6 +6,7 @@
 namespace server {
 
 	enum opcode : uint8_t {
+		SYNC 		= 0,
 		INVALID		= 0,
 		MOVE		= 1<<0,
 		CREATE		= 1<<1,
