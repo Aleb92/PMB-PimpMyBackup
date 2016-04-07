@@ -53,6 +53,8 @@ class action_merger : public utilities::singleton<action_merger> {
 	friend class client::log;
 public:
 
+	int wait_time = 0;
+
 	typedef maptype::iterator iterator;
 	typedef maptype::const_iterator const_iterator;
 

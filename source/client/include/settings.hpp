@@ -23,9 +23,7 @@ namespace client {
 	 */
 	SETTINGS_ENTRY(std::wstring, log_filename);
 
-	//FIXME: ?!
-	SETTINGS_ENTRY(std::string, tree_filename);
-
+	SETTINGS_ENTRY(int, max_waiting_time);
 	SETTINGS_ENTRY(std::string, username);
 	SETTINGS_ENTRY(std::string, password);
 
