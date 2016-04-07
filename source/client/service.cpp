@@ -23,7 +23,7 @@ VOID WINAPI ServiceCtrlHandler(DWORD);
 #define SERVICE_NAME  L"PMB"
 
 void start_service() {
-	SERVICE_TABLE_ENTRYW ServiceTableEntry[] = { { SERVICE_NAME,
+	SERVICE_TABLE_ENTRYW ServiceTableEntry[] = { { const_cast<wchar_t*>(SERVICE_NAME),
 			(LPSERVICE_MAIN_FUNCTIONW) ServiceMain }, { 0 } };
 
 	if (!StartServiceCtrlDispatcherW(ServiceTableEntry))

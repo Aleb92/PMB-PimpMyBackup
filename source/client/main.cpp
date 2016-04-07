@@ -27,12 +27,6 @@ int main(int argc, char *argv[]) {
 	 * tuttavia (per ora) è il main  a gestire il tutto...
 	 */
 	client::client c; // più semplice di così...
-	// Comando di synchronize (dovrebbe essere fatto su un altro thread per non bloccare
-	// il service manager...)
-	if(settings::inst().synchronize){
-		if(!c.synchronize())
-			return EXIT_FAILURE;
-	}
 
 	// Inizio
 	c.start();

@@ -48,7 +48,7 @@ namespace client {
 	 * start
 	 * stop
 	 */
-	SETTINGS_ENTRY(bool, synchronize);
+	//SETTINGS_ENTRY(bool, synchronize);
 
 	SETTINGS_END(settings);
 }
