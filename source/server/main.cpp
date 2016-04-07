@@ -67,9 +67,9 @@ void chmodFile(socket_stream& sock, user_context& context, int64_t ts) {
 	context.chmod(ts, sock.recv<int32_t>());
 }
 
-void moveDir(socket_stream& sock, user_context& context, int64_t) {
+void moveDir(socket_stream& sock, user_context& context, int64_t ts) {
 	string mv = sock.recv<string>();
-	context.
+	context.moveDir(ts, mv);
 }
 
 void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
