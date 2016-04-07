@@ -5,7 +5,6 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
-#include <utilities/include/exceptions.hpp>
 
 #include <stdint.h>
 #include <vector>
@@ -44,6 +43,9 @@ typedef int socket_t;
 #define hValid(h) ((h) >= 0)
 
 #endif
+
+
+#include <utilities/include/exceptions.hpp>
 
 /**
  * Porta di default, scelta da bonetto

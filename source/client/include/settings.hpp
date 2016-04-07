@@ -30,6 +30,11 @@ namespace client {
 	SETTINGS_ENTRY(std::string, password);
 
 	/**
+	 * Nome della pipe per comunicare con la GUI
+	 */
+	SETTINGS_ENTRY(std::string, pipe_name);
+
+	/**
 	 * Cartella salvata
 	 */
 	SETTINGS_ENTRY(std::wstring, watched_dir);

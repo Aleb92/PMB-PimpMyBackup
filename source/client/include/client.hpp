@@ -13,7 +13,7 @@
 namespace client {
 
 class client {
-	std::thread fileWatcher, dirWatcher, merger, dispatcher;
+	std::thread fileWatcher, dirWatcher, merger, dispatcher, tombstone;
 
 	friend class std::thread;
 

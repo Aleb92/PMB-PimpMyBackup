@@ -1,8 +1,11 @@
 #include <utilities/include/socket.hpp>
+
 #include <client.hpp>
 #include <directorylistener.hpp>
 #include <settings.hpp>
 #include <actionmerger.hpp>
+#include <pipe.hpp>
+
 #include <utilities/include/atend.hpp>
 #include <utilities/include/exceptions.hpp>
 
@@ -39,6 +42,8 @@ void client::start() {
 			&fileListener, &shq::inst());
 	merger = thread(&client::merge, this);
 	dispatcher = thread(&client::dispatch, this);
+	// Qui undertaker è pronto! TOMBSTONE PIPE DRIVER!!!
+	tombstone(&pipe::driver, pipe::inst());
 }
 
 void client::merge() {

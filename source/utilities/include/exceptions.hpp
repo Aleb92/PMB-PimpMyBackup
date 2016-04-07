@@ -12,6 +12,10 @@
 #include <exception>
 #include <sqlite3.h>
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+# include <Windows.h>
+#endif
+# include <cerrno>
 namespace utilities {
 
 /**
@@ -24,7 +28,11 @@ protected:
 public:
 	base_exception(const std::string&) noexcept;
 	base_exception(std::string&&) noexcept;
-	base_exception(void) noexcept;
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+	base_exception(DWORD code = GetLastError()) noexcept;
+#else
+	base_exception(int code = errno) noexcept;
+#endif
 	virtual const char* what() const noexcept;
 };
 
@@ -35,8 +43,8 @@ public:
 	}
 
 IMPLEMENT_EXCEPTION(fs_exception);
-IMPLEMENT_EXCEPTION(auth_exception);
 IMPLEMENT_EXCEPTION(memory_exception);
+
 
 class io_exception : public base_exception {
 public:
