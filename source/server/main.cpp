@@ -110,7 +110,7 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 	const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] =
 			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
 					chmodFile }, { MOVE_DIR, moveDir }, { VERSION, version }, {
-					LIST, }, { WRITE, writeFile } };
+					LIST, list}, { WRITE, writeFile } };
 
 	string username = sock.recv<string>();
 	string password = sock.recv<string>();

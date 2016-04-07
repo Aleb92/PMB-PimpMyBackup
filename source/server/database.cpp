@@ -399,7 +399,7 @@ string user_context::write(int64_t time) {
 			sqlite3_clear_bindings(db.write.get());
 		});
 
-	MD5(static_cast<unsigned char*>(path.c_str()), path.length(), buff);
+	MD5(reinterpret_cast<const unsigned char*>(path.c_str()), path.length(), buff);
 
 	stringstream fileIDss;
 	fileIDss << hex << time << '.';
@@ -408,7 +408,7 @@ string user_context::write(int64_t time) {
 		fileIDss << "0123456789ABCDEF"[buff[i] % 16];
 	}
 
-	string fileID(fileIDss);
+	string fileID = fileIDss.str();
 	// Ora binding degli argomenti
 	bind_db(db.write.get(), 1, usr, path, time, fileID);
 
