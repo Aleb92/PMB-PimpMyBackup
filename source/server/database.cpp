@@ -3,6 +3,7 @@
 #include <utilities/include/exceptions.hpp>
 #include <utilities/include/atend.hpp>
 
+#include <openssl/md5.h>
 #include <cassert>
 #include <vector>
 #include <string>
@@ -12,7 +13,6 @@
 using namespace std;
 using namespace server;
 using namespace utilities;
-
 
 template<typename T>
 inline T db_column(sqlite3_stmt * stmt, int i);
@@ -98,11 +98,11 @@ database::database(const char*db_name) {
 	sqlite3*c;
 	char*err;
 	int r = sqlite3_open_v2(db_name, &c,
-			SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
+	SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
 	//Inserisco subito il risultato in un oggetto che mi gestisca la memoria da solo
 	connection = unique_ptr<sqlite3>(c);
-	if (r != SQLITE_OK){
-		if(c == nullptr)
+	if (r != SQLITE_OK) {
+		if (c == nullptr)
 			throw memory_exception();
 		throw db_exception(r);
 	}
@@ -232,7 +232,7 @@ void user_context::chmod(int64_t timestamp, uint16_t mod) {
 			// Poi riprovo.
 			break;
 		default:
-			throw sqlite3_errmsg(db.connection.get());
+			throw db_exception(db.connection.get());
 		}
 	}
 }
@@ -261,7 +261,7 @@ void user_context::create(int64_t timestamp) {
 			// Poi riprovo.
 			break;
 		default:
-			throw sqlite3_errmsg(db.connection.get());
+			throw db_exception(db.connection.get());
 		}
 	}
 }
@@ -290,7 +290,7 @@ void user_context::move(int64_t timestamp, string& newPath) {
 			// Poi riprovo.
 			break;
 		default:
-			throw sqlite3_errmsg(db.connection.get());
+			throw db_exception(db.connection.get());
 		}
 	}
 }
@@ -319,12 +319,12 @@ void user_context::remove() {
 			// Poi riprovo.
 			break;
 		default:
-			throw sqlite3_errmsg(db.connection.get());
+			throw db_exception(db.connection.get());
 		}
 	}
 }
 
-void user_context::version(int64_t timestamp) {
+string user_context::version(int64_t timestamp) {
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
@@ -336,11 +336,16 @@ void user_context::version(int64_t timestamp) {
 	// Ora binding degli argomenti
 	bind_db(db.version.get(), 1, usr, path, timestamp);
 
+	string fileID;
+
 	// Quindi eseguo
 	while (1) {
 		switch (sqlite3_step(db.version.get())) {
+		case SQLITE_ROW:
+			fileID = db_column<string>(db.version.get(), 0);
+			break;
 		case SQLITE_DONE:
-			return;	// FATTO!
+			return fileID;	// FATTO!
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...
 			// Comunque nel caso, prima lascio fare qualcosa agli altri
@@ -348,7 +353,7 @@ void user_context::version(int64_t timestamp) {
 			// Poi riprovo.
 			break;
 		default:
-			throw sqlite3_errmsg(db.connection.get());
+			throw db_exception(db.connection.get());
 		}
 	}
 }
@@ -384,8 +389,49 @@ vector<int64_t> user_context::versions() {
 			// Poi riprovo.
 			break;
 		default:
-			throw sqlite3_errmsg(db.connection.get());
+			throw db_exception(db.connection.get());
 		}
 	}
+}
+
+string user_context::write(int64_t time) {
+
+	unsigned char buff[MD5_DIGEST_LENGTH];
+
+	on_return<> ret([&] {
+		// On return resetto statement e bindings
+			sqlite3_reset(db.write.get());
+			sqlite3_clear_bindings(db.write.get());
+		});
+
+	MD5(static_cast<unsigned char*>(path.c_str()), path.length(), buff);
+
+	stringstream fileIDss;
+	fileIDss << hex << time << '.';
+	for (int i = 0; i < MD5_DIGEST_LENGTH; i++) {
+		fileIDss << "0123456789ABCDEF"[buff[i] / 16];
+		fileIDss << "0123456789ABCDEF"[buff[i] % 16];
+	}
+
+	string fileID(fileIDss);
+	// Ora binding degli argomenti
+	bind_db(db.write.get(), 1, usr, path, time, fileID);
+
+	// Quindi eseguo
+	while (1) {
+		switch (sqlite3_step(db.write.get())) {
+		case SQLITE_DONE:
+			return fileID;	// FATTO!
+		case SQLITE_BUSY:
+			// Qui non ci dovrebbe mai arrivare(WAL mode)...
+			// Comunque nel caso, prima lascio fare qualcosa agli altri
+			this_thread::yield();
+			// Poi riprovo.
+			break;
+		default:
+			throw db_exception(db.connection.get());
+		}
+	}
+
 }
 

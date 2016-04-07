@@ -53,10 +53,10 @@ public:
 	bool auth();
 	void create(int64_t);
 	void chmod(int64_t, uint16_t);
-	void write(int64_t);
+	std::string write(int64_t);
 	void move(int64_t, std::string&);
 	void remove();
-	void version(int64_t);
+	std::string version(int64_t);
 	std::vector<int64_t> versions();
 };
 

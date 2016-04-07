@@ -49,41 +49,67 @@ int main() {
 	return -1; // Should never get here!
 }
 
-void move(socket_stream&, user_context&, int64_t){
+void move(socket_stream&, user_context&, int64_t) {
 
 }
 
-void create(socket_stream&, user_context&, int64_t){
+void create(socket_stream& sock, user_context& context, int64_t ts) {
+	context.create(ts);
+}
+
+void remove(socket_stream&, user_context&, int64_t) {
 
 }
 
-void remove(socket_stream&, user_context&, int64_t){
-//
-}
-
-void chmodFile(socket_stream&, user_context&, int64_t){
+void chmodFile(socket_stream&, user_context&, int64_t) {
 
 }
 
-void moveDir(socket_stream&, user_context&, int64_t){
+void moveDir(socket_stream&, user_context&, int64_t) {
 
 }
 
-void writeFile(socket_stream&, user_context&, int64_t){
+void writeFile(socket_stream&, user_context&, int64_t) {
 
 }
 
-void list(socket_stream&,user_context&, int64_t) { }
+void list(socket_stream&, user_context&, int64_t) {
+}
 
-void version(socket_stream&, user_context&, int64_t){
+void version(socket_stream& sock, user_context& context, int64_t ts) {
+	char buffer[BUFF_LENGHT] = { 0 };
 
+	string fileID = context.usr + "/" + context.version(ts);
+
+	FILE* file = fopen(fileID.c_str(), "rb");
+	if (file == NULL)
+		throw fs_exception();
+
+	on_return<> ret([file]() {
+		fclose(file);
+	});
+
+	fseek(file, 0, SEEK_END);
+	uint32_t size = ftell(file);
+	sock.send(size);
+
+	while (feof(file) && run) {
+		socket_base::SOCK_STATE state = sock.getState();
+		if (state & socket_base::READ_READY) {
+			if (sock.recv<bool>())
+				return;
+		}
+		size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
+		sock.send(buffer, readn);
+	}
 }
 
 void worker(socket_stream sock, database& db, volatile bool&) {
 
-	const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] = { {
-			MOVE, move }, { CREATE, create }, { REMOVE, remove },
-			{ CHMOD, chmodFile }, { MOVE_DIR, moveDir }, {VERSION, version}, {LIST, }, { WRITE, writeFile } };
+	const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] =
+			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
+					chmodFile }, { MOVE_DIR, moveDir }, { VERSION, version }, {
+					LIST, }, { WRITE, writeFile } };
 
 	string username = sock.recv<string>();
 	string password = sock.recv<string>();
@@ -105,6 +131,5 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 		if (opCode & flag[i].first)
 			(flag[i].second)(sock, context, timestamp[i]);
 	}
-
 
 }

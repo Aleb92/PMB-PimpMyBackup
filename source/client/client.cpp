@@ -180,7 +180,6 @@ void client::move(socket_stream& sock, std::wstring& fileName) {
 }
 
 void client::create(socket_stream& sock, std::wstring& fileName) {
-	sock.send(fileName);
 }
 
 void client::remove(socket_stream& sock, std::wstring& fileName) {
