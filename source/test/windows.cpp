@@ -20,6 +20,9 @@ using namespace client;
 using namespace utilities;
 
 #define DIR_TEST_FOLDER L"PMB_test\\PMB_root\\"
+#define FILTERS FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_SIZE|\
+				FILE_NOTIFY_CHANGE_LAST_WRITE|FILE_NOTIFY_CHANGE_DIR_NAME|\
+				FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SECURITY
 
 BOOST_AUTO_TEST_SUITE(windows_test)
 
@@ -30,7 +33,7 @@ struct fixture {
 	bool closed;
 
 	fixture() :
-			dl(DIR_TEST_FOLDER) {
+			dl(DIR_TEST_FOLDER, FILTERS) {
 		closed = false;
 	}
 
@@ -47,16 +50,15 @@ struct fixture {
 		// Per far andare i test devo trasformare in utf8... :(
 		wstring_convert<codecvt_utf8<wchar_t>> converter;
 
-		string is = converter.to_bytes(ce->FileName, ce->FileName + ce->FileNameLength / sizeof(wchar_t)),
-				should = converter.to_bytes(commands.front().second);
-
-
+		string is = converter.to_bytes(ce->FileName,
+				ce->FileName + ce->FileNameLength / sizeof(wchar_t)), should =
+				converter.to_bytes(commands.front().second);
 
 		commands.pop_front();
 
 		BOOST_CHECK_EQUAL(is, should);
 
-		if(closed && commands.size() == 0)
+		if (closed && commands.size() == 0)
 			dl.stop();
 	}
 
@@ -69,7 +71,7 @@ struct fixture {
 	void close() {
 		lock_guard<mutex> lk(lock);
 		closed = true;
-		if(commands.size() == 0)
+		if (commands.size() == 0)
 			dl.stop();
 	}
 };
@@ -99,7 +101,7 @@ static void dcl_script(fixture* fix) {
 BOOST_AUTO_TEST_CASE(create_directory_recursively) {
 	try {
 		{
-			directory_listener(DIR_TEST_FOLDER);
+			directory_listener(DIR_TEST_FOLDER, FILTERS);
 		}
 		BOOST_CHECK(pathExists(DIR_TEST_FOLDER));
 		BOOST_CHECK(isPathDir(DIR_TEST_FOLDER));

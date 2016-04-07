@@ -6,7 +6,6 @@
 namespace server {
 
 	enum opcode : uint8_t {
-		LIST		= 0,
 		INVALID		= 0,
 		MOVE		= 1<<0,
 		CREATE		= 1<<1,
@@ -14,7 +13,7 @@ namespace server {
 		CHMOD		= 1<<3,
 		MOVE_DIR	= 1<<4,
 		VERSION		= 1<<5,
-		MODIFIER	= 1<<6,
+		LIST		= 1<<6,
 		WRITE		= 1<<7
 	};
 

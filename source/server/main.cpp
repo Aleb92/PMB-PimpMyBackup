@@ -49,39 +49,41 @@ int main() {
 	return -1; // Should never get here!
 }
 
-void move(socket_stream&, user_context&){
+void move(socket_stream&, user_context&, int64_t){
 
 }
 
-void create(socket_stream&, user_context&){
+void create(socket_stream&, user_context&, int64_t){
 
 }
 
-void remove(socket_stream&, user_context&){
+void remove(socket_stream&, user_context&, int64_t){
+//
+}
+
+void chmodFile(socket_stream&, user_context&, int64_t){
 
 }
 
-void chmodFile(socket_stream&, user_context&){
+void moveDir(socket_stream&, user_context&, int64_t){
 
 }
 
-void moveDir(socket_stream&, user_context&){
+void writeFile(socket_stream&, user_context&, int64_t){
 
 }
 
-void writeFile(socket_stream&, user_context&){
+void list(socket_stream&,user_context&, int64_t) { }
 
-}
-
-void version(socket_stream&, user_context&){
+void version(socket_stream&, user_context&, int64_t){
 
 }
 
 void worker(socket_stream sock, database& db, volatile bool&) {
 
-	const pair<opcode, void (*)(socket_stream&, user_context&)> flag[] = { {
+	const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] = { {
 			MOVE, move }, { CREATE, create }, { REMOVE, remove },
-			{ CHMOD, chmodFile }, { MOVE_DIR, moveDir }, {VERSION, version}, { WRITE, writeFile } };
+			{ CHMOD, chmodFile }, { MOVE_DIR, moveDir }, {VERSION, version}, {LIST, }, { WRITE, writeFile } };
 
 	string username = sock.recv<string>();
 	string password = sock.recv<string>();
@@ -99,9 +101,9 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 	for (auto& ts : timestamp)
 		ts = sock.recv<uint64_t>();
 
-	for (auto& f : flag) {
-		if (opCode & f.first)
-			(f.second)(sock, context);
+	for (int i = 0; i < 8; i++) {
+		if (opCode & flag[i].first)
+			(flag[i].second)(sock, context, timestamp[i]);
 	}
 
 

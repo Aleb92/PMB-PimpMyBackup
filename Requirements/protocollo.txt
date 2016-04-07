@@ -6,9 +6,9 @@ _
 2| Creazione
 3| Cancellazione
 4| Permessi
-5| [Riservato per uso futuro (ignorato)]
+5| Move dir
 6| Version change
-7| Modifier (list/insert(0) version)
+7| List
 8| Scrittura
 -
 
