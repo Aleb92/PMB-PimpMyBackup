@@ -310,7 +310,13 @@ template<>
 void socket_stream::send<int32_t>(const int32_t val) ;
 
 template<>
+void socket_stream::send<int64_t>(const int64_t val) ;
+
+template<>
 void socket_stream::send<const std::string&>(const std::string& str) ;
+
+template<>
+void socket_stream::send<const std::wstring&>(const std::wstring& str) ;
 
 template<>
 uint16_t socket_stream::recv<uint16_t>();
@@ -323,6 +329,9 @@ int16_t socket_stream::recv<int16_t>();
 
 template<>
 int32_t socket_stream::recv<int32_t>();
+
+template<>
+int64_t socket_stream::recv<int64_t>();
 
 template<>
 std::string socket_stream::recv<std::string>();

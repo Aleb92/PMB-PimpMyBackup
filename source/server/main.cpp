@@ -8,6 +8,7 @@
 #include <thread>
 #include <vector>
 #include <memory>
+#include <utility>
 
 using namespace std;
 using namespace utilities;
@@ -47,8 +48,60 @@ int main() {
 	return -1; // Should never get here!
 }
 
+void move(socket_stream&, user_context&){
+
+}
+
+void create(socket_stream&, user_context&){
+
+}
+
+void remove(socket_stream&, user_context&){
+
+}
+
+void chmodFile(socket_stream&, user_context&){
+
+}
+
+void moveDir(socket_stream&, user_context&){
+
+}
+
+void writeFile(socket_stream&, user_context&){
+
+}
+
+void version(socket_stream&, user_context&){
+
+}
+
 void worker(socket_stream sock, database& db, volatile bool&) {
-	//TODO: invia "fatto" a tutti
-	for (int i = 0; i < 8; i++)
-		sock.send(true);
+
+	const pair<opcode, void (*)(socket_stream&, user_context&)> flag[] = { {
+			MOVE, move }, { CREATE, create }, { REMOVE, remove },
+			{ CHMOD, chmodFile }, { MOVE_DIR, moveDir }, {VERSION, version}, { WRITE, writeFile } };
+
+	string username = sock.recv<string>();
+	string password = sock.recv<string>();
+	string fileName = sock.recv<string>();
+
+	auto context = db.getUserContext(username, password, fileName);
+	if (!context.auth()) {
+		sock.send<bool>(false);
+		return;
+	}
+
+	opcode opCode = sock.recv<opcode>();
+	uint64_t timestamp[8];
+
+	for (auto& ts : timestamp)
+		ts = sock.recv<uint64_t>();
+
+	for (auto& f : flag) {
+		if (opCode & f.first)
+			(f.second)(sock, context);
+	}
+
+
 }

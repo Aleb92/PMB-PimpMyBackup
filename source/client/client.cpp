@@ -12,6 +12,7 @@
 #include <windows.h>
 #include <thread>
 #include <string>
+#include <utility>
 
 using namespace std;
 using namespace utilities;
@@ -25,7 +26,6 @@ namespace client {
 #define DIR_FILTER FILE_NOTIFY_CHANGE_DIR_NAME|\
 		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SECURITY
 
-std::wstring_convert<std::codecvt_utf8<wchar_t>> client::converter;
 
 client::client() :
 		dirListener(settings::inst().watched_dir.value.c_str(), DIR_FILTER), fileListener(
@@ -43,7 +43,7 @@ void client::start() {
 	merger = thread(&client::merge, this);
 	dispatcher = thread(&client::dispatch, this);
 	// Qui undertaker è pronto! TOMBSTONE PIPE DRIVER!!!
-	tombstone(&pipe::driver, pipe::inst());
+	tombstone = thread(&pipe::driver, &pipe::inst());
 }
 
 void client::merge() {
@@ -101,10 +101,10 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		sock.send(settings::inst().password.value);
 
 		if (!sock.recv<bool>())
-			throw auth_exception("username and/or password incorrect.");
+			throw auth_exception();
+		sock.send(fileName);
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
-		sock.send(fileName);
 
 		for (auto f : flag) {
 			if ((action.op_code & f.first) && run) {

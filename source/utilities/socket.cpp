@@ -7,6 +7,8 @@ using namespace std;
 
 namespace utilities {
 
+static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
 /**
@@ -185,10 +187,22 @@ void socket_stream::send<int32_t>(const int32_t val) {
 }
 
 template<>
+void socket_stream::send<int64_t>(const int64_t val){
+	send<int32_t>((val >> 32) & ((1 << 32) - 1));
+	send<int32_t>(val & ((1 << 32) - 1));
+}
+
+template<>
 void socket_stream::send<const std::string&>(const std::string& str) {
 	uint32_t size = str.length();
 	send(size);
 	send(str.c_str(), size);
+}
+
+template<>
+void socket_stream::send<const std::wstring&>(const std::wstring& str) {
+	string cvtd = converter.to_bytes(str);
+	send(cvtd);
 }
 
 template<>
@@ -229,6 +243,11 @@ int32_t socket_stream::recv<int32_t>() {
 		throw socket_exception();
 	}
 	return ntohl(ret);
+}
+
+template<>
+int64_t socket_stream::recv<int64_t>(){
+	return (recv<int32_t>()<< 32) | (recv<int32_t>());
 }
 
 template<>

@@ -17,7 +17,6 @@ class client {
 
 	friend class std::thread;
 
-	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	utilities::thread_pool thPool;
 
 	directory_listener dirListener, fileListener;
