@@ -1,5 +1,6 @@
 #include <settings.hpp>
 #include <database.hpp>
+#include <protocol.hpp>
 
 #include <utilities/include/socket.hpp>
 #include <utilities/include/threadpool.hpp>
