@@ -87,27 +87,33 @@ void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
 	}
 	string fileID = fileIDss.str();
 
-	FILE* file = fopen(fileID.c_str(), "wb");
+	//TODO: controllare che non sia già stato inviato
+	if (false) // se non c'è già
+	{
+		{
+			FILE* file = fopen(fileID.c_str(), "wb");
 
-	char buffer[BUFF_LENGHT] = { 0 };
-	uint32_t n = 0;
+			char buffer[BUFF_LENGHT] = { 0 };
+			uint32_t n = 0;
 
-	if (file == NULL)
-		throw fs_exception();
+			if (file == NULL)
+				throw fs_exception();
 
-	on_return<> ret([file]() {
-		fclose(file);
-	});
+			on_return<> ret([file]() {
+				fclose(file);
+			});
 
-	uint32_t size = sock.recv<uint32_t>();
+			uint32_t size = sock.recv<uint32_t>();
 
-	while (n < size) {
-		size_t i = sock.recv(buffer, BUFF_LENGHT);
-		fwrite(buffer, i, 1, file);
-		n += i;
+			while (n < size) {
+				size_t i = sock.recv(buffer, BUFF_LENGHT);
+				fwrite(buffer, i, 1, file);
+				n += i;
+			}
+		}
+		context.write(ts, fileID);
 	}
-
-	context.write(ts, fileID);
+	sock.send<bool>(true);
 }
 
 void list(socket_stream& sock, user_context& context, int64_t) {
@@ -127,7 +133,14 @@ void sync(socket_stream& sock, user_context& context) {
 	for (auto& entry : res) {
 		sock.send(entry.first);
 
-		FILE* file = fopen(entry.second.c_str(), "rb");
+		if (entry.second == "/dev/null") {
+			sock.send<uint32_t>(0);
+			continue;
+		}
+
+		string fileID = context.usr + "/" + entry.second;
+
+		FILE* file = fopen(fileID.c_str(), "rb");
 		if (file == NULL)
 			throw fs_exception();
 
@@ -149,7 +162,14 @@ void sync(socket_stream& sock, user_context& context) {
 void version(socket_stream& sock, user_context& context, int64_t ts) {
 	char buffer[BUFF_LENGHT] = { 0 };
 
-	string fileID = context.usr + "/" + context.version(ts);
+	string fileID = context.version(ts);
+
+	if (fileID == "/dev/null") {
+		sock.send<uint32_t>(0);
+		return;
+	}
+
+	fileID = context.usr + "/" + fileID;
 
 	FILE* file = fopen(fileID.c_str(), "rb");
 	if (file == NULL)
@@ -188,7 +208,7 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 		sock.send<bool>(true);
 
 		opcode opCode = sock.recv<opcode>();
-		if(opCode == SYNC) {
+		if (opCode == SYNC) {
 			sync(sock, context);
 			return;
 		}

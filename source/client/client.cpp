@@ -246,6 +246,7 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 		size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
 		sock.send(buffer, readn);
 	}
+	sock.recv<bool>();
 }
 
 }
