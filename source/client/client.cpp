@@ -26,7 +26,6 @@ namespace client {
 #define DIR_FILTER FILE_NOTIFY_CHANGE_DIR_NAME|\
 		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SECURITY
 
-
 client::client() :
 		dirListener(settings::inst().watched_dir.value.c_str(), DIR_FILTER), fileListener(
 				settings::inst().watched_dir.value.c_str(), FILE_FILTER) {
@@ -73,6 +72,9 @@ void client::dispatch() {
 	while (action_merger::inst().remove(fileName, newAction)) {
 		thPool.execute(sendAction, this, std::ref(fileName),
 				std::ref(newAction));
+
+		if(action_merger::inst().wait_time != 0)
+			Sleep(action_merger::inst().wait_time);
 	}
 }
 
@@ -135,7 +137,13 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		if (action.op_code != 0)
 			action_merger::inst().add_change(fileName, action);
 
-	} catch (...) { // ECCEZIONI
+		action_merger::inst().wait_time = 0;
+
+	} catch (base_exception& ex) { // ECCEZIONI
+		if (dynamic_cast<socket_exception*>(&ex) != nullptr) {
+			action_merger::inst().wait_time = min(settings::inst().max_waiting_time.value,
+					(action_merger::inst().wait_time * 2) + 1);
+		}
 		action_merger::inst().add_change(fileName, action);
 	}
 

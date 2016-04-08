@@ -50,6 +50,10 @@ int main() {
 	return -1; // Should never get here!
 }
 
+//////////////////////////////////////////////
+/// 	PROTOCOL SERVER IMPLEMENTATION     ///
+//////////////////////////////////////////////
+
 void move(socket_stream& sock, user_context& context, int64_t ts) {
 	string mv = sock.recv<string>();
 	context.move(ts, mv);
