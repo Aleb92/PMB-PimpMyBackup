@@ -32,15 +32,15 @@ struct default_delete<sqlite3_stmt> {
 namespace server {
 
 #define SQL_INIT "PRAGMA foreign_keys = ON;PRAGMA journal_mode=WAL;"
-#define SQL_AUTH "SELECT password WHERE username=?1"
+#define SQL_AUTH "SELECT password FROM users WHERE username=?1"
 #define SQL_CREATE "INSERT INTO files (username, path, time_stamp) VALUES(?1,?2,?3)"
 #define SQL_CHMOD "UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2"
 #define SQL_WRITE "UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2"
 #define SQL_MOVE "UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2"
-#define SQL_MOVE_DIR "UPDATE files SET time_stamp=?3 path = REPLACE( path, ?2, ?4 ) WHERE username = ?1 AND path LIKE (?2 || '%')"
+#define SQL_MOVE_DIR "UPDATE files SET time_stamp=?3, path=REPLACE(path,?2,?4) WHERE username = ?1 AND path LIKE (?2 || '%')"
 #define SQL_DELETE "DELETE FROM files WHERE username=?1 AND path=?2"
 #define SQL_SYNC "SELECT path, file_id FROM files WHERE username=?1"
-#define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE WHERE username=?1"\
+#define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE username=?1"\
 		" AND path=?2 AND time_stamp=?3) UPDATE files SET time_stamp=(SELECT time_stamp FROM tmp), "\
 		"mod=(SELECT mod FROM tmp),file_id=(SELECT file_id FROM tmp) WHERE username=?1 AND path=?2;"\
 		"SELECT file_id FROM tmp"

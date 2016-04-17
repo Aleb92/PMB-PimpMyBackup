@@ -14,6 +14,6 @@ void thread_pool::join_all() {
 				waitingList.pop_front();
 			} else
 				std::this_thread::yield();
+		std::this_thread::yield();
 	}
-	std::this_thread::yield();
 }

@@ -7,7 +7,7 @@
 
 #include <string>
 
-#define SETTINGS_FILE_NAME "settings.ini"
+#define SETTINGS_FILE_NAME "server_settings.ini"
 
 namespace server {
 	SETTINGS_BEGIN(settings, SETTINGS_FILE_NAME);

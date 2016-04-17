@@ -112,68 +112,68 @@ database::database(const char*db_name) {
 	r = sqlite3_prepare_v2(c, SQL_AUTH, sizeof(SQL_AUTH), &statement, nullptr);
 	auth = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	// create
 	r = sqlite3_prepare_v2(c, SQL_CREATE, sizeof(SQL_CREATE), &statement,
 			nullptr);
 	create = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	// chmod
 	r = sqlite3_prepare_v2(c, SQL_CHMOD, sizeof(SQL_CHMOD), &statement,
 			nullptr);
 	chmod = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	//write
 	r = sqlite3_prepare_v2(c, SQL_WRITE, sizeof(SQL_WRITE), &statement,
 			nullptr);
 	write = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	//move
 	r = sqlite3_prepare_v2(c, SQL_MOVE, sizeof(SQL_MOVE), &statement, nullptr);
 	move = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	//remove
 	r = sqlite3_prepare_v2(c, SQL_DELETE, sizeof(SQL_DELETE), &statement,
 			nullptr);
 	remove = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	//version
 	r = sqlite3_prepare_v2(c, SQL_VERSION, sizeof(SQL_VERSION), &statement,
 			nullptr);
 	version = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	//list
 	r = sqlite3_prepare_v2(c, SQL_LIST_V, sizeof(SQL_LIST_V), &statement,
 			nullptr);
 	list = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	//moveDir
 	r = sqlite3_prepare_v2(c, SQL_MOVE_DIR, sizeof(SQL_MOVE_DIR), &statement,
 			nullptr);
 	moveDir = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 
 	//moveDir
 	r = sqlite3_prepare_v2(c, SQL_SYNC, sizeof(SQL_SYNC), &statement, nullptr);
 	sync = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(r);
+		throw db_exception(c);
 }
 
 user_context database::getUserContext(string&user, string&pass, string&path) {

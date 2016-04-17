@@ -31,5 +31,8 @@ all: $(TARGETS)
 clean:
 	$(RM) -rf build/[!M]*
 
+database:
+	sqlite3 server.db < create_db.sql
+
 doc:
 	doxygen doxygen.conf

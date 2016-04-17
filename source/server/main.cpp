@@ -11,6 +11,8 @@
 #include <memory>
 #include <utility>
 #include <openssl/md5.h>
+#include <exception>
+#include <stdexcept>
 
 using namespace std;
 using namespace utilities;
@@ -19,32 +21,37 @@ using namespace server;
 void worker(socket_stream, database&, volatile bool&);
 
 int main() {
-	// Questo genera tutte le connesioni
-	vector<database> db_connections(
-			settings::inst().db_connection_number.value);
+	try {
+		// Questo genera tutte le connesioni
+		vector<database> db_connections(
+				settings::inst().db_connection_number.value);
+		//Solito thread pool
+		thread_pool tPool;
 
-	//Solito thread pool
-	thread_pool tPool;
+		// Questo solo e unicamente per "eleganza"...
+		on_return<> tStop([&]() {
+			tPool.stop();
+		});
 
-	// Questo solo e unicamente per "eleganza"...
-	on_return<>([&]() {
-		tPool.stop();
-	});
+		// Round robin per le db_connections!
+		size_t rRobin = 0;
 
-	// Round robin per le db_connections!
-	size_t rRobin = 0;
+		// Ora inizializzo il socket
+		socket_listener listener(AF_INET, SOCK_STREAM, IPPROTO_TCP,
+				inet_network(settings::inst().server_host.value.c_str()),
+				settings::inst().server_port.value,
+				settings::inst().queue_size.value);
 
-	// Ora inizializzo il socket
-	socket_listener listener(AF_INET, SOCK_STREAM, IPPROTO_TCP,
-			inet_network(settings::inst().server_host.value.c_str()),
-			settings::inst().server_port.value,
-			settings::inst().queue_size.value);
-
-	while (1) {
-		tPool.execute(worker, listener.accept(),
-				std::ref(db_connections[rRobin++]));
-		if (rRobin == db_connections.size())
-			rRobin = 0;
+		while (1) {
+			tPool.execute(worker, listener.accept(),
+					std::ref(db_connections[rRobin++]));
+			if (rRobin == db_connections.size())
+				rRobin = 0;
+		}
+	} catch (const exception& ex) {
+		cout << "Error: " << ex.what() << endl;
+	} catch (...) {
+		cout << "Unknown exception made the program die." << endl;
 	}
 
 	return -1; // Should never get here!

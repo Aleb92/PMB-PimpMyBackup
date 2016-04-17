@@ -1,7 +1,7 @@
 #ifndef SOURCE_CLIENT_INCLUDE_SETTINGS_HPP_
 #define SOURCE_CLIENT_INCLUDE_SETTINGS_HPP_
 
-#define SETTINGS_FILE_NAME "settings.ini"
+#define SETTINGS_FILE_NAME "client_settings.ini"
 
 #include <utilities/include/socket.hpp>
 #include <utilities/include/singleton.hpp>

@@ -208,7 +208,7 @@ public:
 		B::inst() = B();
 	}
 
-	~settings_base(){
+	virtual ~settings_base(){
 		delete io;
 	}
 
