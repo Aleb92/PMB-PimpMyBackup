@@ -37,6 +37,9 @@ build/
 build/*
 !build/Makefile
 
+client_settings.ini
+server_settings.ini
+
 # cmake cache
 CMakeFiles/
 PMB_Test/

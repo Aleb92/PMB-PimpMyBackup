@@ -11,8 +11,7 @@
 #include <Windows.h>
 
 VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv);
-VOID WINAPI ServiceCtrlHandler(DWORD) {}
-DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) { return 0; }
+VOID WINAPI ServiceCtrlHandler(DWORD);
 void start_service();
 
 #endif /* SOURCE_SERVER_INCLUDE_SERVICE_HPP_ */
