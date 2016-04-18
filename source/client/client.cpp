@@ -46,18 +46,21 @@ void client::start() {
 }
 
 void client::merge() {
+	try {
+		change_entity che = shq::inst().dequeue();
 
-	change_entity che = shq::inst().dequeue();
+		//Questo continua finche l'azione che non viene fuori e' 0 che significa chiusura
+		while (che->Action) {
 
-	//Questo continua finche l'azione che non viene fuori e' 0 che significa chiusura
-	while (che->Action) {
+			if (get_flag_bit(che->Action, che.flags) != INVALID) {
 
-		if (get_flag_bit(che->Action, che.flags) != INVALID) {
-
-			log::inst().issue(che);
-			action_merger::inst().add_change(che);
+				log::inst().issue(che);
+				action_merger::inst().add_change(che);
+			}
+			che = shq::inst().dequeue();
 		}
-		che = shq::inst().dequeue();
+	} catch (const exception& e) {
+		cout << e.what() << endl;
 	}
 }
 
@@ -66,15 +69,19 @@ void client::dispatch() {
 	//Spawna thread e dialoga con il server tramite una condition variable
 	//per avere le modifiche all'action merger
 
-	wstring fileName;
-	file_action newAction;
+	try {
+		wstring fileName;
+		file_action newAction;
 
-	while (action_merger::inst().remove(fileName, newAction)) {
-		thPool.execute(sendAction, this, std::ref(fileName),
-				std::ref(newAction));
+		while (action_merger::inst().remove(fileName, newAction)) {
+			thPool.execute(sendAction, this, std::ref(fileName),
+					std::ref(newAction));
 
-		if(action_merger::inst().wait_time != 0)
-			Sleep(action_merger::inst().wait_time);
+			if (action_merger::inst().wait_time != 0)
+				Sleep(action_merger::inst().wait_time);
+		}
+	} catch (const exception& e) {
+		cout << e.what() << endl;
 	}
 }
 
@@ -141,7 +148,8 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 	} catch (base_exception& ex) { // ECCEZIONI
 		if (dynamic_cast<socket_exception*>(&ex) != nullptr) {
-			action_merger::inst().wait_time = min(settings::inst().max_waiting_time.value,
+			action_merger::inst().wait_time = min(
+					settings::inst().max_waiting_time.value,
 					(action_merger::inst().wait_time * 2) + 1);
 		}
 		action_merger::inst().add_change(fileName, action);
