@@ -8,6 +8,9 @@
 
 namespace utilities{
 
+std::string utf8_encode(const std::wstring&);
+std::wstring utf8_decode(const std::string&);
+
 const wchar_t* wcsrchr (const wchar_t*, wchar_t, size_t);
 
 /**
