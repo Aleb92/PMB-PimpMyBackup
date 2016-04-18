@@ -81,6 +81,7 @@ public:
 	 */
 	template<typename T, void (T::*func)(const change_entity)>
 	void scan(T* _t) {
+		try {
 		if(running)
 			return;
 		running = true;
@@ -109,6 +110,10 @@ public:
 
 #undef buffFNI
 			lock.lock();
+		}
+		}
+		catch (const std::exception& e) {
+			std::cout << e.what() << std::endl;
 		}
 	}
 
