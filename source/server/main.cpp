@@ -108,7 +108,7 @@ void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
 			uint32_t n = 0;
 
 			if (file == NULL)
-				throw fs_exception();
+				throw fs_exception("writeFile");
 
 			on_return<> ret([file]() {
 				fclose(file);

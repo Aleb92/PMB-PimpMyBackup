@@ -1,5 +1,8 @@
 #include <threadpool.hpp>
 
+#include <thread>
+#include <chrono>
+
 using namespace utilities;
 
 void thread_pool::join_all() {
@@ -14,6 +17,6 @@ void thread_pool::join_all() {
 				waitingList.pop_front();
 			} else
 				std::this_thread::yield();
-		std::this_thread::yield();
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }

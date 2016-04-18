@@ -20,7 +20,7 @@ log::log() {
 
 		FILE* old_log = _wfopen(oldfile_name.c_str(), L"rb");
 		if (old_log == NULL)
-			throw fs_exception();
+			throw fs_exception("No old log");
 
 		log_entry_header entry;
 
@@ -66,8 +66,8 @@ log::log() {
 		if (file_descriptor != -1) {
 			log_file = _fdopen(file_descriptor, "wb");
 
-			if (log_file != NULL) {
-				throw fs_exception();
+			if (log_file == NULL) {
+				throw fs_exception("no new log");
 			}
 
 			/*
