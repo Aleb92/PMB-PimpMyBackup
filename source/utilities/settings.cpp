@@ -8,10 +8,11 @@
 #include <sstream>
 #include <fstream>
 
+#include <boost/locale.hpp>
+
 using namespace std;
 using namespace utilities;
 
-wstring_convert<codecvt_utf8<wchar_t>> settings_entry<wstring>::converter;
 
 // Prima la base: settings I/O
 settings_io::~settings_io() { }
@@ -63,12 +64,12 @@ void settings_entry<wstring>::operator<<(std::unordered_map<std::string, std::st
 		if(map->count(name)) {
 			string tmp;
 			getline(map->at(name), tmp);
-			value = converter.from_bytes(tmp);
+			value = utf8_decode(tmp);
 		}
 }
 
 void settings_entry<wstring>::operator>>(std::ofstream*out){
-	string tmp = converter.to_bytes(value);
+	string tmp = utf8_encode(value);
 	(*out) << name << '=' << tmp << std::endl;
 }
 

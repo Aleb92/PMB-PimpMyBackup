@@ -103,7 +103,6 @@ public:
 
 template<>
 class settings_entry<std::wstring> {
-	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	const char* name;
 	settings_io** io;
 	settings_entry(const settings_entry<std::wstring> &) = default; // no copy

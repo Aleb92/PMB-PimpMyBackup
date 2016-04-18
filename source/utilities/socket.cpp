@@ -1,4 +1,5 @@
 #include <utilities/include/socket.hpp>
+#include <utilities/include/strings.hpp>
 
 #include <iostream> // Per std::cerr
 #include <cstdlib>
@@ -8,8 +9,6 @@
 using namespace std;
 
 namespace utilities {
-
-static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
@@ -203,7 +202,7 @@ void socket_stream::send<const std::string&>(const std::string& str) {
 
 template<>
 void socket_stream::send<const std::wstring&>(const std::wstring& str) {
-	string cvtd = converter.to_bytes(str);
+	string cvtd = utf8_encode(str);
 	send(cvtd);
 }
 
