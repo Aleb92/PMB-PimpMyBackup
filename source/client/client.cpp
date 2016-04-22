@@ -91,6 +91,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
 					chmod }, { MOVE_DIR, moveDir } };
 
+
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
 	// Questa funzione quindi invia l'header generico,
 	// Controlla che non ci siano stati problemi (e nel caso capisce dove)
@@ -99,6 +100,9 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 	wstring realName = (action.op_code & MOVE) ? action.newName : fileName;
 	file_action result = action;
+
+	wcout << L"sendAction:" << realName << endl << L"Connection..." << endl;
+
 	result.op_code = 0;
 
 	try {
@@ -106,11 +110,16 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		socket_stream sock(settings::inst().server_host,
 				settings::inst().server_port);
 
+		wcout << L"Connected" << endl << "Login...";
+
 		sock.send(settings::inst().username.value);
 		sock.send(settings::inst().password.value);
 
 		if (!sock.recv<bool>())
 			throw auth_exception();
+
+		wcout << L"Login fatto!" << endl;
+
 		sock.send(fileName);
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
@@ -141,8 +150,13 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 			}
 		}
 
-		if (action.op_code != 0)
+
+		if (action.op_code != 0) {
+			wcout << L"Azione completata" << endl;
 			action_merger::inst().add_change(fileName, action);
+		}
+		else
+			wcout << L"Azione NON completata" << endl;
 
 		action_merger::inst().wait_time = 0;
 
