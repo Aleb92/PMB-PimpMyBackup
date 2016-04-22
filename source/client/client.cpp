@@ -110,7 +110,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		sock.send(settings::inst().password.value);
 
 		if (!sock.recv<bool>())
-			throw auth_exception();
+			throw auth_exception(__LINE__, __func__, __FILE__);
 		sock.send(fileName);
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
@@ -205,7 +205,7 @@ void client::chmod(socket_stream& sock, std::wstring& fileName) {
 
 	uint32_t mods;
 	if ((mods = GetFileAttributesW(fileName.c_str())) == INVALID_FILE_ATTRIBUTES)
-		throw base_exception();
+		throw base_exception(__LINE__, __func__, __FILE__);
 	sock.send(mods);
 }
 
@@ -221,7 +221,7 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 	uint32_t n = 0;
 
 	if (file == NULL)
-		throw fs_exception();
+		throw fs_exception(__LINE__, __func__, __FILE__);
 
 	on_return<> ret([file]() {
 		fclose(file);
@@ -243,7 +243,7 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 	char buffer[BUFF_LENGHT] = { 0 };
 	FILE* file = _wfopen(fileName.c_str(), L"rb");
 	if (file == NULL)
-		throw fs_exception();
+		throw fs_exception(__LINE__, __func__, __FILE__);
 
 	on_return<> ret([file]() {
 		fclose(file);

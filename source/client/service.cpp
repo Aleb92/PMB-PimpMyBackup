@@ -27,7 +27,7 @@ void start_service() {
 			(LPSERVICE_MAIN_FUNCTIONW) ServiceMain }, { 0 } };
 
 	if (!StartServiceCtrlDispatcherW(ServiceTableEntry))
-		throw base_exception();
+		throw base_exception(__LINE__, __func__, __FILE__);
 }
 
 VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
@@ -36,21 +36,21 @@ VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
 		DWORD Status = E_FAIL;
 
 		if (!SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
-			throw base_exception();
+			throw base_exception(__LINE__, __func__, __FILE__);
 
 		// Register our service control handler with the SCM
 		g_StatusHandle = RegisterServiceCtrlHandlerW(SERVICE_NAME,
 				ServiceCtrlHandler);
 
 		if (g_StatusHandle == NULL)
-			throw base_exception();
+			throw base_exception(__LINE__, __func__, __FILE__);
 
 		// Tell the service controller we are started
 		g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_SHUTDOWN | SERVICE_ACCEPT_PARAMCHANGE;
 		g_ServiceStatus.dwCurrentState = SERVICE_RUNNING;
 
 		if (!SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
-			throw base_exception();
+			throw base_exception(__LINE__, __func__, __FILE__);
 
 		// Start a thread that will perform the main task of the service
         c.start();
@@ -62,7 +62,7 @@ VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
 		g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
 
 		if (!SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
-		    throw base_exception();
+		    throw base_exception(__LINE__, __func__, __FILE__);
 
 	} catch (base_exception& be) {
 	    OutputDebugStringA(be.what());

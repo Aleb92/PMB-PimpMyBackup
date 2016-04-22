@@ -17,7 +17,7 @@ pipe::pipe() {
 	NMPWAIT_WAIT_FOREVER, nullptr);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
-		throw base_exception();
+		throw base_exception(__LINE__, __func__, __FILE__);
 }
 
 pipe::~pipe() {
@@ -42,17 +42,17 @@ void pipe::driver() {
 
 			DWORD err = GetLastError();
 			if (err != ERROR_BROKEN_PIPE)
-				throw base_exception(err);
+				throw base_exception(err,__LINE__, __func__, __FILE__);
 
 		}
-		throw base_exception();
+		throw base_exception(__LINE__, __func__, __FILE__);
 	} catch (const std::exception& e) {
 		std::cout << e.what() << std::endl;
 	}
 }
 
-auth_exception::auth_exception() :
-		base_exception("Wrong username/password") {
+auth_exception::auth_exception(int l, const char* f, const char* ff) :
+		base_exception("Wrong username/password", l,f,ff) {
 	pipe::inst().write<uint8_t>(WRONG_CREDENTIALS);
 }
 
