@@ -203,14 +203,15 @@ void socket_stream::send<int64_t>(const int64_t val) {
 }
 
 template<>
-void socket_stream::send<const std::string&>(const std::string& str) {
+void socket_stream::send<std::string&>(std::string& str) {
+	wcout << "OkOk" << endl;
 	uint32_t size = str.length();
 	send(size);
 	send(str.c_str(), size);
 }
 
 template<>
-void socket_stream::send<const std::wstring&>(const std::wstring& str) {
+void socket_stream::send<std::wstring&>(std::wstring& str) {
 	string cvtd = utf8_encode(str);
 	send(cvtd);
 }
