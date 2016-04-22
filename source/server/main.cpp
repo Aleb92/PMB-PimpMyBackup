@@ -142,7 +142,7 @@ void sync(socket_stream& sock, user_context& context) {
 	sock.send<uint32_t>(res.size());
 
 	for (auto& entry : res) {
-		sock.send(entry.first);
+		sock.send<string&>(entry.first);
 
 		if (entry.second == "/dev/null") {
 			sock.send<uint32_t>(0);

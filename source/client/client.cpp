@@ -206,16 +206,21 @@ void client::stop() {
 //////////////////////////////////////////////
 
 void client::move(socket_stream& sock, std::wstring& fileName) {
+	cout<< "move" << endl;
 	sock.send(fileName);
 }
 
 void client::create(socket_stream& sock, std::wstring& fileName) {
+	cout<< "create" << endl;
 }
 
 void client::remove(socket_stream& sock, std::wstring& fileName) {
+	cout<< "remove" << endl;
 }
 
 void client::chmod(socket_stream& sock, std::wstring& fileName) {
+
+	cout<< "chmod" << endl;
 
 	uint32_t mods;
 	if ((mods = GetFileAttributesW(fileName.c_str())) == INVALID_FILE_ATTRIBUTES)
@@ -224,11 +229,14 @@ void client::chmod(socket_stream& sock, std::wstring& fileName) {
 }
 
 void client::moveDir(socket_stream& sock, wstring& fileName) {
+	cout<< "moveDir" << endl;
 	sock.send(fileName);
 }
 
 void client::version(socket_stream& sock, std::wstring& fileName,
 		volatile bool& run) {
+
+	cout<< "version" << endl;
 
 	FILE* file = _wfopen(fileName.c_str(), L"wb");
 	char buffer[BUFF_LENGHT] = { 0 };
@@ -248,11 +256,12 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 		fwrite(buffer, i, 1, file);
 		n += i;
 	}
-
 }
 
 void client::write(socket_stream& sock, std::wstring& fileName,
 		volatile bool& run) {
+
+	cout<< "write" << endl;
 
 	char buffer[BUFF_LENGHT] = { 0 };
 	FILE* file = _wfopen(fileName.c_str(), L"rb");
