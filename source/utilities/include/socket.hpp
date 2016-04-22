@@ -55,6 +55,8 @@ typedef int socket_t;
 
 namespace utilities {
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+
 //WSAStartup call
 int init_winsock(void);
 int WSACleanupWrap();
@@ -64,6 +66,7 @@ atEnd(WSACleanupWrap);
 
 //All'inizio inizializziamo
 atBegin(init_winsock);
+#endif
 
 /**
  * Classe di base per i socket. E' semplicemente un contenitore per un descrittore di risorsa.
