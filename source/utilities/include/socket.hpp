@@ -93,7 +93,7 @@ protected:
 	inline socket_base(socket_t _hnd) :
 			handle(_hnd), blocking(true) {
 		if (!hValid(handle))
-			throw socket_exception();
+			throw socket_exception(__LINE__, __func__, __FILE__);
 	}
 public:
 
@@ -134,7 +134,7 @@ public:
 	inline ~socket_base() {
 		if (hValid(handle))
 			if (closesocket(handle))
-				throw socket_exception();
+				throw socket_exception(__LINE__, __func__, __FILE__);
 	}
 
 	enum SOCK_STATE {
@@ -213,7 +213,7 @@ public:
 	template<typename T>
 	void send(const T val) {
 		if(::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
-			throw socket_exception();
+			throw socket_exception(__LINE__, __func__, __FILE__);
 	}
 
 	/**
@@ -223,7 +223,7 @@ public:
 	template<typename T, size_t s>
 	void send(const T (&buff)[s]) {
 		if(::send(handle, (const char*) buff, sizeof(buff), MSG_NOSIGNAL) != sizeof(buff))
-			throw socket_exception();
+			throw socket_exception(__LINE__, __func__, __FILE__);
 	}
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -256,7 +256,7 @@ public:
 	template<typename T>
 	void send(const T*buff, size_t N) {
 		if(::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL) != N)
-			throw socket_exception();
+			throw socket_exception(__LINE__, __func__, __FILE__);
 	}
 
 	/**
@@ -269,7 +269,7 @@ public:
 		T ret;
 		if (::recv(handle, (char*) &ret, sizeof(T), MSG_NOSIGNAL)
 				!= sizeof(T)) {
-			throw socket_exception();
+			throw socket_exception(__LINE__, __func__, __FILE__);
 		}
 		return ret;
 	}
@@ -288,7 +288,7 @@ public:
 	ssize_t recv(T* buff, size_t N) {
 		ssize_t ret = ::recv(handle, (char*) buff, N * sizeof(T), MSG_NOSIGNAL);
 		if(ret < 0)
-			throw socket_exception();
+			throw socket_exception(__LINE__, __func__, __FILE__);
 		return ret;
 	}
 

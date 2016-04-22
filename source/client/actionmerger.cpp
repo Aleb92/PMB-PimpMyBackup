@@ -72,7 +72,7 @@ void action_merger::add_change(const change_entity& che) {
 					utilities::shared_queue<change_entity>::inst().dequeue();
 			if (newNameEntity->Action
 					!= FILE_ACTION_RENAMED_NEW_NAME)
-				throw fs_exception("Wrong action order \"FILE_ACTION_RENAMED_NEW_NAME\" expected.");
+				throw fs_exception("Wrong action order \"FILE_ACTION_RENAMED_NEW_NAME\" expected.",__LINE__, __func__, __FILE__);
 
 			log::inst().issue(newNameEntity);
 			fa.newName = wstring(newNameEntity->FileName,

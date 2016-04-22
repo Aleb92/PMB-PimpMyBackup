@@ -56,21 +56,21 @@ template<>
 inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
 	int v = sqlite3_bind_int(stmt, i, val);
 	if (v != SQLITE_OK)
-		throw db_exception(v);
+		throw db_exception(v,__LINE__, __func__, __FILE__);
 }
 
 template<>
 inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
 	int v = sqlite3_bind_text(stmt, i, val.c_str(), -1, nullptr);
 	if (v != SQLITE_OK)
-		throw db_exception(v);
+		throw db_exception(v,__LINE__, __func__, __FILE__);
 }
 
 template<>
 inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t& val, int i) {
 	int v = sqlite3_bind_int64(stmt, val, i);
 	if (v != SQLITE_OK)
-		throw db_exception(v);
+		throw db_exception(v,__LINE__, __func__, __FILE__);
 }
 
 inline void bind_db(sqlite3_stmt*, int) {
@@ -97,12 +97,12 @@ database::database(const char*db_name) {
 	connection = unique_ptr<sqlite3>(c);
 	if (r != SQLITE_OK) {
 		if (c == nullptr)
-			throw memory_exception();
-		throw db_exception(r);
+			throw memory_exception(__LINE__, __func__, __FILE__);
+		throw db_exception(r,__LINE__, __func__, __FILE__);
 	}
 	// Ok ora devo attivare i vincoli per le chiavi esterne
 	if (sqlite3_exec(c, SQL_INIT, nullptr, nullptr, &err) != SQLITE_OK) {
-		throw db_exception(err);
+		throw db_exception(err,__LINE__, __func__, __FILE__);
 	}
 
 	// BENE! Ora ho un database attivo! Devo generare tutte le prepared statement
@@ -112,68 +112,68 @@ database::database(const char*db_name) {
 	r = sqlite3_prepare_v2(c, SQL_AUTH, sizeof(SQL_AUTH), &statement, nullptr);
 	auth = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	// create
 	r = sqlite3_prepare_v2(c, SQL_CREATE, sizeof(SQL_CREATE), &statement,
 			nullptr);
 	create = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	// chmod
 	r = sqlite3_prepare_v2(c, SQL_CHMOD, sizeof(SQL_CHMOD), &statement,
 			nullptr);
 	chmod = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	//write
 	r = sqlite3_prepare_v2(c, SQL_WRITE, sizeof(SQL_WRITE), &statement,
 			nullptr);
 	write = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	//move
 	r = sqlite3_prepare_v2(c, SQL_MOVE, sizeof(SQL_MOVE), &statement, nullptr);
 	move = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	//remove
 	r = sqlite3_prepare_v2(c, SQL_DELETE, sizeof(SQL_DELETE), &statement,
 			nullptr);
 	remove = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	//version
 	r = sqlite3_prepare_v2(c, SQL_VERSION, sizeof(SQL_VERSION), &statement,
 			nullptr);
 	version = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	//list
 	r = sqlite3_prepare_v2(c, SQL_LIST_V, sizeof(SQL_LIST_V), &statement,
 			nullptr);
 	list = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	//moveDir
 	r = sqlite3_prepare_v2(c, SQL_MOVE_DIR, sizeof(SQL_MOVE_DIR), &statement,
 			nullptr);
 	moveDir = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 
 	//moveDir
 	r = sqlite3_prepare_v2(c, SQL_SYNC, sizeof(SQL_SYNC), &statement, nullptr);
 	sync = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
-		throw db_exception(c);
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 }
 
 user_context database::getUserContext(string&user, string&pass, string&path) {
@@ -210,7 +210,7 @@ bool user_context::auth() {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -239,7 +239,7 @@ void user_context::chmod(int64_t timestamp, uint32_t mod) {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -268,7 +268,7 @@ void user_context::create(int64_t timestamp) {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -297,7 +297,7 @@ void user_context::move(int64_t timestamp, string& newPath) {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -326,7 +326,7 @@ void user_context::moveDir(int64_t timestamp, string& newdir) {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -355,7 +355,7 @@ void user_context::remove() {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -389,7 +389,7 @@ string user_context::version(int64_t timestamp) {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -425,7 +425,7 @@ vector<int64_t> user_context::versions() {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -461,7 +461,7 @@ vector<pair<string, string>> user_context::sync() {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 }
@@ -489,7 +489,7 @@ void user_context::write(int64_t time, string& fileID) {
 			// Poi riprovo.
 			break;
 		default:
-			throw db_exception(db.connection.get());
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		}
 	}
 

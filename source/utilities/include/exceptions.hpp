@@ -26,12 +26,16 @@ class base_exception: public std::exception {
 protected:
 	std::string msg; //FIXME: const char* non ci piace?
 public:
-	base_exception(const std::string&) noexcept;
-	base_exception(std::string&&) noexcept;
+	int line;
+	const char* fn, * file;
+
+	base_exception(const std::string&, int line, const char* function, const char* file) noexcept;
+	base_exception(std::string&& , int line, const char* function, const char* file) noexcept;
+	base_exception(int line, const char* function, const char* file) noexcept;
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-	base_exception(DWORD code = GetLastError()) noexcept;
+	base_exception(DWORD code, int line, const char* function, const char* file) noexcept;
 #else
-	base_exception(int code = errno) noexcept;
+	base_exception(int code = errno, int line, const char* function, const char* file) noexcept;
 #endif
 	virtual const char* what() const noexcept;
 };
@@ -53,16 +57,16 @@ public:
 
 class socket_exception: public base_exception {
 public:
-	socket_exception(void) noexcept;
+	socket_exception(int line, const char* function, const char* file) noexcept;
 };
 
 class db_exception: public base_exception {
 public:
 	using base_exception::base_exception;
-	db_exception(void) = delete;
-	db_exception(int) noexcept;
-	db_exception(sqlite3*) noexcept;
-	db_exception(char *) noexcept;
+	db_exception(int line, const char* function, const char* file) = delete;
+	db_exception(int, int line, const char* function, const char* file) noexcept;
+	db_exception(sqlite3*, int line, const char* function, const char* file) noexcept;
+	db_exception(char *, int line, const char* function, const char* file) noexcept;
 };
 
 }

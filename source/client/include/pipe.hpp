@@ -14,7 +14,7 @@ enum pipe_codes {
 
 class auth_exception : public utilities::base_exception {
 public:
-	auth_exception();
+	auth_exception(int l, const char * f, const char* ff);
 };
 
 class pipe: public utilities::singleton<pipe> {
@@ -31,7 +31,7 @@ public:
 		if (!WriteFile(hPipe, &t, sizeof(t), &written, nullptr)) {
 			err = GetLastError();
 			if (err != ERROR_BROKEN_PIPE || written != sizeof(t))
-				throw utilities::base_exception(err);
+				throw utilities::base_exception(err,__LINE__, __func__, __FILE__);
 		}
 	}
 
@@ -41,7 +41,7 @@ public:
 		if (!WriteFile(hPipe, t, l, &written, nullptr)) {
 			err = GetLastError();
 			if (err != ERROR_BROKEN_PIPE || written != l)
-				throw utilities::base_exception(err);
+				throw utilities::base_exception(err,__LINE__, __func__, __FILE__);
 		}
 	}
 

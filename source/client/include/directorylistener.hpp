@@ -96,7 +96,7 @@ public:
 			if (ReadDirectoryChangesW(dir, (LPVOID) current,
 			NOTIF_INFO_BUFF_LENGHT * sizeof(char), TRUE, flags,
 					&dwBytesReturned, NULL, NULL) == 0)
-				throw utilities::fs_exception();
+				throw utilities::fs_exception(__LINE__, __func__, __FILE__);
 			lock.unlock();
 
 			std::shared_ptr<char> whole(current);

@@ -108,7 +108,7 @@ void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
 			uint32_t n = 0;
 
 			if (file == NULL)
-				throw fs_exception("writeFile");
+				throw fs_exception("writeFile",__LINE__, __func__, __FILE__);
 
 			on_return<> ret([file]() {
 				fclose(file);
@@ -153,7 +153,7 @@ void sync(socket_stream& sock, user_context& context) {
 
 		FILE* file = fopen(fileID.c_str(), "rb");
 		if (file == NULL)
-			throw fs_exception();
+			throw fs_exception(__LINE__, __func__, __FILE__);
 
 		on_return<> ret([file]() {
 			fclose(file);
@@ -184,7 +184,7 @@ void version(socket_stream& sock, user_context& context, int64_t ts) {
 
 	FILE* file = fopen(fileID.c_str(), "rb");
 	if (file == NULL)
-		throw fs_exception();
+		throw fs_exception(__LINE__, __func__, __FILE__);
 
 	on_return<> ret([file]() {
 		fclose(file);
