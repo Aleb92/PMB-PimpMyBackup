@@ -69,6 +69,11 @@ socket_base::socket_base(int af, int type, int protocol) :
 		throw socket_exception(__LINE__, __func__, __FILE__);
 }
 
+socket_base::~socket_base() {
+	if (hValid(handle))
+		if (closesocket(handle))
+			throw socket_exception(__LINE__, __func__, __FILE__);
+}
 
 socket_base::SOCK_STATE socket_base::getState() {
 	fd_set read, write;
@@ -79,10 +84,10 @@ socket_base::SOCK_STATE socket_base::getState() {
 	FD_SET(handle, &write);
 
 	SOCK_STATE ret = NOT_READY;
-	if(select(handle+1, &read, &write, nullptr, nullptr)){ // FIXME: questo potrebbe dare errore in teoria(quando?)
-		if(FD_ISSET(handle, &read))
+	if (select(handle + 1, &read, &write, nullptr, nullptr)) { // FIXME: questo potrebbe dare errore in teoria(quando?)
+		if (FD_ISSET(handle, &read))
 			ret = READ_READY;
-		if(FD_ISSET(handle, &write))
+		if (FD_ISSET(handle, &write))
 			ret = ret | WRITE_READY;
 	}
 
@@ -162,33 +167,37 @@ socket_stream socket_listener::accept() {
 template<>
 void socket_stream::send<uint16_t>(const uint16_t val) {
 	uint16_t snd = htons(val);
-	if(::send(handle, (const char*) &snd, sizeof(uint16_t), MSG_NOSIGNAL) != sizeof(val))
+	if (::send(handle, (const char*) &snd, sizeof(uint16_t), MSG_NOSIGNAL)
+			!= sizeof(val))
 		throw socket_exception(__LINE__, __func__, __FILE__);
 }
 
 template<>
 void socket_stream::send<uint32_t>(const uint32_t val) {
 	uint32_t snd = htons(val);
-	if(::send(handle, (const char*) &snd, sizeof(uint32_t), MSG_NOSIGNAL) != sizeof(val))
+	if (::send(handle, (const char*) &snd, sizeof(uint32_t), MSG_NOSIGNAL)
+			!= sizeof(val))
 		throw socket_exception(__LINE__, __func__, __FILE__);
 }
 
 template<>
 void socket_stream::send<int16_t>(const int16_t val) {
 	int16_t snd = htons(val);
-	if(::send(handle, (const char*) &snd, sizeof(int16_t), MSG_NOSIGNAL) != sizeof(val))
+	if (::send(handle, (const char*) &snd, sizeof(int16_t), MSG_NOSIGNAL)
+			!= sizeof(val))
 		throw socket_exception(__LINE__, __func__, __FILE__);
 }
 
 template<>
 void socket_stream::send<int32_t>(const int32_t val) {
 	int32_t snd = htons(val);
-	if(::send(handle, (const char*) &snd, sizeof(int32_t), MSG_NOSIGNAL) != sizeof(val))
+	if (::send(handle, (const char*) &snd, sizeof(int32_t), MSG_NOSIGNAL)
+			!= sizeof(val))
 		throw socket_exception(__LINE__, __func__, __FILE__);
 }
 
 template<>
-void socket_stream::send<int64_t>(const int64_t val){
+void socket_stream::send<int64_t>(const int64_t val) {
 	send<int32_t>((val >> 32) & ((1LLU << 32) - 1));
 	send<int32_t>(val & ((1LLU << 32) - 1));
 }
@@ -247,8 +256,8 @@ int32_t socket_stream::recv<int32_t>() {
 }
 
 template<>
-int64_t socket_stream::recv<int64_t>(){
-	return (static_cast<int64_t>(recv<int32_t>())<< 32) | (recv<int32_t>());
+int64_t socket_stream::recv<int64_t>() {
+	return (static_cast<int64_t>(recv<int32_t>()) << 32) | (recv<int32_t>());
 }
 
 template<>

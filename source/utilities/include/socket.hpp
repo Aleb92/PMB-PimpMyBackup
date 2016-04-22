@@ -131,11 +131,7 @@ public:
 	/**
 	 * Rilascia le risorse, se presenti. Lancia un'eccezione in caso di errore.
 	 */
-	inline ~socket_base() {
-		if (hValid(handle))
-			if (closesocket(handle))
-				throw socket_exception(__LINE__, __func__, __FILE__);
-	}
+	virtual ~socket_base();
 
 	enum SOCK_STATE {
 		NOT_READY = 0,
