@@ -107,20 +107,20 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 	try {
 		// Per prima cosa mi aggancio al server
-		socket_stream sock(settings::inst().server_host,
-				settings::inst().server_port);
+		socket_stream sock(settings::inst().server_host.value,
+				settings::inst().server_port.value);
 
 		wcout << L"Connected" << endl << "Login...";
 
-		sock.send(settings::inst().username.value);
-		sock.send(settings::inst().password.value);
+		sock.send<string&>(settings::inst().username.value);
+		sock.send<string&>(settings::inst().password.value);
 
 		if (!sock.recv<bool>())
 			throw auth_exception(__LINE__, __func__, __FILE__);
 
 		wcout << L"Login fatto!" << endl;
 
-		sock.send(fileName);
+		sock.send<wstring&>(fileName);
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
 
