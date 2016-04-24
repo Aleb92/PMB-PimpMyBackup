@@ -174,7 +174,7 @@ void socket_stream::send<uint16_t>(const uint16_t val) {
 
 template<>
 void socket_stream::send<uint32_t>(const uint32_t val) {
-	uint32_t snd = htons(val);
+	uint32_t snd = htonl(val);
 	if (::send(handle, (const char*) &snd, sizeof(uint32_t), MSG_NOSIGNAL)
 			!= sizeof(val))
 		throw socket_exception(__LINE__, __func__, __FILE__);
@@ -190,7 +190,7 @@ void socket_stream::send<int16_t>(const int16_t val) {
 
 template<>
 void socket_stream::send<int32_t>(const int32_t val) {
-	int32_t snd = htons(val);
+	int32_t snd = htonl(val);
 	if (::send(handle, (const char*) &snd, sizeof(int32_t), MSG_NOSIGNAL)
 			!= sizeof(val))
 		throw socket_exception(__LINE__, __func__, __FILE__);
@@ -264,12 +264,14 @@ int64_t socket_stream::recv<int64_t>() {
 template<>
 std::string socket_stream::recv<std::string>() {
 
-	size_t size = recv<uint32_t>();
-	std::string ret(size, '\0');
-
-	if (recv(&ret[0], size) != size)
+	size_t size = recv<uint32_t>(), rr;
+	cout << size << endl;
+	std::string ret(size + 2, '\0');
+	rr = recv(&ret[0], size);
+	cout << rr << endl;
+	if (rr != size)
 		throw socket_exception(__LINE__, __func__, __FILE__);
-
+	
 	return ret;
 }
 
