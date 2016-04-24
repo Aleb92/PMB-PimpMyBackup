@@ -9,8 +9,7 @@
 #endif
 
 using namespace std;
-
-namespace utilities {
+using namespace utilities;
 
 //TODO: fare per linux
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -31,6 +30,20 @@ std::wstring utf8_decode(const std::string &str)
     std::wstring wstrTo( size_needed, 0 );
     MultiByteToWideChar                  (CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
     return wstrTo;
+}
+#else
+
+#include <codecvt>
+#include <locale>
+
+static wstring_convert<codecvt_utf8<wchar_t>> u8cvt;
+
+string utf8_encode(const wstring& wstr) {
+	return u8cvt.to_bytes(wstr);
+}
+
+wstring utf8_decode(const string& str) {
+	return u8cvt.from_bytes(str);
 }
 #endif
 
@@ -90,4 +103,4 @@ vector<string> &split(const string &s, char delim,
 	}
 	return elems;
 }
-}
+
