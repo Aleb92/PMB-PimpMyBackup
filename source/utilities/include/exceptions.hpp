@@ -35,7 +35,7 @@ public:
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	base_exception(DWORD code, int line, const char* function, const char* file) noexcept;
 #else
-	base_exception(int code = errno, int line, const char* function, const char* file) noexcept;
+	base_exception(int code, int line, const char* function, const char* file) noexcept;
 #endif
 	virtual const char* what() const noexcept;
 };

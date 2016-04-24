@@ -4,4 +4,4 @@ else
 LDFLAGS := $(LDFLAGS) -ldl
 endif
 
-LDFLAGS := -static $(LDFLAGS) 
+LDFLAGS := $(LDFLAGS) 
