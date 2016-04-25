@@ -206,7 +206,7 @@ void socket_stream::send<int64_t>(const int64_t val) {
 
 template<>
 void socket_stream::send<std::string&>(std::string& str) {
-	LOGD("Sending string..");
+	LOGF;
 	uint32_t size = str.length();
 	send(size);
 	send(str.c_str(), size);
@@ -214,7 +214,9 @@ void socket_stream::send<std::string&>(std::string& str) {
 
 template<>
 void socket_stream::send<std::wstring&>(std::wstring& str) {
+	LOGF;
 	string cvtd = utf8_encode(str);
+	LOGD("Sending string: " << cvtd << " | length: " << str.length());
 	send<string&>(cvtd);
 }
 

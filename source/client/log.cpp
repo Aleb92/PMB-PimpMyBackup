@@ -2,6 +2,7 @@
 #include <log.hpp>
 #include <utilities/include/exceptions.hpp>
 #include <utilities/include/debug.hpp>
+#include <utilities/include/strings.hpp>
 
 #include <windows.h>
 #include <io.h>
@@ -13,11 +14,15 @@ using namespace client;
 using namespace utilities;
 
 log::log() {
+
+	LOGF;
 	wstring oldfile_name = settings::inst().log_filename.value + L".old";
 	unordered_map<wstring, file_action> load_map;
 
 	if (MoveFileW(settings::inst().log_filename.value.c_str(),
 			oldfile_name.c_str())) {
+
+		LOGD("Rinominato file di LOG");
 
 		FILE* old_log = _wfopen(oldfile_name.c_str(), L"rb");
 		if (old_log == NULL)
@@ -25,19 +30,26 @@ log::log() {
 
 		log_entry_header entry;
 
-		while (feof(old_log)) {
-			fread(&entry, sizeof(struct log_entry_header), 1, old_log);
+		while (!feof(old_log)) {
+			if(fread(&entry, sizeof(struct log_entry_header), 1, old_log) == 0)
+				continue;
 
 			wstring entityName;
 			entityName.resize(entry.length / sizeof(wchar_t));
-			fread(&entityName[0], entry.length, 1, old_log);
+			if(fread(&entityName[0], 1, entry.length, old_log) != entry.length){
+				cerr << "File log corrotto-name" << endl;
+				continue;
+			}
 
 			file_action& eInfo = load_map[entityName];
 
 			if (entry.type == 'i') {
 				eInfo |= entry;
 
+				LOGD("Entry type i -" << utf8_encode(entityName));
+
 				if (entry.op_code & server::opcode::MOVE) {
+
 					size_t length;
 					fread(&length, sizeof(size_t), 1, old_log);
 					wstring entityName;
@@ -46,13 +58,14 @@ log::log() {
 				}
 			} else {
 				eInfo ^= entry;
-
+				LOGD("Entry type c -" << utf8_encode(entityName));
 				if (eInfo.op_code == 0) {
 					load_map.erase(entityName);
 				}
 			}
 		}
 		fclose(old_log);
+		DeleteFileW(oldfile_name.c_str());
 	}
 
 	HANDLE file_handle = CreateFileW(
@@ -76,6 +89,10 @@ log::log() {
 			 * del vecchio log
 			 */
 			action_merger::inst().map.swap(load_map);
+
+			for(auto& action : load_map){
+				issue(action.second, action.first);
+			}
 		}
 	}
 }
@@ -94,7 +111,6 @@ void log::issue(const change_entity& entity) {
 
 		fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
 		fwrite(entity->FileName, h.length, 1, log_file);
-		LOGD("New LOG issue added.");
 	}
 	fflush(log_file);
 }
@@ -128,7 +144,6 @@ void log::issue(const file_action& action, const std::wstring& name) {
 
 	fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
 	fwrite(name.c_str(), h.length, 1, log_file);
-	LOGD("New LOG issue added.");
 
 	fflush(log_file);
 }
