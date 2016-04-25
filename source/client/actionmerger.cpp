@@ -70,7 +70,7 @@ void action_merger::add_change(const change_entity& che) {
 	LOGF;
 
 	if (open) {
-		file_action& fa = map[wstring(che->FileName, che->FileNameLength)];
+		file_action& fa = map[wstring(che->FileName, che->FileNameLength / sizeof(wchar_t))];
 		opcode flag = get_flag_bit(che->Action, che.flags);
 		fa.op_code |= flag;
 
@@ -84,7 +84,7 @@ void action_merger::add_change(const change_entity& che) {
 
 			log::inst().issue(newNameEntity);
 			fa.newName = wstring(newNameEntity->FileName,
-					newNameEntity->FileNameLength);
+					newNameEntity->FileNameLength / sizeof(wchar_t));
 		}
 
 		// __builtin_ffs restituisce la posizione del primo bit meno significativo a 1
