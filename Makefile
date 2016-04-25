@@ -35,5 +35,8 @@ clean:
 database:
 	sqlite3 server.db < create_db.sql
 
+restart_client:
+	$(RM) -rf build/test/* client.log
+	
 doc:
 	doxygen doxygen.conf

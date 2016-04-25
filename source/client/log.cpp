@@ -49,17 +49,17 @@ log::log() {
 				LOGD("Entry type i -" << utf8_encode(entityName));
 
 				if (entry.op_code & server::opcode::MOVE) {
-
 					size_t length;
 					fread(&length, sizeof(size_t), 1, old_log);
-					wstring entityName;
-					entityName.resize(length / sizeof(wchar_t));
-					fread(&entityName[0], length, 1, old_log);
+					eInfo.newName.resize(length / sizeof(wchar_t));
+					fread(&eInfo.newName[0], length, 1, old_log);
+					LOGD("Riconosciuta una move con newName: "<<utf8_encode(eInfo.newName));
 				}
 			} else {
 				eInfo ^= entry;
 				LOGD("Entry type c -" << utf8_encode(entityName));
 				if (eInfo.op_code == 0) {
+					LOGD(utf8_encode(entityName) << " done.");
 					load_map.erase(entityName);
 				}
 			}
