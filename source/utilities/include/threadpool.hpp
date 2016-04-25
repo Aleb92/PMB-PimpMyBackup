@@ -6,6 +6,7 @@
 #include <future>
 #include <thread>
 #include <atomic>
+#include <iostream>
 
 namespace utilities {
 
@@ -42,9 +43,12 @@ public:
 	 * non può più tornare operativa.
 	 */
 	inline void stop(void) {
+		std::cout << __func__ << std::endl;
 		running = false;
 		if(joiner.joinable())
 			joiner.join();
+
+		std::cout << "end " <<__func__ << std::endl;
 	}
 
 	/**
@@ -63,10 +67,11 @@ public:
 	 */
     template<typename T, typename... A>
 	void execute(T&& f, A&&... args) {
+    	std::cout << __func__ << std::endl;
 		if (!running)
 			return;
 		waitingList.push_back(std::thread(f, std::forward<A>(args)..., std::ref(running)));
-	}
+    }
 
 };
 

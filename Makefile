@@ -6,7 +6,7 @@ PMB_VERSION := $(shell git rev-parse HEAD | cut -c1-10)
 export CXXFLAGS := -g -std=c++11 -DPMB_VERSION=\"$(PMB_VERSION)\"
 
 # Poi il linker!
-export LDFLAGS := -static -lpthread -lsqlite3 -lcrypto -static-libstdc++ -static-libgcc
+export LDFLAGS := -static -lpthread -lsqlite3 -lcrypto
 
 export EXT_OBJ := 
 
@@ -35,4 +35,5 @@ database:
 	sqlite3 server.db < create_db.sql
 
 doc:
+>>>>>>> branch 'master' of https://github.com/Aleb92/PMB-PimpMyBackup.git
 	doxygen doxygen.conf

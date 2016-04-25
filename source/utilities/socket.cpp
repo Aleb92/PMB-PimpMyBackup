@@ -1,3 +1,4 @@
+#include <utilities/include/debug.hpp>
 #include <utilities/include/socket.hpp>
 #include <utilities/include/strings.hpp>
 
@@ -27,6 +28,7 @@ int init_winsock(void) {
 		return err;
 
 	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+		//FIXME: piazzare eccezione
 		std::cerr << "Impossibile trovare una versione adatta di Winsock.dll\n"
 				<< std::endl;
 		return EXIT_FAILURE;
@@ -204,7 +206,7 @@ void socket_stream::send<int64_t>(const int64_t val) {
 
 template<>
 void socket_stream::send<std::string&>(std::string& str) {
-	wcout << "Sending string" << endl;
+	LOGD("Sending string..");
 	uint32_t size = str.length();
 	send(size);
 	send(str.c_str(), size);
@@ -266,7 +268,7 @@ std::string socket_stream::recv<std::string>() {
 
 	size_t size = recv<uint32_t>(), rr;
 	cout << size << endl;
-	std::string ret(size + 2, '\0');
+	std::string ret(size, '\0');
 	rr = recv(&ret[0], size);
 	cout << rr << endl;
 	if (rr != size)
@@ -276,3 +278,4 @@ std::string socket_stream::recv<std::string>() {
 }
 
 }/* namespace utilities */
+

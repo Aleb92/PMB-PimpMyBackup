@@ -2,6 +2,7 @@
 #include <database.hpp>
 #include <protocol.hpp>
 
+#include <utilities/include/debug.hpp>
 #include <utilities/include/socket.hpp>
 #include <utilities/include/threadpool.hpp>
 #include <utilities/include/atend.hpp>
@@ -22,6 +23,7 @@ void worker(socket_stream, database&, volatile bool&);
 
 int main() {
 	try {
+		LOGF;
 		// Questo genera tutte le connesioni
 		vector<database> db_connections(
 				settings::inst().db_connection_number.value);
@@ -62,28 +64,34 @@ int main() {
 //////////////////////////////////////////////
 
 void move(socket_stream& sock, user_context& context, int64_t ts) {
+	LOGF;
 	string mv = sock.recv<string>();
 	context.move(ts, mv);
 }
 
 void create(socket_stream& sock, user_context& context, int64_t ts) {
+	LOGF;
 	context.create(ts);
 }
 
 void remove(socket_stream& sock, user_context& context, int64_t) {
+	LOGF;
 	context.remove();
 }
 
 void chmodFile(socket_stream& sock, user_context& context, int64_t ts) {
+	LOGF;
 	context.chmod(ts, sock.recv<int32_t>());
 }
 
 void moveDir(socket_stream& sock, user_context& context, int64_t ts) {
+	LOGF;
 	string mv = sock.recv<string>();
 	context.moveDir(ts, mv);
 }
 
 void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
+	LOGF;
 	stringstream fileIDss;
 	{
 		unsigned char buff[MD5_DIGEST_LENGTH];
@@ -128,6 +136,7 @@ void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
 }
 
 void list(socket_stream& sock, user_context& context, int64_t) {
+	LOGF;
 	auto versions = context.versions();
 	sock.send<uint32_t>(versions.size());
 	for (int64_t t : versions)
@@ -135,6 +144,7 @@ void list(socket_stream& sock, user_context& context, int64_t) {
 }
 
 void sync(socket_stream& sock, user_context& context) {
+	LOGF;
 
 	vector<pair<string, string>> res = context.sync();
 	char buffer[BUFF_LENGHT];
@@ -171,6 +181,7 @@ void sync(socket_stream& sock, user_context& context) {
 }
 
 void version(socket_stream& sock, user_context& context, int64_t ts) {
+	LOGF;
 	char buffer[BUFF_LENGHT] = { 0 };
 
 	string fileID = context.version(ts);
@@ -201,6 +212,7 @@ void version(socket_stream& sock, user_context& context, int64_t ts) {
 }
 
 void worker(socket_stream sock, database& db, volatile bool&) {
+	LOGF;
 	try {
 		const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] =
 				{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, {
@@ -213,28 +225,39 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 
 		auto context = db.getUserContext(username, password, fileName);
 		if (!context.auth()) {
+			LOGD("Auth fail");
 			sock.send<bool>(false);
 			return;
 		}
+		LOGD("Auth ok");
 		sock.send<bool>(true);
 
 		opcode opCode = sock.recv<opcode>();
+
+		LOGD("Opcode:" << (int)opCode);
+
 		if (opCode == SYNC) {
 			sync(sock, context);
 			return;
 		}
 
+
 		uint64_t timestamp[8];
 
 		for (auto& ts : timestamp) {
 			ts = sock.recv<uint64_t>();
+			LOGD("ts:" << ts);
 		}
 
 		for (int i = 0; i < 8; i++) {
-			if (opCode & flag[i].first)
+
+			if (opCode & flag[i].first) {
+				LOGD("Exec flag: " << flag[i].first);
 				(flag[i].second)(sock, context, timestamp[i]);
+			}
 			sock.send<bool>(true);
 		}
+
 	} catch (base_exception& ex) {
 		cerr << ex.what();
 	}
