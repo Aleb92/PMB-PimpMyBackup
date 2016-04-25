@@ -211,6 +211,7 @@ public:
 	void send(const T val) {
 		LOGF;
 		LOGD("di: " << typeid(T).name());
+
 		if(::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
 			throw socket_exception(__LINE__, __func__, __FILE__);
 	}

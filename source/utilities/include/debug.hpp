@@ -8,7 +8,29 @@
 #ifndef SOURCE_UTILITIES_INCLUDE_DEBUG_HPP_
 #define SOURCE_UTILITIES_INCLUDE_DEBUG_HPP_
 
-#define LOGD(a) std::cout << a << std::endl
-#define LOGF std::cout << __func__ << std::endl
+#include <iostream>
+#include <string>
 
+namespace utilities {
+
+	namespace debug {
+		struct d_func {
+			static int prefix;
+			const char* const c;
+			inline d_func(const char* __f) : c(__f){
+				std::cout << std::string(prefix, ' ') << "Entro in: " << __f << std::endl;
+				prefix += 2;
+			}
+
+			~d_func() {
+				prefix -= 2;
+				std::cout << std::string(prefix, ' ') << "Esco da: " << c << std::endl;
+			}
+		};
+	}
+
+#define LOGD(a) std::cout << std::string(utilities::debug::d_func::prefix, ' ') << a << std::endl
+#define LOGF utilities::debug::d_func d_func(__func__)
+
+}
 #endif /* SOURCE_UTILITIES_INCLUDE_DEBUG_HPP_ */

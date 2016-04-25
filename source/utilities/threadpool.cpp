@@ -9,7 +9,7 @@ using namespace std;
 
 void thread_pool::join_all() {
 
-	cout << __func__ << endl;
+	LOGF;
 
 	// Questa variabile serve a far fare un ultimo giro per
 	// assicurarsi che la join venga fatta su tutti i thread.

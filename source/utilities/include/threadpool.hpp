@@ -1,6 +1,8 @@
 #ifndef SOURCE_UTILITIES_THREADPOOL_HPP_
 #define SOURCE_UTILITIES_THREADPOOL_HPP_
 
+#include <utilities/include/debug.hpp>
+
 #include <functional>
 #include <deque>
 #include <future>
@@ -43,12 +45,11 @@ public:
 	 * non può più tornare operativa.
 	 */
 	inline void stop(void) {
-		std::cout << __func__ << std::endl;
+		LOGF;
 		running = false;
 		if(joiner.joinable())
 			joiner.join();
 
-		std::cout << "end " <<__func__ << std::endl;
 	}
 
 	/**
@@ -67,7 +68,7 @@ public:
 	 */
     template<typename T, typename... A>
 	void execute(T&& f, A&&... args) {
-    	std::cout << __func__ << std::endl;
+    	LOGF;
 		if (!running)
 			return;
 		waitingList.push_back(std::thread(f, std::forward<A>(args)..., std::ref(running)));
