@@ -8,7 +8,6 @@
 #include <sstream>
 #include <fstream>
 
-#include <boost/locale.hpp>
 
 using namespace std;
 using namespace utilities;
@@ -29,7 +28,7 @@ settings_loader::settings_loader(const char*filename) {
 	  {
 	    while ( getline(settingFile,line) )
 	    {
-	    	pair<string, stringstream> result = utilities::splitOnce(line, '=');
+	    	pair<string, stringstream> result = splitOnce(line, '=');
 	    	map[result.first].swap(result.second);
 	    }
 	    settingFile.close();
