@@ -187,7 +187,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 void client::stop() {
 
-	LOGF();
+	LOGF;
 	FILE_NOTIFY_INFORMATION fni = { 0 };
 	shared_ptr<char> shptr;
 	const change_entity stop = change_entity(shptr, &fni, 0);
