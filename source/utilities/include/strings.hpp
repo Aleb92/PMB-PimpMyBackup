@@ -5,11 +5,16 @@
 #include <stddef.h>
 #include <vector>
 #include <string>
+#include <ostream>
 
 namespace utilities{
 
 std::string utf8_encode(const std::wstring&);
 std::wstring utf8_decode(const std::string&);
+
+inline std::ostream& operator<<(std::ostream& l, std::wstring str) {
+	return l << utf8_encode(str);
+}
 
 const wchar_t* wcsrchr (const wchar_t*, wchar_t, size_t);
 

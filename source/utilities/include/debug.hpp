@@ -7,6 +7,7 @@
 
 #ifndef SOURCE_UTILITIES_INCLUDE_DEBUG_HPP_
 #define SOURCE_UTILITIES_INCLUDE_DEBUG_HPP_
+#include <utilities/include/strings.hpp>
 
 #include <iostream>
 #include <string>

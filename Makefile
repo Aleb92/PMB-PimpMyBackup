@@ -30,7 +30,9 @@ all: $(TARGETS)
 
 clean:
 	$(RM) -rf build/[!M]*
-	$(RM) -f server.db
+
+clean-db:
+	echo "DELETE FROM  files; DELETE FROM history;" | sqlite3 server.db
 
 database:
 	sqlite3 server.db < create_db.sql
