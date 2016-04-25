@@ -126,8 +126,6 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 		bool ret = sock.recv<bool>();
 
-		wcout << (ret ? "t" : "f") << ret << sizeof(ret) << endl;
-
 		if (ret == 0)
 			throw auth_exception(__LINE__, __func__, __FILE__);
 
@@ -139,11 +137,14 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 			if ((action.op_code & f.first) && run) {
 				(this->*f.second)(sock, realName);
 				if (sock.recv<bool>()) {
+					LOGD("Ricevuto OK di fine transazione dal server.");
 					result.op_code |= f.first;
 					action.op_code &= ~f.first;
 				}
 			}
 		}
+
+		LOGD("Version...?");
 
 		if ((action.op_code & VERSION) && run) {
 			this->version(sock, realName, run);
@@ -152,6 +153,8 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 				action.op_code &= ~WRITE;
 			}
 		}
+
+		LOGD("Write...?");
 
 		if ((action.op_code & WRITE) && run) {
 			this->write(sock, realName, run);
@@ -162,10 +165,10 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		}
 
 		if (action.op_code != 0) {
-			wcout << L"Azione completata" << endl;
+			LOGD("Azione completata.");
 			action_merger::inst().add_change(fileName, action);
 		} else
-			wcout << L"Azione NON completata" << endl;
+			LOGD("Azione NON completata.");
 
 		action_merger::inst().wait_time = 0;
 

@@ -35,5 +35,4 @@ database:
 	sqlite3 server.db < create_db.sql
 
 doc:
->>>>>>> branch 'master' of https://github.com/Aleb92/PMB-PimpMyBackup.git
 	doxygen doxygen.conf

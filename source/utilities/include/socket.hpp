@@ -5,6 +5,7 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
+#include <utilities/include/debug.hpp>
 
 #include <stdint.h>
 #include <vector>
@@ -208,6 +209,8 @@ public:
 	 */
 	template<typename T>
 	void send(const T val) {
+		LOGF;
+		LOGD("di: " << typeid(T).name());
 		if(::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
 			throw socket_exception(__LINE__, __func__, __FILE__);
 	}
@@ -262,15 +265,15 @@ public:
 	 */
 	template<typename T>
 	T recv() {
-
-		std::wcout <<"recv Start" << sizeof(T) << std::endl;
+		LOGF;
+		LOGD("di: " << typeid(T).name());
 		T ret;
 		if (::recv(handle, (char*) &ret, sizeof(T), MSG_NOSIGNAL)
 				!= sizeof(T)) {
 			throw socket_exception(__LINE__, __func__, __FILE__);
 		}
 
-		std::wcout<<"recv finish: "<< ret <<std::endl;
+		LOGD("recv returned value = "<< ret);
 		return ret;
 	}
 

@@ -1,6 +1,7 @@
 #include <settings.hpp>
 #include <log.hpp>
 #include <utilities/include/exceptions.hpp>
+#include <utilities/include/debug.hpp>
 
 #include <windows.h>
 #include <io.h>
@@ -81,6 +82,8 @@ log::log() {
 
 void log::issue(const change_entity& entity) {
 
+	LOGF;
+
 	if (entity->Action == FILE_ACTION_RENAMED_NEW_NAME) {
 		size_t length = static_cast<size_t>(entity->FileNameLength);
 		fwrite(&length, sizeof(size_t), 1, log_file);
@@ -91,11 +94,14 @@ void log::issue(const change_entity& entity) {
 
 		fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
 		fwrite(entity->FileName, h.length, 1, log_file);
+		LOGD("New LOG issue added.");
 	}
 	fflush(log_file);
 }
 
 void log::finalize(const file_action& action, const wstring& name) {
+
+	LOGF;
 
 	log_entry_header h = { 'c', static_cast<server::opcode>(action.op_code),
 			action.timestamps[0], name.length() * sizeof(wchar_t) };
@@ -112,6 +118,7 @@ void log::finalize(const file_action& action, const wstring& name) {
 
 void log::issue(const file_action& action, const std::wstring& name) {
 
+	LOGF;
 	log_entry_header h = { 'i', static_cast<server::opcode>(action.op_code),
 			action.timestamps[0], name.length() * sizeof(wchar_t) };
 
@@ -121,6 +128,7 @@ void log::issue(const file_action& action, const std::wstring& name) {
 
 	fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
 	fwrite(name.c_str(), h.length, 1, log_file);
+	LOGD("New LOG issue added.");
 
 	fflush(log_file);
 }
