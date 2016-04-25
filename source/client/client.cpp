@@ -7,6 +7,8 @@
 #include <actionmerger.hpp>
 #include <pipe.hpp>
 
+#include <server/include/protocol.hpp>
+
 #include <utilities/include/atend.hpp>
 #include <utilities/include/exceptions.hpp>
 
@@ -38,6 +40,8 @@ client::~client() {
 void client::start() {
 
 	LOGF;
+	//Forziamo la lettura sincrona del log
+	(void)log::inst();
 	dirWatcher = thread(&directory_listener::scan<shq, &shq::enqueue>,
 			&dirListener, &shq::inst());
 	fileWatcher = thread(&directory_listener::scan<shq, &shq::enqueue>,
@@ -165,10 +169,10 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		}
 
 		if (action.op_code != 0) {
-			LOGD("Azione completata.");
+			LOGD("Azione NON completata.");
 			action_merger::inst().add_change(fileName, action);
 		} else
-			LOGD("Azione NON completata.");
+			LOGD("Azione completata.");
 
 		action_merger::inst().wait_time = 0;
 
@@ -221,9 +225,9 @@ void client::stop() {
 /// 	PROTOCOL CLIENT IMPLEMENTATION     ///
 //////////////////////////////////////////////
 
-void client::move(socket_stream& sock, std::wstring& fileName) {
+void client::move(socket_stream& sock, wstring& fileName) {
 	LOGF;
-	sock.send(fileName);
+	sock.send<wstring&>(fileName);
 }
 
 void client::create(socket_stream& sock, std::wstring& fileName) {
