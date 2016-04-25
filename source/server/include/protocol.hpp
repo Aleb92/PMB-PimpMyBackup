@@ -18,9 +18,9 @@ namespace server {
 		WRITE		= 1<<7
 	};
 
-	inline opcode operator|(opcode lh, opcode rh){ return static_cast<opcode>(lh | rh); }
-	inline opcode operator&(opcode lh, opcode rh){ return static_cast<opcode>(lh & rh); }
-	inline opcode operator^(opcode lh, opcode rh){ return static_cast<opcode>(lh ^ rh); }
+	inline opcode operator|(opcode lh, opcode rh){ return static_cast<opcode>((uint8_t)lh | rh); }
+	inline opcode operator&(opcode lh, opcode rh){ return static_cast<opcode>((uint8_t)lh & rh); }
+	inline opcode operator^(opcode lh, opcode rh){ return static_cast<opcode>((uint8_t)lh ^ rh); }
 	inline opcode operator~(opcode lh){ return static_cast<opcode>(~lh); }
 }
 

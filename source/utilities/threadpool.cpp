@@ -5,7 +5,12 @@
 
 using namespace utilities;
 
+using namespace std;
+
 void thread_pool::join_all() {
+
+	cout << __func__ << endl;
+
 	// Questa variabile serve a far fare un ultimo giro per
 	// assicurarsi che la join venga fatta su tutti i thread.
 	bool last_round = true;
@@ -19,4 +24,6 @@ void thread_pool::join_all() {
 				std::this_thread::yield();
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
+
+	cout << "end" << __func__ << endl;
 }

@@ -1,5 +1,6 @@
 #include <database.hpp>
 
+#include <utilities/include/debug.hpp>
 #include <utilities/include/exceptions.hpp>
 #include <utilities/include/atend.hpp>
 
@@ -47,6 +48,8 @@ inline void bind_one(sqlite3_stmt * stmt, T& val, int i);
 //Implemento quelli che mi servono
 template<>
 inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t& val, int i) {
+	LOGD("Bind uint32:" << i);
+
 	int v = sqlite3_bind_int(stmt, i, val);
 	if (v != SQLITE_OK)
 		throw v;
@@ -54,6 +57,8 @@ inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t& val, int i) {
 
 template<>
 inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
+	LOGD("Bind uint16:" << i);
+
 	int v = sqlite3_bind_int(stmt, i, val);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
@@ -61,6 +66,7 @@ inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
 
 template<>
 inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
+	LOGD("Bind string:" << i);
 	int v = sqlite3_bind_text(stmt, i, val.c_str(), -1, nullptr);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
@@ -68,6 +74,7 @@ inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
 
 template<>
 inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t& val, int i) {
+	LOGD("Bind int64:" << i);
 	int v = sqlite3_bind_int64(stmt, val, i);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
@@ -198,9 +205,12 @@ bool user_context::auth() {
 	while (1) {
 		switch (sqlite3_step(db.auth.get())) {
 		case SQLITE_DONE:
+			LOGD("utente non trovato");
 			return false;	// No such user!
 		case SQLITE_ROW: {
 			string pwd = db_column<string>(db.auth.get(), 0);
+			LOGD("DB PWD:" << pwd << pwd.length());
+			LOGD("NET PWD" << pass << pass.length());
 			return pwd == pass;
 		}
 		case SQLITE_BUSY:
