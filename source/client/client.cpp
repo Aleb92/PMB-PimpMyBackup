@@ -1,4 +1,5 @@
 #include <utilities/include/socket.hpp>
+#include <utilities/include/debug.hpp>
 
 #include <client.hpp>
 #include <directorylistener.hpp>
@@ -35,6 +36,8 @@ client::~client() {
 }
 
 void client::start() {
+
+	LOGF;
 	dirWatcher = thread(&directory_listener::scan<shq, &shq::enqueue>,
 			&dirListener, &shq::inst());
 	fileWatcher = thread(&directory_listener::scan<shq, &shq::enqueue>,
@@ -46,6 +49,8 @@ void client::start() {
 }
 
 void client::merge() {
+
+	LOGF;
 	try {
 		change_entity che = shq::inst().dequeue();
 
@@ -66,6 +71,7 @@ void client::merge() {
 
 void client::dispatch() {
 
+	LOGF;
 	//Spawna thread e dialoga con il server tramite una condition variable
 	//per avere le modifiche all'action merger
 
@@ -87,10 +93,11 @@ void client::dispatch() {
 
 void client::sendAction(std::wstring& fileName, file_action& action,
 		volatile bool &run) {
+
+	LOGF;
 	const pair<opcode, void (client::*)(socket_stream&, std::wstring&)> flag[] =
 			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
 					chmod }, { MOVE_DIR, moveDir } };
-
 
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
 	// Questa funzione quindi invia l'header generico,
@@ -101,8 +108,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 	wstring realName = (action.op_code & MOVE) ? action.newName : fileName;
 	file_action result = action;
 
-	wcout << L"sendAction:" << realName << endl << L"Connection..." << endl;
-
+	LOGD("Connection..");
 	result.op_code = 0;
 
 	try {
@@ -111,6 +117,8 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 				settings::inst().server_port.value);
 
 		wcout << L"Connected" << endl << "Login...";
+		LOGD("Connected");
+		LOGD("Login...");
 
 		sock.send<string&>(settings::inst().username.value);
 		sock.send<string&>(settings::inst().password.value);
@@ -123,8 +131,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		if (ret == 0)
 			throw auth_exception(__LINE__, __func__, __FILE__);
 
-		wcout << L"Login fatto!" << endl;
-
+		LOGD("Login fatto!!");
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
 
@@ -154,12 +161,10 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 			}
 		}
 
-
 		if (action.op_code != 0) {
 			wcout << L"Azione completata" << endl;
 			action_merger::inst().add_change(fileName, action);
-		}
-		else
+		} else
 			wcout << L"Azione NON completata" << endl;
 
 		action_merger::inst().wait_time = 0;
@@ -173,7 +178,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		cout << ex.what() << endl;
 	}
 
-	if(action.op_code != 0)
+	if (action.op_code != 0)
 		action_merger::inst().add_change(fileName, action);
 
 	if (result.op_code != 0)
@@ -182,6 +187,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 void client::stop() {
 
+	LOGF;
 	FILE_NOTIFY_INFORMATION fni = { 0 };
 	shared_ptr<char> shptr;
 	const change_entity stop = change_entity(shptr, &fni, 0);
@@ -213,22 +219,21 @@ void client::stop() {
 //////////////////////////////////////////////
 
 void client::move(socket_stream& sock, std::wstring& fileName) {
-	cout<< "move" << endl;
+	LOGF;
 	sock.send(fileName);
 }
 
 void client::create(socket_stream& sock, std::wstring& fileName) {
-	cout<< "create" << endl;
+	LOGF;
 }
 
 void client::remove(socket_stream& sock, std::wstring& fileName) {
-	cout<< "remove" << endl;
+	LOGF;
 }
 
 void client::chmod(socket_stream& sock, std::wstring& fileName) {
 
-	cout<< "chmod" << endl;
-
+	LOGF;
 	uint32_t mods;
 	if ((mods = GetFileAttributesW(fileName.c_str())) == INVALID_FILE_ATTRIBUTES)
 		throw base_exception(__LINE__, __func__, __FILE__);
@@ -236,15 +241,14 @@ void client::chmod(socket_stream& sock, std::wstring& fileName) {
 }
 
 void client::moveDir(socket_stream& sock, wstring& fileName) {
-	cout<< "moveDir" << endl;
+	LOGF;
 	sock.send(fileName);
 }
 
 void client::version(socket_stream& sock, std::wstring& fileName,
 		volatile bool& run) {
 
-	cout<< "version" << endl;
-
+	LOGF;
 	FILE* file = _wfopen(fileName.c_str(), L"wb");
 	char buffer[BUFF_LENGHT] = { 0 };
 	uint32_t n = 0;
@@ -268,8 +272,7 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 void client::write(socket_stream& sock, std::wstring& fileName,
 		volatile bool& run) {
 
-	cout<< "write" << endl;
-
+	LOGF;
 	char buffer[BUFF_LENGHT] = { 0 };
 	FILE* file = _wfopen(fileName.c_str(), L"rb");
 	if (file == NULL)
