@@ -5,6 +5,7 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
+#include <utilities/include/debug.hpp>
 
 #include <stdint.h>
 #include <vector>
@@ -208,6 +209,7 @@ public:
 	 */
 	template<typename T>
 	void send(const T val) {
+		LOGD("send: " << sizeof(T));
 		if(::send(handle, (const char*) &val, sizeof(T), MSG_NOSIGNAL) != sizeof(T))
 			throw socket_exception(__LINE__, __func__, __FILE__);
 	}

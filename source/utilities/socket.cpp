@@ -265,12 +265,10 @@ int64_t socket_stream::recv<int64_t>() {
 
 template<>
 std::string socket_stream::recv<std::string>() {
-
+	LOGF;
 	size_t size = recv<uint32_t>(), rr;
-	cout << size << endl;
 	std::string ret(size, '\0');
 	rr = recv(&ret[0], size);
-	cout << rr << endl;
 	if (rr != size)
 		throw socket_exception(__LINE__, __func__, __FILE__);
 	

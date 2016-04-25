@@ -33,7 +33,7 @@ namespace server {
 
 #define SQL_INIT "PRAGMA foreign_keys = ON;PRAGMA journal_mode=WAL;"
 #define SQL_AUTH "SELECT password FROM users WHERE username=?1"
-#define SQL_CREATE "INSERT INTO files (username, path, time_stamp) VALUES(?1,?2,?3)"
+#define SQL_CREATE "INSERT INTO files (username, path, time_stamp) VALUES (?1,?2,?3)"
 #define SQL_CHMOD "UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2"
 #define SQL_WRITE "UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2"
 #define SQL_MOVE "UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2"

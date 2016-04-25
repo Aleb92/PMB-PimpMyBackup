@@ -48,7 +48,7 @@ inline void bind_one(sqlite3_stmt * stmt, T& val, int i);
 //Implemento quelli che mi servono
 template<>
 inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t& val, int i) {
-	LOGD("Bind uint32:" << i);
+	LOGF;
 
 	int v = sqlite3_bind_int(stmt, i, val);
 	if (v != SQLITE_OK)
@@ -57,8 +57,7 @@ inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t& val, int i) {
 
 template<>
 inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
-	LOGD("Bind uint16:" << i);
-
+	LOGF;
 	int v = sqlite3_bind_int(stmt, i, val);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
@@ -66,7 +65,7 @@ inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
 
 template<>
 inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
-	LOGD("Bind string:" << i);
+	LOGF;
 	int v = sqlite3_bind_text(stmt, i, val.c_str(), -1, nullptr);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
@@ -74,17 +73,19 @@ inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
 
 template<>
 inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t& val, int i) {
-	LOGD("Bind int64:" << i);
-	int v = sqlite3_bind_int64(stmt, val, i);
+	LOGF;
+	int v = sqlite3_bind_int64(stmt, i, val);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
 }
 
 inline void bind_db(sqlite3_stmt*, int) {
+	LOGF;
 }
 
 template<typename A, typename ...T>
 void bind_db(sqlite3_stmt*stmt, int i, A act, T ...args) {
+	LOGF;
 	bind_one(stmt, act, i);
 	bind_db(stmt, i + 1, args...);
 }
@@ -92,6 +93,7 @@ void bind_db(sqlite3_stmt*stmt, int i, A act, T ...args) {
 user_context::user_context(std::string& user, std::string&pwd,
 		std::string& file, database& _db) :
 		usr(user), pass(pwd), path(file), db(_db) {
+	LOGF;
 }
 
 database::database(const char*db_name) {
@@ -188,6 +190,7 @@ user_context database::getUserContext(string&user, string&pass, string&path) {
 }
 
 bool user_context::auth() {
+	LOGF;
 	//Prima cosa: lock! Dalle specifiche sqlite solo un thread alla volta può
 	//usare la connessione.
 	lock_guard<mutex> guard(db.busy);
@@ -226,6 +229,7 @@ bool user_context::auth() {
 }
 
 void user_context::chmod(int64_t timestamp, uint32_t mod) {
+	LOGF;
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
@@ -255,6 +259,7 @@ void user_context::chmod(int64_t timestamp, uint32_t mod) {
 }
 
 void user_context::create(int64_t timestamp) {
+	LOGF;
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
@@ -284,6 +289,7 @@ void user_context::create(int64_t timestamp) {
 }
 
 void user_context::move(int64_t timestamp, string& newPath) {
+	LOGF;
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
@@ -313,6 +319,7 @@ void user_context::move(int64_t timestamp, string& newPath) {
 }
 
 void user_context::moveDir(int64_t timestamp, string& newdir) {
+	LOGF;
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
@@ -342,6 +349,7 @@ void user_context::moveDir(int64_t timestamp, string& newdir) {
 }
 
 void user_context::remove() {
+	LOGF;
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
@@ -371,6 +379,7 @@ void user_context::remove() {
 }
 
 string user_context::version(int64_t timestamp) {
+	LOGF;
 	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
@@ -405,6 +414,7 @@ string user_context::version(int64_t timestamp) {
 }
 
 vector<int64_t> user_context::versions() {
+	LOGF;
 	vector<int64_t> result;
 
 	//Prima cosa: lock! Dalle specifiche sqlite solo un thread alla volta può
@@ -441,6 +451,7 @@ vector<int64_t> user_context::versions() {
 }
 
 vector<pair<string, string>> user_context::sync() {
+	LOGF;
 	vector<pair<string, string>> result;
 
 	//Prima cosa: lock! Dalle specifiche sqlite solo un thread alla volta può
@@ -477,6 +488,7 @@ vector<pair<string, string>> user_context::sync() {
 }
 
 void user_context::write(int64_t time, string& fileID) {
+	LOGF;
 
 	on_return<> ret([&] {
 		// On return resetto statement e bindings
