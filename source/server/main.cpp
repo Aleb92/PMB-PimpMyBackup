@@ -258,7 +258,11 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 			sock.send<bool>(true);
 		}
 
-	} catch (base_exception& ex) {
+	}catch (socket_exception& s_ex)  {
+		cerr << s_ex.what();
+	}
+	catch (base_exception& ex) {
+		sock.send<bool>(false);
 		cerr << ex.what();
 	}
 }

@@ -267,8 +267,11 @@ template<>
 std::string socket_stream::recv<std::string>() {
 	LOGF;
 	size_t size = recv<uint32_t>(), rr;
+	LOGD(size);
 	std::string ret(size, '\0');
 	rr = recv(&ret[0], size);
+	LOGD(ret);
+
 	if (rr != size)
 		throw socket_exception(__LINE__, __func__, __FILE__);
 	

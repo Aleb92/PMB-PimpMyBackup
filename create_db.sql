@@ -41,3 +41,5 @@ BEGIN
 	INSERT INTO history (username, path, time_stamp, mod, file_id)
 	VALUES (OLD.username, OLD.path, OLD.time_stamp, OLD.mod, OLD.file_id);
 END;
+
+INSERT INTO users VALUES ('root', 'toor');

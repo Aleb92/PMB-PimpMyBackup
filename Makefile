@@ -30,6 +30,7 @@ all: $(TARGETS)
 
 clean:
 	$(RM) -rf build/[!M]*
+	$(RM) -f server.db
 
 database:
 	sqlite3 server.db < create_db.sql
