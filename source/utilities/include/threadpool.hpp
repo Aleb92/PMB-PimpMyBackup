@@ -24,18 +24,18 @@ class thread_pool {
 	// mi ricorda molto quello che fa init in un sistema unix...
 	std::thread joiner;
 
+public:
+
 	/**
 	 * metodo demone per fare join su tutti i thread e liberare risorse.
 	 */
 	void join_all();
-
-public:
-
+	
 	/**
 	 * Inizializza una nuova pool
 	 */
 	inline thread_pool() :
-			running(true), joiner(join_all, this) { }
+			running(true), joiner(&thread_pool::join_all, this) { }
 
 	/**
 	 * Interrompe questa pool. Una volta interrotta una thread_pool

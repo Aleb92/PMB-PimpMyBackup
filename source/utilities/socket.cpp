@@ -51,8 +51,8 @@ void socket_base::setBlocking(bool b) {
 		throw socket_exception(__LINE__, __func__, __FILE__);
 #else
 	int flags = fcntl(handle, F_GETFL, 0);
-	if(flags < 0) throw socket_exception();
-	if(fcntl(handle, F_SETFL, flags | O_NONBLOCK)!=0) throw socket_exception();
+	if(flags < 0) throw socket_exception(__LINE__, __func__, __FILE__);
+	if(fcntl(handle, F_SETFL, flags | O_NONBLOCK)!=0) throw socket_exception(__LINE__, __func__, __FILE__);
 #endif
 	blocking = b;
 }
@@ -264,12 +264,14 @@ int64_t socket_stream::recv<int64_t>() {
 template<>
 std::string socket_stream::recv<std::string>() {
 
-	size_t size = recv<uint32_t>();
-	std::string ret(size, '\0');
-
-	if (recv(&ret[0], size) != size)
+	size_t size = recv<uint32_t>(), rr;
+	cout << size << endl;
+	std::string ret(size + 2, '\0');
+	rr = recv(&ret[0], size);
+	cout << rr << endl;
+	if (rr != size)
 		throw socket_exception(__LINE__, __func__, __FILE__);
-
+	
 	return ret;
 }
 
