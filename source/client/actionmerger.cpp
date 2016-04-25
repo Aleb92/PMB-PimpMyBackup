@@ -47,6 +47,8 @@ action_merger::action_merger(size_t estimatedFileNum) :
 }
 
 void action_merger::add_change(std::wstring& fileName, file_action& action) {
+	wcout<< "add_change" << fileName << endl;
+
 	if(open) {
 		if(map.count(fileName)) {
 			file_action& up = map[fileName];
@@ -62,6 +64,7 @@ void action_merger::add_change(std::wstring& fileName, file_action& action) {
 }
 
 void action_merger::add_change(const change_entity& che) {
+
 	if(open) {
 		file_action& fa = map[wstring(che->FileName, che->FileNameLength)];
 		opcode flag = get_flag_bit(che->Action, che.flags);

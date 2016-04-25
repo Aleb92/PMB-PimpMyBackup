@@ -53,6 +53,7 @@ void pipe::driver() {
 
 auth_exception::auth_exception(int l, const char* f, const char* ff) :
 		base_exception("Wrong username/password", l,f,ff) {
-	pipe::inst().write<uint8_t>(WRONG_CREDENTIALS);
+	//FIXME
+	//pipe::inst().write<uint8_t>(WRONG_CREDENTIALS);
 }
 

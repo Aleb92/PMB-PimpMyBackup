@@ -114,13 +114,17 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 		sock.send<string&>(settings::inst().username.value);
 		sock.send<string&>(settings::inst().password.value);
+		sock.send<wstring&>(fileName);
 
-		if (!sock.recv<bool>())
+		bool ret = sock.recv<bool>();
+
+		wcout << (ret ? "t" : "f") << ret << sizeof(ret) << endl;
+
+		if (ret == 0)
 			throw auth_exception(__LINE__, __func__, __FILE__);
 
 		wcout << L"Login fatto!" << endl;
 
-		sock.send<wstring&>(fileName);
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
 
@@ -166,8 +170,11 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 					settings::inst().max_waiting_time.value,
 					(action_merger::inst().wait_time * 2) + 1);
 		}
-		action_merger::inst().add_change(fileName, action);
+		cout << ex.what() << endl;
 	}
+
+	if(action.op_code != 0)
+		action_merger::inst().add_change(fileName, action);
 
 	if (result.op_code != 0)
 		log::inst().finalize(result, fileName);

@@ -262,11 +262,15 @@ public:
 	 */
 	template<typename T>
 	T recv() {
+
+		std::wcout <<"recv Start" << sizeof(T) << std::endl;
 		T ret;
 		if (::recv(handle, (char*) &ret, sizeof(T), MSG_NOSIGNAL)
 				!= sizeof(T)) {
 			throw socket_exception(__LINE__, __func__, __FILE__);
 		}
+
+		std::wcout<<"recv finish: "<< ret <<std::endl;
 		return ret;
 	}
 
