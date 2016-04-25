@@ -6,7 +6,7 @@ PMB_VERSION := $(shell git rev-parse HEAD | cut -c1-10)
 export CXXFLAGS := -g -std=c++11 -DPMB_VERSION=\"$(PMB_VERSION)\"
 
 # Poi il linker!
-export LDFLAGS := -lpthread -lsqlite3 -lcrypto
+export LDFLAGS := -lpthread -lsqlite3 -lcrypto -static-libstdc++ -static-libgcc
 
 export EXT_OBJ := 
 

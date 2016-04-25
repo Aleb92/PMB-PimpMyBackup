@@ -174,7 +174,7 @@ void socket_stream::send<uint16_t>(const uint16_t val) {
 
 template<>
 void socket_stream::send<uint32_t>(const uint32_t val) {
-	uint32_t snd = htons(val);
+	uint32_t snd = htonl(val);
 	if (::send(handle, (const char*) &snd, sizeof(uint32_t), MSG_NOSIGNAL)
 			!= sizeof(val))
 		throw socket_exception(__LINE__, __func__, __FILE__);
@@ -190,7 +190,7 @@ void socket_stream::send<int16_t>(const int16_t val) {
 
 template<>
 void socket_stream::send<int32_t>(const int32_t val) {
-	int32_t snd = htons(val);
+	int32_t snd = htonl(val);
 	if (::send(handle, (const char*) &snd, sizeof(int32_t), MSG_NOSIGNAL)
 			!= sizeof(val))
 		throw socket_exception(__LINE__, __func__, __FILE__);
@@ -204,7 +204,7 @@ void socket_stream::send<int64_t>(const int64_t val) {
 
 template<>
 void socket_stream::send<std::string&>(std::string& str) {
-	wcout << "OkOk" << endl;
+	wcout << "Sending string" << endl;
 	uint32_t size = str.length();
 	send(size);
 	send(str.c_str(), size);
@@ -213,7 +213,7 @@ void socket_stream::send<std::string&>(std::string& str) {
 template<>
 void socket_stream::send<std::wstring&>(std::wstring& str) {
 	string cvtd = utf8_encode(str);
-	send(cvtd);
+	send<string&>(cvtd);
 }
 
 template<>
