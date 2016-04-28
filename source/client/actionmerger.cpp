@@ -97,7 +97,9 @@ void action_merger::add_change(const change_entity& che) {
 }
 
 file_action& file_action::operator |=(const log_entry_header& entry) {
+	LOGF;
 	op_code |= entry.op_code;
+	LOGD("Index: " << __builtin_ffs(entry.op_code) - 1);
 	FILETIME& time = timestamps[__builtin_ffs(entry.op_code) - 1];
 	if (CompareFileTime(&entry.timestamp, &time) == 1)
 		time = entry.timestamp;

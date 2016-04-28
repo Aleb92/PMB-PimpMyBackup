@@ -281,7 +281,10 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 
 	LOGF;
 	char buffer[BUFF_LENGHT] = { 0 };
-	FILE* file = _wfopen(fileName.c_str(), L"rb");
+
+	wstring path = settings::inst().watched_dir.value + fileName;
+
+	FILE* file = _wfopen(path.c_str(), L"rb");
 	if (file == NULL)
 		throw fs_exception(__LINE__, __func__, __FILE__);
 

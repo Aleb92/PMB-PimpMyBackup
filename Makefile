@@ -13,7 +13,7 @@ export EXT_OBJ :=
 # Ok ogni makefile farà poi quello che deve per aggiungere quello che serve.
 # Adesso, ogni sottocartella corrisponde ad un target.
 # Con questo prendo tutti i nomi delle cartelle
-TARGETS := $(notdir $(wildcard source/*)) 
+TARGETS := $(notdir $(wildcard source/[!t]*)) 
 
 # Ok adesso eseguo all, che l'unica cosa che fa è dipendere da tutti i target.
 all: $(TARGETS)
@@ -38,7 +38,7 @@ database:
 	sqlite3 server.db < create_db.sql
 
 restart_client:
-	$(RM) -rf build/test/* client.log
+	$(RM) -rf build/test/* client.log client.log.old
 	
 doc:
 	doxygen doxygen.conf
