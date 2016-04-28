@@ -215,7 +215,7 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 	LOGF;
 	try {
 		const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] =
-				{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, {
+				{ { CREATE, create }, { MOVE, move }, { REMOVE, remove }, {
 						CHMOD, chmodFile }, { MOVE_DIR, moveDir }, { VERSION,
 						version }, { LIST, list }, { WRITE, writeFile } };
 

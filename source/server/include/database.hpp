@@ -37,7 +37,8 @@ namespace server {
 #define SQL_CHMOD "UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2"
 #define SQL_WRITE "UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2"
 #define SQL_MOVE "UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2"
-#define SQL_MOVE_DIR "UPDATE files SET time_stamp=?3, path=REPLACE(path,?2,?4) WHERE username = ?1 AND path LIKE (?2 || '%')"
+#define SQL_MOVE_DIR "UPDATE files SET time_stamp=?3, path=REPLACE(path,?2,?4)"\
+		" WHERE username = ?1 AND path LIKE (?2 || '%')"
 #define SQL_DELETE "DELETE FROM files WHERE username=?1 AND path=?2"
 #define SQL_SYNC "SELECT path, file_id FROM files WHERE username=?1"
 #define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE username=?1"\

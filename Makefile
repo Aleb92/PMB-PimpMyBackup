@@ -32,7 +32,7 @@ clean:
 	$(RM) -rf build/[!M]*
 
 clean-db:
-	echo "DELETE FROM  files; DELETE FROM history;" | sqlite3 server.db
+	echo "DELETE FROM history; DELETE FROM  files; DELETE FROM history;" | sqlite3 server.db
 
 database:
 	sqlite3 server.db < create_db.sql

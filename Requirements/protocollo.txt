@@ -2,8 +2,8 @@
 
 bit a 1 significano azione richiesta, se tutti i bit a 0, richiesto synchronize.
 _
-1| Spostamento
-2| Creazione
+1| Creazione
+2| Spostamento
 3| Cancellazione
 4| Permessi
 5| Move dir

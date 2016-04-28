@@ -100,7 +100,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 
 	LOGF;
 	const pair<opcode, void (client::*)(socket_stream&, std::wstring&)> flag[] =
-			{ { MOVE, move }, { CREATE, create }, { REMOVE, remove }, { CHMOD,
+			{ { CREATE, create }, { MOVE, move }, { REMOVE, remove }, { CHMOD,
 					chmod }, { MOVE_DIR, moveDir } };
 
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
