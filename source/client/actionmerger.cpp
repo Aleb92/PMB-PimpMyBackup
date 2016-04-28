@@ -105,13 +105,19 @@ file_action& file_action::operator |=(const log_entry_header& entry) {
 }
 
 file_action& file_action::operator ^=(const log_entry_header& entry) {
-	for (uint8_t i = 0, j = 1; i < 8; i++, j << 1) {
-		if (op_code & j) {
+
+	LOGD("opcode: "<< (int)op_code << " & entry.opcode: " << (int)entry.op_code);
+	for (uint8_t i = 0, j = 1; i < 8; i++, j = j << 1) {
+		if ((op_code & j) && (entry.op_code & j)) {
+
+			LOGD("type: "<< (int)j);
 			FILETIME& _t = timestamps[i];
-			if (CompareFileTime(&entry.timestamp, &_t) == 1) {
+			if (CompareFileTime(&entry.timestamp, &_t) >= 0) {
+				LOGD("compare Ok");
 				_t = {0};
 				op_code ^= j;
 			}
+			LOGD("opcode: "<< (int)op_code);
 		}
 	}
 	return *this;
