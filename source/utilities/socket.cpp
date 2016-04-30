@@ -1,5 +1,5 @@
-#include <utilities/include/debug.hpp>
 #include <utilities/include/socket.hpp>
+#include <utilities/include/debug.hpp>
 #include <utilities/include/strings.hpp>
 
 #include <iostream> // Per std::cerr

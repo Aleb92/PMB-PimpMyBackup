@@ -5,7 +5,6 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
-#include <utilities/include/debug.hpp>
 
 #include <stdint.h>
 #include <vector>
@@ -46,6 +45,7 @@ typedef int socket_t;
 #endif
 
 
+#include <utilities/include/debug.hpp>
 #include <utilities/include/exceptions.hpp>
 
 /**

@@ -30,7 +30,7 @@ public:
 	const char* fn, * file;
 
 	base_exception(const std::string&, int line, const char* function, const char* file) noexcept;
-	base_exception(std::string&& , int line, const char* function, const char* file) noexcept;
+	base_exception(const char*, int line, const char* function, const char* file) noexcept;
 	base_exception(int line, const char* function, const char* file) noexcept;
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	base_exception(DWORD code, int line, const char* function, const char* file) noexcept;

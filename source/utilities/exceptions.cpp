@@ -16,7 +16,7 @@ using namespace utilities;
 using namespace std;
 
 base_exception::base_exception(const string& str, int l, const char* f, const char* ff) noexcept : msg(str), line(l), fn(f), file(ff) {}
-base_exception::base_exception(string&& str, int l, const char* f, const char* ff) noexcept : msg(str), line(l), fn(f), file(ff) {}
+base_exception::base_exception(const char* str, int l, const char* f, const char* ff) noexcept : msg(str), line(l), fn(f), file(ff) {}
 
 const char* base_exception::what() const noexcept {
 	cout << "In file: " << file << " function: " << fn << " line: " << line  << endl;
