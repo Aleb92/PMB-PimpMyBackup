@@ -205,10 +205,10 @@ void socket_stream::send<int64_t>(const int64_t val) {
 }
 
 template<>
-void socket_stream::send<std::string&>(std::string& str) {
+void socket_stream::send<string&>(string& str) {
 	LOGF;
 	uint32_t size = str.length();
-	send(size);
+	send<uint32_t>(size);
 	send(str.c_str(), size);
 }
 
@@ -262,23 +262,30 @@ int32_t socket_stream::recv<int32_t>() {
 
 template<>
 int64_t socket_stream::recv<int64_t>() {
-	return (static_cast<int64_t>(recv<int32_t>()) << 32) | (recv<int32_t>());
+	return (static_cast<int64_t>(recv<int32_t>()) << 32) | (recv<uint32_t>());
 }
 
 template<>
-std::string socket_stream::recv<std::string>() {
+string socket_stream::recv<string>() {
 	LOGF;
 	size_t size = recv<uint32_t>(), rr;
 	LOGD(size);
-	char buff[size + 2] = { 0 };
-	rr = recv(buff, size);
-	LOGD(buff);
+	string ret;
+	char *buff = new char[size+2]{0};
+	//rr = recv(buff, size);
+	rr = ::recv(handle, (char*)(buff), size, MSG_NOSIGNAL);
 
-	string ret(buff, size);
+	ret = string(buff, size);
+
+	LOGD(buff << "|" << ret);
 
 	if (rr != size)
 		throw socket_exception(__LINE__, __func__, __FILE__);	
 	
+	if(buff[size] != '\0')
+		throw memory_exception("Unterminated string", __LINE__, __func__, __FILE__);
+
+	delete[] buff;
 	return ret;
 }
 
