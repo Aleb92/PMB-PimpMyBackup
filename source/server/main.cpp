@@ -32,8 +32,8 @@ int main() {
 
 		// Questo solo e unicamente per "eleganza"...
 		on_return<> tStop([&]() {
-			tPool.stop();
-		});
+					tPool.stop();
+				});
 
 		// Round robin per le db_connections!
 		size_t rRobin = 0;
@@ -44,11 +44,14 @@ int main() {
 				settings::inst().server_port.value,
 				settings::inst().queue_size.value);
 
+		volatile bool bah = true;
+
 		while (1) {
-			tPool.execute(worker, listener.accept(),
-					std::ref(db_connections[rRobin++]));
+//			tPool.execute(worker, listener.accept(),
+//					std::ref(db_connections[rRobin++]));
+			worker(listener.accept(), db_connections[rRobin++], bah);
 			if (rRobin == db_connections.size())
-				rRobin = 0;
+			rRobin = 0;
 		}
 	} catch (const exception& ex) {
 		cout << "Error: " << ex.what() << endl;
@@ -104,23 +107,28 @@ void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
 			fileIDss << "0123456789ABCDEF"[buff[i] % 16];
 		}
 	}
+
 	string fileID = fileIDss.str();
 
-	//TODO: controllare che non sia già stato inviato
-	if (false) // se non c'è già
-	{
-		{
-			FILE* file = fopen(fileID.c_str(), "wb");
+	LOGD("FileID: " << fileID);
 
-			char buffer[BUFF_LENGHT] = { 0 };
+	//TODO: controllare che non sia già stato inviato
+	if(context.version_exists(fileID))
+	{
+		LOGD("ok");
+		{
+			string fileName = settings::inst().save_folder.value + context.usr + '/' + fileID;
+			FILE* file = fopen(fileName.c_str(), "wb");
+
+			char buffer[BUFF_LENGHT] = {0};
 			uint32_t n = 0;
 
 			if (file == NULL)
 				throw fs_exception("writeFile",__LINE__, __func__, __FILE__);
 
 			on_return<> ret([file]() {
-				fclose(file);
-			});
+						fclose(file);
+					});
 
 			uint32_t size = sock.recv<uint32_t>();
 
@@ -140,7 +148,7 @@ void list(socket_stream& sock, user_context& context, int64_t) {
 	auto versions = context.versions();
 	sock.send<uint32_t>(versions.size());
 	for (int64_t t : versions)
-		sock.send(t);
+	sock.send(t);
 }
 
 void sync(socket_stream& sock, user_context& context) {
@@ -163,11 +171,11 @@ void sync(socket_stream& sock, user_context& context) {
 
 		FILE* file = fopen(fileID.c_str(), "rb");
 		if (file == NULL)
-			throw fs_exception(__LINE__, __func__, __FILE__);
+		throw fs_exception(__LINE__, __func__, __FILE__);
 
 		on_return<> ret([file]() {
-			fclose(file);
-		});
+					fclose(file);
+				});
 
 		fseek(file, 0, SEEK_END);
 		uint32_t size = ftell(file);
@@ -182,7 +190,7 @@ void sync(socket_stream& sock, user_context& context) {
 
 void version(socket_stream& sock, user_context& context, int64_t ts) {
 	LOGF;
-	char buffer[BUFF_LENGHT] = { 0 };
+	char buffer[BUFF_LENGHT] = {0};
 
 	string fileID = context.version(ts);
 
@@ -195,11 +203,11 @@ void version(socket_stream& sock, user_context& context, int64_t ts) {
 
 	FILE* file = fopen(fileID.c_str(), "rb");
 	if (file == NULL)
-		throw fs_exception(__LINE__, __func__, __FILE__);
+	throw fs_exception(__LINE__, __func__, __FILE__);
 
 	on_return<> ret([file]() {
-		fclose(file);
-	});
+				fclose(file);
+			});
 
 	fseek(file, 0, SEEK_END);
 	uint32_t size = ftell(file);
@@ -215,9 +223,9 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 	LOGF;
 	try {
 		const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] =
-				{ { CREATE, create }, { MOVE, move }, { REMOVE, remove }, {
-						CHMOD, chmodFile }, { MOVE_DIR, moveDir }, { VERSION,
-						version }, { LIST, list }, { WRITE, writeFile } };
+		{	{	CREATE, create}, {MOVE, move}, {REMOVE, remove}, {
+				CHMOD, chmodFile}, {MOVE_DIR, moveDir}, {VERSION,
+				version}, {LIST, list}, {WRITE, writeFile}};
 
 		string username = sock.recv<string>();
 		string password = sock.recv<string>();
@@ -241,7 +249,6 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 			return;
 		}
 
-
 		uint64_t timestamp[8];
 
 		for (auto& ts : timestamp) {
@@ -258,7 +265,7 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 			sock.send<bool>(true);
 		}
 
-	}catch (socket_exception& s_ex)  {
+	} catch (socket_exception& s_ex) {
 		cerr << s_ex.what();
 	}
 	catch (base_exception& ex) {

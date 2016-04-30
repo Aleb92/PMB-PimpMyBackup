@@ -39,7 +39,10 @@ inline int64_t db_column<int64_t>(sqlite3_stmt * stmt, int i) {
 
 template<>
 inline string db_column<string>(sqlite3_stmt * stmt, int i) {
-	return string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, i)));
+	LOGF;
+	auto c = sqlite3_column_text(stmt, i);
+	LOGD(c);
+	return string(reinterpret_cast<const char*>(c));
 }
 
 template<typename T>
@@ -49,6 +52,7 @@ inline void bind_one(sqlite3_stmt * stmt, T& val, int i);
 template<>
 inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t& val, int i) {
 	LOGF;
+	LOGD(val);
 
 	int v = sqlite3_bind_int(stmt, i, val);
 	if (v != SQLITE_OK)
@@ -58,6 +62,7 @@ inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t& val, int i) {
 template<>
 inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
 	LOGF;
+	LOGD(val);
 	int v = sqlite3_bind_int(stmt, i, val);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
@@ -66,6 +71,7 @@ inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
 template<>
 inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
 	LOGF;
+	LOGD(val << " : " << val.size());
 	int v = sqlite3_bind_text(stmt, i, val.c_str(), -1, nullptr);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
@@ -74,6 +80,7 @@ inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
 template<>
 inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t& val, int i) {
 	LOGF;
+	LOGD(val);
 	int v = sqlite3_bind_int64(stmt, i, val);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
@@ -183,6 +190,12 @@ database::database(const char*db_name) {
 	sync = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
 		throw db_exception(c,__LINE__, __func__, __FILE__);
+
+	//exists
+	r = sqlite3_prepare_v2(c, SQL_EXISTS, sizeof(SQL_EXISTS), &statement, nullptr);
+	version_exists = unique_ptr<sqlite3_stmt>(statement);
+	if (r != SQLITE_OK)
+		throw db_exception(c,__LINE__, __func__, __FILE__);
 }
 
 user_context database::getUserContext(string&user, string&pass, string&path) {
@@ -215,6 +228,45 @@ bool user_context::auth() {
 			LOGD("DB PWD:" << pwd << pwd.length());
 			LOGD("NET PWD" << pass << pass.length());
 			return pwd == pass;
+		}
+		case SQLITE_BUSY:
+			// Qui non ci dovrebbe mai arrivare(WAL mode)...
+			// Comunque nel caso, prima lascio fare qualcosa agli altri
+			this_thread::yield();
+			// Poi riprovo.
+			break;
+		default:
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
+		}
+	}
+}
+
+bool user_context::version_exists(string& id) {
+	LOGF;
+	//Prima cosa: lock! Dalle specifiche sqlite solo un thread alla volta può
+	//usare la connessione.
+	lock_guard<mutex> guard(db.busy);
+
+	on_return<> ret([&] {
+		// On return resetto statement e bindings
+			sqlite3_reset(db.version_exists.get());
+			sqlite3_clear_bindings(db.version_exists.get());
+		});
+
+	// Ora binding degli argomenti
+	bind_db(db.version_exists.get(), 1, usr, path);
+
+	// Quindi eseguo
+	while (1) {
+		switch (sqlite3_step(db.version_exists.get())) {
+		case SQLITE_DONE:
+			LOGD("No version found");
+			return false;	// No such user!
+		case SQLITE_ROW: {
+			string vID = db_column<string>(db.auth.get(), 0);
+			LOGD("DB VERSION: " << vID);
+			LOGD("NEW VERSION: " << id);
+			return vID == id;
 		}
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...
@@ -301,11 +353,15 @@ void user_context::move(int64_t timestamp, string& newPath) {
 	// Ora binding degli argomenti
 	bind_db(db.move.get(), 1, usr, path, timestamp, newPath);
 
+	path = newPath;
+
 	// Quindi eseguo
 	while (1) {
 		switch (sqlite3_step(db.move.get())) {
 		case SQLITE_DONE:
-			return;	// FATTO!
+			if(sqlite3_changes(db.connection.get()) != 1)
+				throw db_exception("No record found.", __LINE__, __func__, __FILE__);	// FATTO!
+			return;
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...
 			// Comunque nel caso, prima lascio fare qualcosa agli altri

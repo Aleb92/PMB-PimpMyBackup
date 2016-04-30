@@ -35,6 +35,7 @@ namespace server {
 #define SQL_AUTH "SELECT password FROM users WHERE username=?1"
 #define SQL_CREATE "INSERT INTO files (username, path, time_stamp) VALUES (?1,?2,?3)"
 #define SQL_CHMOD "UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2"
+#define SQL_EXISTS "SELECT file_id FROM files WHERE username=?1 AND path=?2"
 #define SQL_WRITE "UPDATE files SET time_stamp=?3, file_id=?4 WHERE username=?1 AND path=?2"
 #define SQL_MOVE "UPDATE files SET time_stamp=?3, path=?4 WHERE username=?1 AND path=?2"
 #define SQL_MOVE_DIR "UPDATE files SET time_stamp=?3, path=REPLACE(path,?2,?4)"\
@@ -55,10 +56,12 @@ class user_context {
 	friend class database;
 	user_context(std::string&, std::string&, std::string&, database&);
 public:
-	const std::string& usr, &pass, &path;
+	const std::string& usr, &pass;
+	std::string path;
 
 	bool auth();
 	void create(int64_t);
+	bool version_exists(std::string&);
 	void write(int64_t, std::string&);
 	void chmod(int64_t, uint32_t);
 	void move(int64_t, std::string&);
@@ -73,7 +76,7 @@ public:
 class database {
 	std::unique_ptr<sqlite3> connection;
 	std::unique_ptr<sqlite3_stmt> auth, create,
-			chmod, write, move, remove, version, list, moveDir, sync;
+			chmod, write, move, remove, version, list, moveDir, sync, version_exists;
 	std::mutex busy;
 	friend class user_context;
 public:
