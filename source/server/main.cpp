@@ -28,12 +28,12 @@ int main() {
 		vector<database> db_connections(
 				settings::inst().db_connection_number.value);
 		//Solito thread pool
-		thread_pool tPool;
+		//thread_pool tPool;
 
 		// Questo solo e unicamente per "eleganza"...
-		on_return<> tStop([&]() {
-					tPool.stop();
-				});
+//		on_return<> tStop([&]() {
+//					tPool.stop();
+//				});
 
 		// Round robin per le db_connections!
 		size_t rRobin = 0;

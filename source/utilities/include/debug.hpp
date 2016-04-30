@@ -16,6 +16,10 @@
 namespace utilities {
 
 	namespace debug {
+
+		void db_trace(void*, const char*);
+
+
 		struct d_func {
 			static int prefix;
 			const char* const c;

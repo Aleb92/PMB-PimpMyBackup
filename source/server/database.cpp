@@ -71,8 +71,8 @@ inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
 template<>
 inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
 	LOGF;
-	LOGD(val << " : " << val.size());
-	int v = sqlite3_bind_text(stmt, i, val.c_str(), -1, nullptr);
+	LOGD(val.c_str() << " : " << val.size() << " : " << i);
+	int v = sqlite3_bind_text(stmt, i, val.c_str(), val.size(), nullptr);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
 }
@@ -196,6 +196,9 @@ database::database(const char*db_name) {
 	version_exists = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
 		throw db_exception(c,__LINE__, __func__, __FILE__);
+
+	// DEBUG
+	sqlite3_trace(connection.get(), utilities::debug::db_trace, nullptr);
 }
 
 user_context database::getUserContext(string&user, string&pass, string&path) {

@@ -1,3 +1,4 @@
+#include <debug.hpp>
 #include <exceptions.hpp>
 #include <iostream>
 
@@ -70,7 +71,8 @@ db_exception::db_exception(int err, int l, const char* f, const char* ff) noexce
 db_exception::db_exception(sqlite3* db, int l, const char* f, const char* ff) noexcept : base_exception(sqlite3_errmsg(db), l, f, ff){
 }
 
-db_exception::db_exception(char* err, int l, const char* f, const char* ff) noexcept : base_exception(err, l, f, ff){
+db_exception::db_exception(char* err, int l, const char* f, const char* ff) noexcept : base_exception(string(err), l, f, ff){
+	LOGF;
 	sqlite3_free(err);
 }
 
