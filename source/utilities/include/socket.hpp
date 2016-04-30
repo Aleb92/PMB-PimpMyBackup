@@ -230,8 +230,10 @@ public:
 
 	template<size_t s>
 	void send(const FILETIME(&val)[s]) {
+		LOGF;
 		//FIXME e' giusto l'ordine?
 		for(unsigned int i = 0; i < s; i++){
+			LOGD(val[i]);
 			send<uint32_t>((uint32_t)val[i].dwHighDateTime);
 			send<uint32_t>((uint32_t)val[i].dwLowDateTime);
 		}
