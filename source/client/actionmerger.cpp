@@ -126,6 +126,7 @@ file_action& file_action::operator ^=(const log_entry_header& entry) {
 }
 
 bool action_merger::remove(std::wstring& name, file_action& actions) {
+	LOGF;
 	unique_lock<mutex> guard(lock);
 
 	// Per poter rimuovere qualcosa devo sempre aver qualcosa da rimuovere..

@@ -17,13 +17,13 @@
 # include <Windows.h>
 #endif
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+		std::ostream& operator<< (std::ostream& out, FILETIME);
+#endif
+
 namespace utilities {
 
 	namespace debug {
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-		std::ostream& operator<< (std::ostream& out, FILETIME&);
-#endif
 
 		void db_trace(void*, const char*);
 

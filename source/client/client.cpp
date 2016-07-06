@@ -177,11 +177,10 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		action_merger::inst().wait_time = 0;
 
 	} catch (base_exception& ex) { // ECCEZIONI
-		if (dynamic_cast<socket_exception*>(&ex) != nullptr) {
 			action_merger::inst().wait_time = min(
 					settings::inst().max_waiting_time.value,
 					(action_merger::inst().wait_time * 2) + 1);
-		}
+
 		cout << ex.what() << endl;
 	}
 

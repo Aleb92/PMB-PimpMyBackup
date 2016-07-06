@@ -208,7 +208,7 @@ template<>
 void socket_stream::send<std::string&>(std::string& str) {
 	LOGF;
 	uint32_t size = str.length();
-	send(size);
+	send<uint32_t>(size);
 	send(str.c_str(), size);
 }
 
