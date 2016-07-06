@@ -72,7 +72,7 @@ template<>
 inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
 	LOGF;
 	LOGD(val.c_str() << " : " << val.size() << " : " << i);
-	int v = sqlite3_bind_text(stmt, i, val.c_str(), val.size(), nullptr);
+	int v = sqlite3_bind_text(stmt, i, val.c_str(), -1, nullptr);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
 }
@@ -356,14 +356,13 @@ void user_context::move(int64_t timestamp, string& newPath) {
 	// Ora binding degli argomenti
 	bind_db(db.move.get(), 1, usr, path, timestamp, newPath);
 
-	path = newPath;
-
 	// Quindi eseguo
 	while (1) {
 		switch (sqlite3_step(db.move.get())) {
 		case SQLITE_DONE:
 			if(sqlite3_changes(db.connection.get()) != 1)
 				throw db_exception("No record found.", __LINE__, __func__, __FILE__);	// FATTO!
+			path = newPath;
 			return;
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...

@@ -249,10 +249,10 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 			return;
 		}
 
-		uint64_t timestamp[8];
+		int64_t timestamp[8];
 
 		for (auto& ts : timestamp) {
-			ts = sock.recv<uint64_t>();
+			ts = sock.recv<int64_t>();
 			LOGD("ts:" << ts);
 		}
 
@@ -261,8 +261,8 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 			if (opCode & flag[i].first) {
 				LOGD("Exec flag: " << flag[i].first);
 				(flag[i].second)(sock, context, timestamp[i]);
+				sock.send<bool>(true);
 			}
-			sock.send<bool>(true);
 		}
 
 	} catch (socket_exception& s_ex) {
