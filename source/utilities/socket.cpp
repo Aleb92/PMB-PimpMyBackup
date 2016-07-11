@@ -290,5 +290,30 @@ string socket_stream::recv<string>() {
 	return ret;
 }
 
+template<>
+string socket_stream::recv<string>(size_t s) {
+	LOGF;
+	size_t size = recv<uint32_t>(), rr;
+	LOGD(size);
+	if(size > s)
+		throw io_exception("String too big", __LINE__, __func__, __FILE__);
+	string ret;
+	char *buff = new char[size+2]{0};
+	rr = ::recv(handle, (char*)(buff), size, MSG_NOSIGNAL);
+
+	ret = string(buff, size);
+
+	LOGD(buff << "|" << ret);
+
+	if (rr != size)
+		throw socket_exception(__LINE__, __func__, __FILE__);
+
+	if(buff[size] != '\0')
+		throw memory_exception("Unterminated string", __LINE__, __func__, __FILE__);
+
+	delete[] buff;
+	return ret;
+}
+
 }/* namespace utilities */
 

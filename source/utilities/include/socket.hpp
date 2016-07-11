@@ -283,6 +283,8 @@ public:
 		return ret;
 	}
 
+	template<typename T>
+	T recv(size_t s);
 
 	template<typename T>
 	inline ssize_t recv(const T); // Empty
@@ -297,7 +299,8 @@ public:
 	ssize_t recv(T* buff, size_t N) {
 		LOGF;
 		LOGD("di: " << typeid(T).name());
-		ssize_t ret = ::recv(handle, (char*)(buff), N * sizeof(T), MSG_NOSIGNAL);
+		LOGD("size = " << N);
+		ssize_t ret = ::recv(handle, static_cast<char*>(buff), N * sizeof(T), MSG_NOSIGNAL);
 		LOGD(ret);
 		if(ret < 0)
 			throw socket_exception(__LINE__, __func__, __FILE__);
@@ -350,6 +353,9 @@ int64_t socket_stream::recv<int64_t>();
 
 template<>
 std::string socket_stream::recv<std::string>();
+
+template<>
+std::string socket_stream::recv<std::string>(size_t);
 
 /**
  * Socket dedicato solo ad accettare connesioni e a generare dei nuovi socket_stream (solitamente

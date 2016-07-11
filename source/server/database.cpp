@@ -9,6 +9,7 @@
 #include <string>
 #include <tuple>
 #include <thread>
+#include <cstring>
 
 using namespace std;
 using namespace server;
@@ -40,17 +41,18 @@ inline int64_t db_column<int64_t>(sqlite3_stmt * stmt, int i) {
 template<>
 inline string db_column<string>(sqlite3_stmt * stmt, int i) {
 	LOGF;
-	auto c = sqlite3_column_text(stmt, i);
+	const char * c = (const char*)(sqlite3_column_text(stmt, i));
+	LOGD((unsigned long long)c);
 	LOGD(c);
-	return string(reinterpret_cast<const char*>(c));
+	return string(c);
 }
 
 template<typename T>
-inline void bind_one(sqlite3_stmt * stmt, T& val, int i);
+inline void bind_one(sqlite3_stmt * stmt, T val, int i);
 
 //Implemento quelli che mi servono
 template<>
-inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t& val, int i) {
+inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t val, int i) {
 	LOGF;
 	LOGD(val);
 
@@ -60,7 +62,7 @@ inline void bind_one<uint32_t>(sqlite3_stmt * stmt, uint32_t& val, int i) {
 }
 
 template<>
-inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
+inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t val, int i) {
 	LOGF;
 	LOGD(val);
 	int v = sqlite3_bind_int(stmt, i, val);
@@ -69,16 +71,16 @@ inline void bind_one<uint16_t>(sqlite3_stmt * stmt, uint16_t& val, int i) {
 }
 
 template<>
-inline void bind_one<string>(sqlite3_stmt * stmt, string& val, int i) {
+inline void bind_one<const char*>(sqlite3_stmt * stmt, const char* val, int i) {
 	LOGF;
-	LOGD(val.c_str() << " : " << val.size() << " : " << i);
-	int v = sqlite3_bind_text(stmt, i, val.c_str(), -1, nullptr);
+	LOGD(val << " : " << strlen(val) << " : " << i);
+	int v = sqlite3_bind_text(stmt, i, val, -1, nullptr);
 	if (v != SQLITE_OK)
 		throw db_exception(v,__LINE__, __func__, __FILE__);
 }
 
 template<>
-inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t& val, int i) {
+inline void bind_one<int64_t>(sqlite3_stmt * stmt, int64_t val, int i) {
 	LOGF;
 	LOGD(val);
 	int v = sqlite3_bind_int64(stmt, i, val);
@@ -178,14 +180,7 @@ database::database(const char*db_name) {
 	if (r != SQLITE_OK)
 		throw db_exception(c,__LINE__, __func__, __FILE__);
 
-	//moveDir
-	r = sqlite3_prepare_v2(c, SQL_MOVE_DIR, sizeof(SQL_MOVE_DIR), &statement,
-			nullptr);
-	moveDir = unique_ptr<sqlite3_stmt>(statement);
-	if (r != SQLITE_OK)
-		throw db_exception(c,__LINE__, __func__, __FILE__);
-
-	//moveDir
+	//sync
 	r = sqlite3_prepare_v2(c, SQL_SYNC, sizeof(SQL_SYNC), &statement, nullptr);
 	sync = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
@@ -218,7 +213,7 @@ bool user_context::auth() {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.auth.get(), 1, usr);
+	bind_db(db.auth.get(), 1, usr.c_str());
 
 	// Quindi eseguo
 	while (1) {
@@ -257,7 +252,7 @@ bool user_context::version_exists(string& id) {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.version_exists.get(), 1, usr, path);
+	bind_db(db.version_exists.get(), 1, usr.c_str(), path.c_str());
 
 	// Quindi eseguo
 	while (1) {
@@ -266,7 +261,7 @@ bool user_context::version_exists(string& id) {
 			LOGD("No version found");
 			return false;	// No such user!
 		case SQLITE_ROW: {
-			string vID = db_column<string>(db.auth.get(), 0);
+			string vID = db_column<string>(db.version_exists.get(), 0);
 			LOGD("DB VERSION: " << vID);
 			LOGD("NEW VERSION: " << id);
 			return vID == id;
@@ -294,7 +289,7 @@ void user_context::chmod(int64_t timestamp, uint32_t mod) {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.chmod.get(), 1, usr, path, timestamp, mod);
+	bind_db(db.chmod.get(), 1, usr.c_str(), path.c_str(), timestamp, mod);
 
 	// Quindi eseguo
 	while (1) {
@@ -323,8 +318,10 @@ void user_context::create(int64_t timestamp) {
 			sqlite3_clear_bindings(db.create.get());
 		});
 
+	string file_id = std::to_string(timestamp);
+	
 	// Ora binding degli argomenti
-	bind_db(db.create.get(), 1, usr, path, timestamp);
+	bind_db(db.create.get(), 1, usr.c_str(), path.c_str(), timestamp, file_id.c_str());
 
 	// Quindi eseguo
 	while (1) {
@@ -354,7 +351,7 @@ void user_context::move(int64_t timestamp, string& newPath) {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.move.get(), 1, usr, path, timestamp, newPath);
+	bind_db(db.move.get(), 1, usr.c_str(), path.c_str(), timestamp, newPath.c_str());
 
 	// Quindi eseguo
 	while (1) {
@@ -376,37 +373,7 @@ void user_context::move(int64_t timestamp, string& newPath) {
 	}
 }
 
-void user_context::moveDir(int64_t timestamp, string& newdir) {
-	LOGF;
-	lock_guard<mutex> guard(db.busy);
-
-	on_return<> ret([&] {
-		// On return resetto statement e bindings
-			sqlite3_reset(db.moveDir.get());
-			sqlite3_clear_bindings(db.moveDir.get());
-		});
-
-	// Ora binding degli argomenti
-	bind_db(db.moveDir.get(), 1, usr, path, timestamp, newdir);
-
-	// Quindi eseguo
-	while (1) {
-		switch (sqlite3_step(db.moveDir.get())) {
-		case SQLITE_DONE:
-			return;	// FATTO!
-		case SQLITE_BUSY:
-			// Qui non ci dovrebbe mai arrivare(WAL mode)...
-			// Comunque nel caso, prima lascio fare qualcosa agli altri
-			this_thread::yield();
-			// Poi riprovo.
-			break;
-		default:
-			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
-		}
-	}
-}
-
-void user_context::remove() {
+void user_context::remove(int64_t timestamp) {
 	LOGF;
 	lock_guard<mutex> guard(db.busy);
 
@@ -417,7 +384,7 @@ void user_context::remove() {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.remove.get(), 1, usr, path);
+	bind_db(db.remove.get(), 1, usr.c_str(), path.c_str(), timestamp);
 
 	// Quindi eseguo
 	while (1) {
@@ -447,7 +414,7 @@ string user_context::version(int64_t timestamp) {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.version.get(), 1, usr, path, timestamp);
+	bind_db(db.version.get(), 1, usr.c_str(), path.c_str(), timestamp);
 
 	string fileID;
 
@@ -486,7 +453,7 @@ vector<int64_t> user_context::versions() {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.list.get(), 1, usr, path);
+	bind_db(db.list.get(), 1, usr.c_str(), path.c_str());
 
 	// Quindi eseguo
 	while (1) {
@@ -523,7 +490,7 @@ vector<pair<string, string>> user_context::sync() {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.sync.get(), 1, usr);
+	bind_db(db.sync.get(), 1, usr.c_str());
 
 	// Quindi eseguo
 	while (1) {
@@ -555,12 +522,14 @@ void user_context::write(int64_t time, string& fileID) {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.write.get(), 1, usr, path, time, fileID);
+	bind_db(db.write.get(), 1, usr.c_str(), path.c_str(), time, fileID.c_str());
 
 	// Quindi eseguo
 	while (1) {
 		switch (sqlite3_step(db.write.get())) {
 		case SQLITE_DONE:
+			//if(sqlite3_changes(db.connection.get()) == 0)
+			//	throw db_exception("No such file",__LINE__, __func__, __FILE__);
 			return;	// FATTO!
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...
