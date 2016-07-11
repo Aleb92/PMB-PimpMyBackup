@@ -3,6 +3,8 @@
 #define SOURCE_UTILITIES_INCLUDE_FSUTIL_HPP_
 
 #include <openssl/md5.h>
+#include <string>
+#include <algorithm>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 # include <windows.h>
@@ -12,6 +14,12 @@ namespace utilities{
 	int createDirectoryRecursively(const wchar_t* path);
 	bool pathExists(const wchar_t*path);
 	bool isPathDir(const wchar_t*path);
+
+	template<typename C>
+	std::basic_string<C> dirName(std::basic_string<C> s){
+		s.erase(std::find(s.rbegin(), s.rend(), static_cast<C>('\\')).base(), s.end());
+		return s;
+	};
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	bool fileMD5(const wchar_t*path, unsigned char buff[MD5_DIGEST_LENGTH]);
