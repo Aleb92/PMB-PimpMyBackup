@@ -74,12 +74,15 @@ void move(socket_stream& sock, user_context& context, int64_t ts) {
 
 void create(socket_stream& sock, user_context& context, int64_t ts) {
 	LOGF;
+	string fileName = settings::inst().save_folder.value + context.usr + '/' + std::to_string(ts);
+	std::ofstream(fileName.c_str());
+	
 	context.create(ts);
 }
 
-void remove(socket_stream& sock, user_context& context, int64_t) {
+void remove(socket_stream& sock, user_context& context, int64_t ts) {
 	LOGF;
-	context.remove();
+	context.remove(ts);
 }
 
 void chmodFile(socket_stream& sock, user_context& context, int64_t ts) {
@@ -89,8 +92,6 @@ void chmodFile(socket_stream& sock, user_context& context, int64_t ts) {
 
 void moveDir(socket_stream& sock, user_context& context, int64_t ts) {
 	LOGF;
-	string mv = sock.recv<string>();
-	context.moveDir(ts, mv);
 }
 
 void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
@@ -113,27 +114,31 @@ void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
 	LOGD("FileID: " << fileID);
 
 	//TODO: controllare che non sia già stato inviato
-	if(context.version_exists(fileID))
+	if(!context.version_exists(fileID))
 	{
 		LOGD("ok");
 		{
 			string fileName = settings::inst().save_folder.value + context.usr + '/' + fileID;
+			LOGD(fileName);
 			FILE* file = fopen(fileName.c_str(), "wb");
 
 			char buffer[BUFF_LENGHT] = {0};
 			uint32_t n = 0;
 
 			if (file == NULL)
-				throw fs_exception("writeFile",__LINE__, __func__, __FILE__);
+				throw fs_exception(__LINE__, __func__, __FILE__);
 
 			on_return<> ret([file]() {
 						fclose(file);
 					});
 
 			uint32_t size = sock.recv<uint32_t>();
+			
+			LOGD(size);
+			
 
 			while (n < size) {
-				size_t i = sock.recv(buffer, BUFF_LENGHT);
+				size_t i = sock.recv(buffer, std::min((uint32_t)BUFF_LENGHT, size - n));
 				fwrite(buffer, i, 1, file);
 				n += i;
 			}

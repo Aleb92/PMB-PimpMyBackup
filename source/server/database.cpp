@@ -41,10 +41,10 @@ inline int64_t db_column<int64_t>(sqlite3_stmt * stmt, int i) {
 template<>
 inline string db_column<string>(sqlite3_stmt * stmt, int i) {
 	LOGF;
-	auto c = sqlite3_column_text(stmt, i);
-	cout << c << endl;
+	const char * c = (const char*)(sqlite3_column_text(stmt, i));
+	LOGD((unsigned long long)c);
 	LOGD(c);
-	return string(reinterpret_cast<const char*>(c));
+	return string(c);
 }
 
 template<typename T>
@@ -180,14 +180,7 @@ database::database(const char*db_name) {
 	if (r != SQLITE_OK)
 		throw db_exception(c,__LINE__, __func__, __FILE__);
 
-	//moveDir
-	r = sqlite3_prepare_v2(c, SQL_MOVE_DIR, sizeof(SQL_MOVE_DIR), &statement,
-			nullptr);
-	moveDir = unique_ptr<sqlite3_stmt>(statement);
-	if (r != SQLITE_OK)
-		throw db_exception(c,__LINE__, __func__, __FILE__);
-
-	//moveDir
+	//sync
 	r = sqlite3_prepare_v2(c, SQL_SYNC, sizeof(SQL_SYNC), &statement, nullptr);
 	sync = unique_ptr<sqlite3_stmt>(statement);
 	if (r != SQLITE_OK)
@@ -268,7 +261,7 @@ bool user_context::version_exists(string& id) {
 			LOGD("No version found");
 			return false;	// No such user!
 		case SQLITE_ROW: {
-			string vID = db_column<string>(db.auth.get(), 0);
+			string vID = db_column<string>(db.version_exists.get(), 0);
 			LOGD("DB VERSION: " << vID);
 			LOGD("NEW VERSION: " << id);
 			return vID == id;
@@ -325,8 +318,10 @@ void user_context::create(int64_t timestamp) {
 			sqlite3_clear_bindings(db.create.get());
 		});
 
+	string file_id = std::to_string(timestamp);
+	
 	// Ora binding degli argomenti
-	bind_db(db.create.get(), 1, usr.c_str(), path.c_str(), timestamp);
+	bind_db(db.create.get(), 1, usr.c_str(), path.c_str(), timestamp, file_id.c_str());
 
 	// Quindi eseguo
 	while (1) {
@@ -378,37 +373,7 @@ void user_context::move(int64_t timestamp, string& newPath) {
 	}
 }
 
-void user_context::moveDir(int64_t timestamp, string& newdir) {
-	LOGF;
-	lock_guard<mutex> guard(db.busy);
-
-	on_return<> ret([&] {
-		// On return resetto statement e bindings
-			sqlite3_reset(db.moveDir.get());
-			sqlite3_clear_bindings(db.moveDir.get());
-		});
-
-	// Ora binding degli argomenti
-	bind_db(db.moveDir.get(), 1, usr.c_str(), path.c_str(), timestamp, newdir.c_str());
-
-	// Quindi eseguo
-	while (1) {
-		switch (sqlite3_step(db.moveDir.get())) {
-		case SQLITE_DONE:
-			return;	// FATTO!
-		case SQLITE_BUSY:
-			// Qui non ci dovrebbe mai arrivare(WAL mode)...
-			// Comunque nel caso, prima lascio fare qualcosa agli altri
-			this_thread::yield();
-			// Poi riprovo.
-			break;
-		default:
-			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
-		}
-	}
-}
-
-void user_context::remove() {
+void user_context::remove(int64_t timestamp) {
 	LOGF;
 	lock_guard<mutex> guard(db.busy);
 
@@ -419,7 +384,7 @@ void user_context::remove() {
 		});
 
 	// Ora binding degli argomenti
-	bind_db(db.remove.get(), 1, usr.c_str(), path.c_str());
+	bind_db(db.remove.get(), 1, usr.c_str(), path.c_str(), timestamp);
 
 	// Quindi eseguo
 	while (1) {
@@ -563,6 +528,8 @@ void user_context::write(int64_t time, string& fileID) {
 	while (1) {
 		switch (sqlite3_step(db.write.get())) {
 		case SQLITE_DONE:
+			//if(sqlite3_changes(db.connection.get()) == 0)
+			//	throw db_exception("No such file",__LINE__, __func__, __FILE__);
 			return;	// FATTO!
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...

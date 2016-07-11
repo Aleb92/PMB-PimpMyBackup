@@ -92,7 +92,7 @@ bool utilities::fileMD5(const char*path,
 	return ret;
 }
 
-bool fdMD5(int fd, unsigned char buff[MD5_DIGEST_LENGTH]) {
+bool utilities::fdMD5(int fd, unsigned char buff[MD5_DIGEST_LENGTH]) {
 
 	struct stat sb;
 	if (fstat(fd, &sb) == -1)
