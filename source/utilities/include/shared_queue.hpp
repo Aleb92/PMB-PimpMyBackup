@@ -14,6 +14,8 @@
 #include <mutex>
 #include <utilities/include/atend.hpp>
 #include <utilities/include/singleton.hpp>
+#include <utilities/include/debug.hpp>
+#include <utilities/include/strings.hpp>
 
 namespace utilities {
 
@@ -36,9 +38,10 @@ namespace utilities {
 		 * @param Elemento da accodare nella coda
 		 */
 		void enqueue(const T obj) {
+			LOGF;
 			std::lock_guard<std::mutex> guard(lk);
 			data.push_back(obj);
-
+			LOGD("FileName: " << utf8_encode(std::wstring(obj->FileName, obj->FileNameLength / sizeof(wchar_t))) << " Action: "<< (int)obj->Action);
 			cv.notify_all();
 		}
 

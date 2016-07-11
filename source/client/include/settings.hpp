@@ -38,6 +38,11 @@ namespace client {
 	SETTINGS_ENTRY(std::wstring, watched_dir);
 
 	/**
+	 * Cartella temporanea
+	 */
+	SETTINGS_ENTRY(std::wstring, temp_dir);
+
+	/**
 	 * indirizzo ip (stringa) del server
 	 */
 	SETTINGS_ENTRY(std::string, server_host);

@@ -10,6 +10,7 @@
 #include <server/include/protocol.hpp>
 
 #include <utilities/include/atend.hpp>
+#include <utilities/include/fsutil.hpp>
 #include <utilities/include/exceptions.hpp>
 
 #include <windows.h>
@@ -24,10 +25,9 @@ using namespace server;
 namespace client {
 
 #define FILE_FILTER FILE_NOTIFY_CHANGE_FILE_NAME|\
-		FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE
+		FILE_NOTIFY_CHANGE_LAST_WRITE
 
-#define DIR_FILTER FILE_NOTIFY_CHANGE_DIR_NAME|\
-		FILE_NOTIFY_CHANGE_ATTRIBUTES|FILE_NOTIFY_CHANGE_SECURITY
+#define DIR_FILTER FILE_NOTIFY_CHANGE_DIR_NAME
 
 client::client() :
 		dirListener(settings::inst().watched_dir.value.c_str(), DIR_FILTER), fileListener(
@@ -50,6 +50,8 @@ void client::start() {
 	dispatcher = thread(&client::dispatch, this);
 	// Qui undertaker è pronto! TOMBSTONE PIPE DRIVER!!!
 	tombstone = thread(&pipe::driver, &pipe::inst());
+
+	createDirectoryRecursively(settings::inst().temp_dir.value.c_str());
 }
 
 void client::merge() {
@@ -60,12 +62,7 @@ void client::merge() {
 
 		//Questo continua finche l'azione che non viene fuori e' 0 che significa chiusura
 		while (che->Action) {
-
-			if (get_flag_bit(che->Action, che.flags) != INVALID) {
-
-				log::inst().issue(che);
-				action_merger::inst().add_change(che);
-			}
+			action_merger::inst().add_change(che);
 			che = shq::inst().dequeue();
 		}
 	} catch (const exception& e) {
@@ -83,9 +80,10 @@ void client::dispatch() {
 		wstring fileName;
 		file_action newAction;
 
+		bool b = true;
+
 		while (action_merger::inst().remove(fileName, newAction)) {
-			thPool.execute(sendAction, this, std::ref(fileName),
-					std::ref(newAction));
+			thPool.execute(sendAction, this, fileName,newAction);
 
 			if (action_merger::inst().wait_time != 0)
 				Sleep(action_merger::inst().wait_time);
@@ -95,7 +93,7 @@ void client::dispatch() {
 	}
 }
 
-void client::sendAction(std::wstring& fileName, file_action& action,
+void client::sendAction(std::wstring fileName, file_action action,
 		volatile bool &run) {
 
 	LOGF;
@@ -109,7 +107,7 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 	// e finisce col re-inserire (se necessario) in coda la /le operazioni
 	// da ripetere e aggiornare il log.
 
-	wstring realName = (action.op_code & MOVE) ? action.newName : fileName;
+	wstring realName = (action.op_code & (MOVE|MOVE_DIR)) ? action.newName : fileName;
 	file_action result = action;
 
 	LOGD("Connection..");
@@ -137,6 +135,8 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 		sock.send(action.op_code);
 		sock.send(action.timestamps);
 
+		LOGD("sending opcode: " << (int)action.op_code);
+
 		for (auto f : flag) {
 			if ((action.op_code & f.first) && run) {
 				(this->*f.second)(sock, realName);
@@ -148,17 +148,13 @@ void client::sendAction(std::wstring& fileName, file_action& action,
 			}
 		}
 
-		LOGD("Version...?");
-
 		if ((action.op_code & VERSION) && run) {
 			this->version(sock, realName, run);
 			if (sock.recv<bool>()) {
-				result.op_code |= WRITE;
-				action.op_code &= ~WRITE;
+				result.op_code |= VERSION;
+				action.op_code &= ~VERSION;
 			}
 		}
-
-		LOGD("Write...?");
 
 		if ((action.op_code & WRITE) && run) {
 			this->write(sock, realName, run);
@@ -248,7 +244,7 @@ void client::chmod(socket_stream& sock, std::wstring& fileName) {
 
 void client::moveDir(socket_stream& sock, wstring& fileName) {
 	LOGF;
-	sock.send(fileName);
+	sock.send<wstring&>(fileName);
 }
 
 void client::version(socket_stream& sock, std::wstring& fileName,
@@ -281,7 +277,7 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 	LOGF;
 	char buffer[BUFF_LENGHT] = { 0 };
 
-	wstring path = settings::inst().watched_dir.value + fileName;
+	wstring path = settings::inst().temp_dir.value + fileName;
 
 	FILE* file = _wfopen(path.c_str(), L"rb");
 	if (file == NULL)
@@ -293,18 +289,24 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 
 	fseek(file, 0, SEEK_END);
 	uint32_t size = ftell(file);
+	fseek(file, 0, SEEK_SET);
 	sock.send(size);
 
-	while (feof(file) && run) {
+	while (!feof(file) && run) {
 		socket_base::SOCK_STATE state = sock.getState();
+		LOGD(state);
 		if (state & socket_base::READ_READY) {
 			if (sock.recv<bool>())
 				return;
 		}
-		size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
-		sock.send(buffer, readn);
+		if (state & socket_base::WRITE_READY) {
+			size_t readn = fread(buffer, 1, BUFF_LENGHT, file);
+			sock.send(buffer, readn);
+		}
 	}
 	sock.recv<bool>();
+
+	DeleteFileW(path.c_str());
 }
 
 }

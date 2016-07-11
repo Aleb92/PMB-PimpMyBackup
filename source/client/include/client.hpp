@@ -24,7 +24,7 @@ class client {
 	void merge();
 	void dispatch();
 
-	void sendAction(std::wstring&, file_action&, volatile bool&);
+	void sendAction(std::wstring, file_action, volatile bool&);
 
 	void move(utilities::socket_stream&, std::wstring&);
 	void create(utilities::socket_stream&, std::wstring&);

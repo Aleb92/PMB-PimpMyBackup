@@ -145,7 +145,7 @@ public:
 };
 
 inline socket_base::SOCK_STATE operator|(socket_base::SOCK_STATE lh, socket_base::SOCK_STATE rh) {
-	return static_cast<socket_base::SOCK_STATE>(lh | rh);
+	return static_cast<socket_base::SOCK_STATE>((uint8_t)lh | rh);
 }
 
 /**
@@ -257,8 +257,11 @@ public:
 	 */
 	template<typename T>
 	void send(const T*buff, size_t N) {
-		if(::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL) != N)
+		LOGF;
+		size_t n;
+		if((n = ::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL)) != N)
 			throw socket_exception(__LINE__, __func__, __FILE__);
+		LOGD("Invio contenuto buffer..." << " size: " << n);
 	}
 
 	/**

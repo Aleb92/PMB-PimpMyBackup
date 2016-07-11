@@ -2,6 +2,8 @@
 #include <openssl/md5.h>
 #include <functional>
 #include <iostream>
+#include <utilities/include/debug.hpp>
+#include <utilities/include/exceptions.hpp>
 
 using namespace std;
 
@@ -10,7 +12,7 @@ using namespace std;
 
 int utilities::createDirectoryRecursively(const wchar_t* path) {
 	// FIXME: orribile!
-	int result = _wsystem((std::wstring(L"mkdir ") + path).c_str());
+	int result = _wsystem((std::wstring(L"mkdir \"") + path + L"\"").c_str());
 	return result;
 }
 
@@ -19,9 +21,10 @@ bool utilities::pathExists(const wchar_t*path) {
 }
 
 bool utilities::isPathDir(const wchar_t*path) {
+	LOGF;
 	DWORD attr = GetFileAttributesW(path);
-	return (attr != INVALID_FILE_ATTRIBUTES)
-	&& (attr & FILE_ATTRIBUTE_DIRECTORY);
+
+	return (attr != INVALID_FILE_ATTRIBUTES) && (attr & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 bool utilities::fileMD5(const wchar_t*path, unsigned char buff[MD5_DIGEST_LENGTH]) {

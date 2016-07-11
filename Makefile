@@ -38,7 +38,7 @@ database:
 	sqlite3 server.db < create_db.sql
 
 restart_client:
-	$(RM) -rf build/test/* client.log client.log.old
+	$(RM) -rf build/test build/temp client.log client.log.old
 	
 doc:
 	doxygen doxygen.conf

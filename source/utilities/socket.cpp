@@ -78,6 +78,7 @@ socket_base::~socket_base() {
 }
 
 socket_base::SOCK_STATE socket_base::getState() {
+	LOGF;
 	fd_set read, write;
 
 	FD_ZERO(&read);
@@ -152,7 +153,7 @@ socket_listener::socket_listener(int af, int type, int protocol, uint32_t ip,
 }
 
 socket_stream socket_listener::accept() {
-
+	LOGF;
 	struct sockaddr_in client = { 0 };
 	socklen_t len = sizeof(struct sockaddr_in);
 	socket_t new_sock;
