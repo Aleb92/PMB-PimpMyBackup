@@ -9,8 +9,6 @@
 #include <vector>
 #include <sqlite3.h>
 
-
-
 namespace std {
 template<>
 struct default_delete<sqlite3> {
