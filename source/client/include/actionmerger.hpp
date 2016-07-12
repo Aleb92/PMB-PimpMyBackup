@@ -8,6 +8,7 @@
 #include <functional>
 #include <unordered_map>
 #include <cstdint>
+#include <atomic>
 #include <string>
 #include <mutex>
 #include <condition_variable>
@@ -50,9 +51,11 @@ class action_merger : public utilities::singleton<action_merger> {
 	action_merger(size_t estimatedFileNum = 100);
 
 	friend class utilities::singleton<action_merger>;
-	friend class client::log;
+	friend class log;
+	friend class client;
 public:
 
+	std::atomic<int> pending_count;
 	int wait_time = 0;
 
 	typedef maptype::iterator iterator;

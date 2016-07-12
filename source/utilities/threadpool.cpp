@@ -20,6 +20,7 @@ void thread_pool::join_all() {
 			if (waitingList.front().joinable()) {
 				waitingList.front().join();
 				waitingList.pop_front();
+				LOGD("JOINED");
 			} else
 				std::this_thread::yield();
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));

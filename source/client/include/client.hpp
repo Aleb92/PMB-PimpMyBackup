@@ -3,6 +3,7 @@
 #define SOURCE_CLIENT_INCLUDE_CLIENT_HPP_
 
 #include <directorylistener.hpp>
+#include <actionmerger.hpp>
 #include <log.hpp>
 #include <utilities/include/threadpool.hpp>
 
@@ -30,7 +31,7 @@ class client {
 	void create(utilities::socket_stream&, std::wstring&);
 	void remove(utilities::socket_stream&, std::wstring&);
 	void chmod(utilities::socket_stream&, std::wstring&);
-	void moveDir(utilities::socket_stream&, std::wstring&);
+	void apply(utilities::socket_stream&, std::wstring&);
 	void version(utilities::socket_stream&, std::wstring&, volatile bool&);
 	void write(utilities::socket_stream&, std::wstring&, volatile bool&);
 

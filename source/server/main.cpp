@@ -90,7 +90,7 @@ void chmodFile(socket_stream& sock, user_context& context, int64_t ts) {
 	context.chmod(ts, sock.recv<int32_t>());
 }
 
-void moveDir(socket_stream& sock, user_context& context, int64_t ts) {
+void apply(socket_stream& sock, user_context& context, int64_t ts) {
 	LOGF;
 }
 
@@ -229,7 +229,7 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 	try {
 		const pair<opcode, void (*)(socket_stream&, user_context&, int64_t)> flag[] =
 		{	{	CREATE, create}, {MOVE, move}, {REMOVE, remove}, {
-				CHMOD, chmodFile}, {MOVE_DIR, moveDir}, {VERSION,
+				CHMOD, chmodFile}, {APPLY, apply}, {VERSION,
 				version}, {LIST, list}, {WRITE, writeFile}};
 
 		string username = sock.recv<string>();

@@ -57,15 +57,21 @@ void action_merger::add_change(std::wstring& fileName, file_action& action) {
 
 	if (open) {
 		if (map.count(fileName)) {
+
 			file_action& up = map[fileName];
+			int old_pending = __builtin_popcount( (int8_t)up.op_code & ~(WRITE|APPLY) );
 			up.op_code |= action.op_code;
+			pending_count.fetch_add(__builtin_popcount( (int8_t)up.op_code & ~(WRITE|APPLY) ));
+			pending_count.fetch_sub(old_pending);
+
 			for (int i = 0; i < 8; i++)
 			if (CompareFileTime(&action.timestamps[i], &up.timestamps[i])
 					== 1)
 			up.timestamps[i] = action.timestamps[i];
 			//FIXME: è possibile avere un rename quì? Secondo me non dovrebbe...
-		} else
-		map[fileName] = action;
+		}
+		else
+			map[fileName] = action;
 	}
 
 	cv.notify_all();
@@ -105,6 +111,9 @@ void action_merger::add_change(const change_entity& che) {
 	if (open) {
 		LOGD("+fileName: "<< utf8_encode(path) << " action: "<< (int)flag);
 
+		if((flag != WRITE) && (flag!= APPLY))
+			++pending_count;
+
 		file_action& fa = map[name];
 		fa.op_code |= flag;
 
@@ -123,8 +132,12 @@ void action_merger::add_change(const change_entity& che) {
 
 		// __builtin_ffs restituisce la posizione del primo bit meno significativo a 1
 		// FIXME: sto indicizzando bene? (si)
-		fa.timestamps[__builtin_ffs(flag) - 1] = che.time;
-
+//		if(flag!=WRITE)
+			fa.timestamps[__builtin_ffs(flag) - 1] = che.time;
+//		else{
+//
+//			fa.timestamps[7] = che.time;
+//		}
 		cv.notify_all();
 	}
 	// FIXME: qui devo lanciare una eccezione?
@@ -169,7 +182,7 @@ bool action_merger::remove(std::wstring& name, file_action& actions) {
 				return !map.empty() || (!open);
 			});
 
-	LOGD("Map size merger: "<<map.size());
+	LOGD("Map size merger: " << map.size());
 
 	// Se stiamo chiudendo mi fermo...
 	if (map.empty())
