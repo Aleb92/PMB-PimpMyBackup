@@ -138,11 +138,15 @@ socket_stream::socket_stream(const char * ip, in_port_t port, int af, int type,
 socket_stream::~socket_stream() {
 	LOGF;
 	if (hValid(handle)) {
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+		shutdown(handle, SD_SEND);
+#else
 		shutdown(handle, SHUT_WR);
+#endif
 		char buff[2048];
 		int res;
 		do {
-			res=read(handle, buff, 2048);
+			res = this->recv(buff);
 			if(res < 0)
 				throw socket_exception(__LINE__, __func__, __FILE__);
 		} while(res);
