@@ -75,15 +75,6 @@ socket_base::socket_base(int af, int type, int protocol) :
 socket_base::~socket_base() {
 	LOGF;
 	if (hValid(handle)) {
-		shutdown(handle, SHUT_WR);
-		char buff[2048];
-		int res;
-		do {
-			res=read(handle, buff, 2048);
-			if(res < 0)
-				throw socket_exception(__LINE__, __func__, __FILE__);
-		} while(res);
-		
 		if (closesocket(handle))
 			throw socket_exception(__LINE__, __func__, __FILE__);
 	}
@@ -144,6 +135,19 @@ socket_stream::socket_stream(const char * ip, in_port_t port, int af, int type,
 	}
 }
 
+socket_stream::~socket_stream() {
+	LOGF;
+	if (hValid(handle)) {
+		shutdown(handle, SHUT_WR);
+		char buff[2048];
+		int res;
+		do {
+			res=read(handle, buff, 2048);
+			if(res < 0)
+				throw socket_exception(__LINE__, __func__, __FILE__);
+		} while(res);
+	}
+}
 ////////////////////////////////////////////////////////////////////////////////
 
 socket_listener::socket_listener(int af, int type, int protocol, uint32_t ip,

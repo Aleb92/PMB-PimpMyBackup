@@ -185,6 +185,7 @@ public:
 	const socket_stream& operator=(const socket_stream&) = delete;
 
 	socket_stream(socket_stream&&);
+	virtual ~socket_stream();
 
 	/**
 	 * Inizializza un nuovo socket e si connette all'host:port desiterato.
