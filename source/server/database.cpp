@@ -106,6 +106,7 @@ user_context::user_context(std::string& user, std::string&pwd,
 }
 
 database::database(const char*db_name) {
+	LOGF;
 	// Per prima cosa apro il database
 	sqlite3*c;
 	char*err;
@@ -159,6 +160,12 @@ database::database(const char*db_name) {
 	if (r != SQLITE_OK)
 		throw db_exception(c,__LINE__, __func__, __FILE__);
 
+	//apply
+	r = sqlite3_prepare_v2(c, SQL_APPLY, sizeof(SQL_APPLY), &statement, nullptr);
+	apply = unique_ptr<sqlite3_stmt>(statement);
+	if (r != SQLITE_OK)
+		throw db_exception(c,__LINE__, __func__, __FILE__);
+
 	//remove
 	r = sqlite3_prepare_v2(c, SQL_DELETE, sizeof(SQL_DELETE), &statement,
 			nullptr);
@@ -197,6 +204,7 @@ database::database(const char*db_name) {
 }
 
 user_context database::getUserContext(string&user, string&pass, string&path) {
+	LOGF;
 	return user_context(user, pass, path, *this);
 }
 
@@ -357,9 +365,6 @@ void user_context::move(int64_t timestamp, string& newPath) {
 	while (1) {
 		switch (sqlite3_step(db.move.get())) {
 		case SQLITE_DONE:
-			if(sqlite3_changes(db.connection.get()) != 1)
-				throw db_exception("No record found.", __LINE__, __func__, __FILE__);	// FATTO!
-			path = newPath;
 			return;
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...
@@ -372,6 +377,37 @@ void user_context::move(int64_t timestamp, string& newPath) {
 		}
 	}
 }
+
+void user_context::apply(int64_t timestamp) {
+	LOGF;
+	lock_guard<mutex> guard(db.busy);
+
+	on_return<> ret([&] {
+		// On return resetto statement e bindings
+			sqlite3_reset(db.apply.get());
+			sqlite3_clear_bindings(db.apply.get());
+		});
+
+	// Ora binding degli argomenti
+	bind_db(db.apply.get(), 1, usr.c_str(), timestamp);
+
+	// Quindi eseguo
+	while (1) {
+		switch (sqlite3_step(db.apply.get())) {
+		case SQLITE_DONE:
+			return;
+		case SQLITE_BUSY:
+			// Qui non ci dovrebbe mai arrivare(WAL mode)...
+			// Comunque nel caso, prima lascio fare qualcosa agli altri
+			this_thread::yield();
+			// Poi riprovo.
+			break;
+		default:
+			throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
+		}
+	}
+}
+
 
 void user_context::remove(int64_t timestamp) {
 	LOGF;

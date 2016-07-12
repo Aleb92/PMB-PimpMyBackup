@@ -6,7 +6,7 @@ PMB_VERSION := $(shell git rev-parse HEAD | cut -c1-10)
 export CXXFLAGS := -g -std=c++11 -DPMB_VERSION=\"$(PMB_VERSION)\"
 
 # Poi il linker!
-export LDFLAGS := -lsqlite3 -lcrypto
+export LDFLAGS := -lsqlite3 -lcrypto -lpthread
 
 export EXT_OBJ := 
 
@@ -28,14 +28,16 @@ all: $(TARGETS)
 .PHONY: clean
 
 
-clean:
+clean: clean-db
 	$(RM) -rf build/[!M]*
 
 clean-db:
-	echo "DELETE FROM history; DELETE FROM  files; DELETE FROM history;" | sqlite3 server.db
+	$(RM) server.db
 
 database:
 	sqlite3 server.db < create_db.sql
+	./create_user.sh root toor
+	./create_user.sh hhh ppp
 
 restart_client:
 	$(RM) -rf build/test build/temp client.log client.log.old

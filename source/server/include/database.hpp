@@ -9,8 +9,6 @@
 #include <vector>
 #include <sqlite3.h>
 
-
-
 namespace std {
 template<>
 struct default_delete<sqlite3> {
@@ -33,11 +31,12 @@ namespace server {
 
 #define SQL_INIT "PRAGMA foreign_keys = ON;PRAGMA journal_mode=WAL;PRAGMA recursive_triggers = true;"
 #define SQL_AUTH "SELECT password FROM users WHERE username=?1"
-#define SQL_CREATE "INSERT INTO dispatch_create (username, path, time_stamp, file_id) VALUES (?1,?2,?3,?4)"
+#define SQL_CREATE "INSERT INTO files (username, path, time_stamp, file_id) VALUES (?1,?2,?3,?4)"
 #define SQL_CHMOD "UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2"
 #define SQL_EXISTS "SELECT file_id FROM files WHERE username=?1 AND path=?2"
 #define SQL_WRITE "INSERT INTO dispatch_write (username, path, time_stamp, file_id) VALUES (?1, ?2, ?3, ?4)"
 #define SQL_MOVE "INSERT INTO GROUP_CHANGES (T, username, path, time_stamp, new_path) VALUES ('m', ?1, ?2, ?3, ?4)"
+#define SQL_APPLY "UPDATE users SET lastSync=?2 WHERE username = ?1;"
 #define SQL_DELETE "INSERT INTO GROUP_CHANGES (T, username, path, time_stamp) VALUES ('d', ?1, ?2, ?3)"
 #define SQL_SYNC "SELECT path, file_id FROM files WHERE username=?1"
 #define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE username=?1"\
@@ -63,6 +62,7 @@ public:
 	void write(int64_t, std::string&);
 	void chmod(int64_t, uint32_t);
 	void move(int64_t, std::string&);
+	void apply(int64_t);
 	void remove(int64_t);
 	std::vector<std::pair<std::string,std::string>> sync();
 	std::string version(int64_t);
@@ -72,7 +72,7 @@ public:
 class database {
 	std::unique_ptr<sqlite3> connection;
 	std::unique_ptr<sqlite3_stmt> auth, create,
-			chmod, write, move, remove, version, list, sync, version_exists;
+			chmod, write, move, remove, version, list, sync, version_exists, apply;
 	std::mutex busy;
 	friend class user_context;
 public:

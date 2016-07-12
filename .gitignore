@@ -36,6 +36,7 @@
 build/
 build/*
 !build/Makefile
+server.db*
 
 client_settings.ini
 server_settings.ini

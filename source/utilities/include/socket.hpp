@@ -83,6 +83,8 @@ protected:
 
 	inline socket_base(socket_base&&mv) :
 			handle(mv.handle), blocking(mv.blocking) {
+		LOGF;
+		LOGD("MOVE");
 		mv.handle = -1;
 	}
 
@@ -167,6 +169,7 @@ protected:
 	 */
 	inline socket_stream(socket_t _h, uint32_t ip, in_port_t port) :
 			socket_base(_h), oppositeIp(ip), oppositePort(port) {
+			LOGF;
 	}
 public:
 	/**

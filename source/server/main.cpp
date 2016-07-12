@@ -24,16 +24,17 @@ void worker(socket_stream, database&, volatile bool&);
 int main() {
 	try {
 		LOGF;
+		
 		// Questo genera tutte le connesioni
-		vector<database> db_connections(
-				settings::inst().db_connection_number.value);
+		database db_connections[settings::inst().db_connection_number.value]{};
+
 		//Solito thread pool
-		//thread_pool tPool;
+		thread_pool tPool;
 
 		// Questo solo e unicamente per "eleganza"...
-//		on_return<> tStop([&]() {
-//					tPool.stop();
-//				});
+		on_return<> tStop([&]() {
+					tPool.stop();
+				});
 
 		// Round robin per le db_connections!
 		size_t rRobin = 0;
@@ -44,14 +45,12 @@ int main() {
 				settings::inst().server_port.value,
 				settings::inst().queue_size.value);
 
-		volatile bool bah = true;
-
 		while (1) {
-//			tPool.execute(worker, listener.accept(),
-//					std::ref(db_connections[rRobin++]));
-			worker(listener.accept(), db_connections[rRobin++], bah);
-			if (rRobin == db_connections.size())
-			rRobin = 0;
+			tPool.execute(worker, listener.accept(),
+					std::ref(db_connections[rRobin++]));
+
+			if (rRobin == settings::inst().db_connection_number.value)
+				rRobin = 0;
 		}
 	} catch (const exception& ex) {
 		cout << "Error: " << ex.what() << endl;
@@ -92,6 +91,7 @@ void chmodFile(socket_stream& sock, user_context& context, int64_t ts) {
 
 void apply(socket_stream& sock, user_context& context, int64_t ts) {
 	LOGF;
+	context.apply(ts);
 }
 
 void writeFile(socket_stream&sock, user_context&context, int64_t ts) {
