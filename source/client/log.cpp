@@ -132,7 +132,7 @@ void log::finalize(const file_action& action, const wstring& name) {
 
 	for (int i = 1; i < 8; i++)
 	if (CompareFileTime(action.timestamps + i, &h.timestamp) > 0)
-	h.timestamp = action.timestamps[i];
+		h.timestamp = action.timestamps[i];
 
 	fwrite(&h, sizeof(struct log_entry_header), 1, log_file);
 	fwrite(name.c_str(), h.length, 1, log_file);

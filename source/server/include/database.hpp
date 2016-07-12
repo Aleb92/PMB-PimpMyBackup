@@ -69,7 +69,6 @@ public:
 	std::vector<int64_t> versions();
 };
 
-
 class database {
 	std::unique_ptr<sqlite3> connection;
 	std::unique_ptr<sqlite3_stmt> auth, create,

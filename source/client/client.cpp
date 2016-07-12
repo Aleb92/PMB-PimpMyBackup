@@ -99,7 +99,7 @@ void client::sendAction(std::wstring fileName, file_action action,
 	LOGF;
 	const pair<opcode, void (client::*)(socket_stream&, std::wstring&)> flag[] =
 			{ { CREATE, create }, { MOVE, move }, { REMOVE, remove }, { CHMOD,
-					chmod }, { MOVE_DIR, moveDir } };
+					chmod }, { APPLY, apply } };
 
 	// Questa deve finalmente inviare tutto quello che serve, in ordine.
 	// Questa funzione quindi invia l'header generico,
@@ -107,7 +107,7 @@ void client::sendAction(std::wstring fileName, file_action action,
 	// e finisce col re-inserire (se necessario) in coda la /le operazioni
 	// da ripetere e aggiornare il log.
 
-	wstring realName = (action.op_code & (MOVE|MOVE_DIR)) ? action.newName : fileName;
+	wstring realName = (action.op_code & MOVE) ? action.newName : fileName;
 	file_action result = action;
 
 	LOGD("Connection..");
@@ -144,6 +144,8 @@ void client::sendAction(std::wstring fileName, file_action action,
 					LOGD("Ricevuto OK di fine transazione dal server.");
 					result.op_code |= f.first;
 					action.op_code &= ~f.first;
+					if(f.first != APPLY)
+						--action_merger::inst().pending_count;
 				}
 			}
 		}
@@ -153,6 +155,7 @@ void client::sendAction(std::wstring fileName, file_action action,
 			if (sock.recv<bool>()) {
 				result.op_code |= VERSION;
 				action.op_code &= ~VERSION;
+				--action_merger::inst().pending_count;
 			}
 		}
 
@@ -164,11 +167,12 @@ void client::sendAction(std::wstring fileName, file_action action,
 			}
 		}
 
-		if (action.op_code != 0) {
-			LOGD("Azione NON completata.");
-			action_merger::inst().add_change(fileName, action);
-		} else
-			LOGD("Azione completata.");
+//		if (action.op_code != 0) {
+//			LOGD("Azione NON completata.");
+//			action_merger::inst().add_change(fileName, action);
+//			action_merger::inst().pending_count.fetch_sub(__builtin_popcount( (int8_t)action.op_code & -2 ));
+//		} else
+//			LOGD("Azione completata.");
 
 		action_merger::inst().wait_time = 0;
 
@@ -180,11 +184,28 @@ void client::sendAction(std::wstring fileName, file_action action,
 		cout << ex.what() << endl;
 	}
 
-	if (action.op_code != 0)
+	if (action.op_code != 0){
 		action_merger::inst().add_change(fileName, action);
+		action_merger::inst().pending_count.fetch_sub(__builtin_popcount( (int8_t)action.op_code & ~(WRITE|APPLY)));
+	}else
+		LOGD("Azione completata.");
 
 	if (result.op_code != 0)
 		log::inst().finalize(result, fileName);
+
+	if(action_merger::inst().pending_count.load() == 0 && ((result.op_code != APPLY) || (result.op_code != WRITE))){
+
+		LOGD("SENDING APPLY");
+		wstring name(L"*");
+		file_action fa = { 0 };
+		fa.op_code = APPLY;
+		::GetSystemTimeAsFileTime(&fa.timestamps[4]);
+
+		action_merger::inst().add_change(name, fa);
+	}else
+		LOGD("pending value: "<< action_merger::inst().pending_count.load());
+
+	LOGD("Send action completata.");
 }
 
 void client::stop() {
@@ -242,9 +263,8 @@ void client::chmod(socket_stream& sock, std::wstring& fileName) {
 	sock.send(mods);
 }
 
-void client::moveDir(socket_stream& sock, wstring& fileName) {
+void client::apply(socket_stream&, wstring&) {
 	LOGF;
-	sock.send<wstring&>(fileName);
 }
 
 void client::version(socket_stream& sock, std::wstring& fileName,
@@ -294,7 +314,7 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 
 	while (!feof(file) && run) {
 		socket_base::SOCK_STATE state = sock.getState();
-		LOGD(state);
+		LOGD("Stato socket: " << state);
 		if (state & socket_base::READ_READY) {
 			if (sock.recv<bool>())
 				return;
