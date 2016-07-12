@@ -30,7 +30,15 @@ INSERT INTO dispatch_write (username, path, time_stamp, file_id) VALUES ("root",
 INSERT INTO files (username, path, time_stamp, file_id) VALUES ("root", "b\b.txt", 6, '6');
 UPDATE users SET lastSync = 12 WHERE username = 'root';
 
-*/
 INSERT INTO dispatch_write (username, path, time_stamp, file_id) VALUES ("root", "a.txt", 3, "myID");
 INSERT INTO files (username, path, time_stamp, file_id) VALUES ("root", "a.txt", 2, '2');
+
+
+*/
+
+INSERT INTO files (username, path, time_stamp, file_id) VALUES ("root", "a", 1, '1');
+INSERT INTO files (username, path, time_stamp, file_id) VALUES ("root", "tmp", 2, '1');
+INSERT INTO dispatch_write (username, path, time_stamp, file_id) VALUES ("root", "tmp", 3, "fjasofasj");
+INSERT INTO GROUP_CHANGES (T, username, path, time_stamp, new_path) VALUES ('m', 'root', 'tmp', 10, 'a');
+UPDATE users SET lastSync = 12 WHERE username = 'root';
 

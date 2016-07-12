@@ -12,7 +12,7 @@ namespace server {
 		MOVE		= 1<<1,
 		REMOVE		= 1<<2,
 		CHMOD		= 1<<3,
-		MOVE_DIR	= 1<<4,
+		APPLY		= 1<<4,
 		VERSION		= 1<<5,
 		LIST		= 1<<6,
 		WRITE		= 1<<7

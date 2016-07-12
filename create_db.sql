@@ -86,7 +86,7 @@ BEGIN
 		SELECT * FROM files
 		WHERE
 			username = NEW.username AND
-			time_stamp < NEW.time_stamp AND
+			time_stamp <= NEW.time_stamp AND
 			path = NEW.path
 	);
 
@@ -219,12 +219,12 @@ BEGIN
 	INSERT INTO log (message) VALUES ("apply_live_move");
 	
 	-- Aggiorno nel caso di files singoli
-	UPDATE files SET path=NEW.new_path, time_stamp=NEW.time_stamp
+	UPDATE OR REPLACE files SET path=NEW.new_path, time_stamp=NEW.time_stamp
 	WHERE username = NEW.username AND 
 		path=NEW.path AND time_stamp < NEW.time_stamp;
 
 	-- Aggiorno nel caso delle cartelle
-	UPDATE files SET path=REPLACE('*' || path, '*' || NEW.path, NEW.new_path), time_stamp = NEW.time_stamp
+	UPDATE OR REPLACE files SET path=REPLACE('*' || path, '*' || NEW.path, NEW.new_path), time_stamp = NEW.time_stamp
 	WHERE username = NEW.username AND 
 		path LIKE (NEW.path || '\%') AND time_stamp < NEW.time_stamp;
 END;
@@ -242,6 +242,3 @@ BEGIN
 		(path=NEW.path OR path LIKE (NEW.path || '\%')) 
 		AND time_stamp < NEW.time_stamp;
 END;
-
-INSERT INTO users (username, password) VALUES ('root', 'toor');
-INSERT INTO users VALUES ('hhh', 'ppp', 0);

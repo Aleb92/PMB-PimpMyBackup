@@ -66,15 +66,27 @@ void socket_base::setBlocking(bool b) {
  */
 socket_base::socket_base(int af, int type, int protocol) :
 		handle(::socket(af, type, protocol)), blocking(true) {
+	LOGF;
 	// Controllo che tutto sia andato a buon fine, se no trow dell'eccezione
 	if (!hValid(handle))
 		throw socket_exception(__LINE__, __func__, __FILE__);
 }
 
 socket_base::~socket_base() {
-	if (hValid(handle))
+	LOGF;
+	if (hValid(handle)) {
+		shutdown(handle, SHUT_WR);
+		char buff[2048];
+		int res;
+		do {
+			res=read(handle, buff, 2048);
+			if(res < 0)
+				throw socket_exception(__LINE__, __func__, __FILE__);
+		} while(res);
+		
 		if (closesocket(handle))
 			throw socket_exception(__LINE__, __func__, __FILE__);
+	}
 }
 
 socket_base::SOCK_STATE socket_base::getState() {
