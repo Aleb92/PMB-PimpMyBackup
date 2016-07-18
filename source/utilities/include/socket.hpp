@@ -206,6 +206,18 @@ public:
 			socket_stream(ip.c_str(), port, af, type, protocol) {
 	}
 
+	inline void setCoalesce(bool coalesce) {
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+		DWORD
+#else
+		int
+#endif
+			flag = !coalesce;
+		
+		if(setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof( flag ) ))
+			throw socket_exception(__LINE__, __func__, __FILE__);		
+	}
+	
 	/**
 	 * Invia un singolo oggetto di tipo T
 	 * @param Valore da mandare
