@@ -229,7 +229,7 @@ void client::stop() {
 	if (merger.joinable())
 		merger.join();
 
-	action_merger::inst().add_change(stop);
+	action_merger::inst().close();
 
 	thPool.stop();
 

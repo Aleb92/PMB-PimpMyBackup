@@ -3,6 +3,7 @@
 #include <service.hpp>
 
 #include <utilities/include/strings.hpp>
+#include <utilities/include/atend.hpp>
 
 #include <exception>
 #include <iostream>
@@ -12,8 +13,9 @@ using namespace std;
 using namespace client;
 
 int main(int argc, char *argv[]) {
+	LOGF;
 	try {
-		if (argc > 1 && argv[1][0])
+		if (argc > 1 && argv[1][0] == '-')
 			switch (argv[1][1]) {
 			case 'v':
 				cout
@@ -25,10 +27,24 @@ int main(int argc, char *argv[]) {
 				return 0;
 			case 's':
 				// Se richiesto faccio partire il servizio
-				start_service();
-				return 0;
+				{
+					LOGD("Redirecting output...");
+					std::ofstream out("C:\\Users\\mrcmn\\workspace\\PMB\\build\\out.txt");
+
+					auto coutbuf = std::cout.rdbuf(); //save old buf
+					std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
+					utilities::on_return<> ret([coutbuf]() {
+						std::cout.rdbuf(coutbuf); //reset to standard output again
+					});
+
+					start_service();
+
+				}
+			    return 0;
 			default:
 				cout << "Argument not recgnized...";
+				return 0;
 			}
 
 		// Se no faccio quì in locale (per il debug)

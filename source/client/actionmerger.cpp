@@ -186,7 +186,7 @@ bool action_merger::remove(std::wstring& name, file_action& actions) {
 
 	// Se stiamo chiudendo mi fermo...
 	if (map.empty())
-	return false;
+		return false;
 
 	if(it==map.end())
 	it = map.begin();

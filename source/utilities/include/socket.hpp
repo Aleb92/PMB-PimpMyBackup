@@ -214,7 +214,7 @@ public:
 #endif
 			flag = !coalesce;
 		
-		if(setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof( flag ) ))
+		if(setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&flag), sizeof( flag ) ))
 			throw socket_exception(__LINE__, __func__, __FILE__);		
 	}
 	

@@ -11,6 +11,8 @@ using namespace std;
 #include <windows.h>
 
 int utilities::createDirectoryRecursively(const wchar_t* path) {
+	LOGF;
+	LOGD(std::wstring(L"mkdir \"") + path + L"\"");
 	// FIXME: orribile!
 	int result = _wsystem((std::wstring(L"mkdir \"") + path + L"\"").c_str());
 	return result;
