@@ -28,7 +28,7 @@ void pipe::driver() {
 	try {
 		char buffer[1024];
 		DWORD dwRead;
-
+		//FIXME: Questo thread rimane bloccato quì e impedisce la corretta chiusura della pipe.
 		while (ConnectNamedPipe(hPipe, nullptr)) // wait for someone to connect to the pipe
 		{
 

@@ -1,0 +1,13 @@
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\bin\Debug\PMB_Gui.exe.config
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\bin\Debug\PMB_Gui.exe
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\bin\Debug\PMB_Gui.pdb
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\PMB_Gui.csprojResolveAssemblyReference.cache
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\MainWindow.baml
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\MainWindow.g.cs
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\App.g.cs
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\PMB_Gui_MarkupCompile.cache
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\PMB_Gui.g.resources
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\PMB_Gui.Properties.Resources.resources
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\PMB_Gui.csproj.GenerateResource.Cache
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\PMB_Gui.exe
+C:\Users\mrcmn\workspace\PMB\source\PMB_Gui\PMB_Gui\obj\Debug\PMB_Gui.pdb
