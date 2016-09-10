@@ -193,7 +193,7 @@ void client::sendAction(std::wstring fileName, file_action action,
 	if (result.op_code != 0)
 		log::inst().finalize(result, fileName);
 
-	if(action_merger::inst().pending_count.load() == 0 && ((result.op_code != APPLY) || (result.op_code != WRITE))){
+	if(action_merger::inst().pending_count.load() == 0 && ((result.op_code != APPLY) && (result.op_code != WRITE))){
 
 		LOGD("SENDING APPLY");
 		wstring name(L"*");

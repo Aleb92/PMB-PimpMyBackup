@@ -207,7 +207,7 @@ public:
 		char path[MAX_PATH];
 		GetModuleFileNameA(NULL, path, sizeof(path));
 		filename = utilities::dirName(path) + f;
-
+		std::cout << filename;
 		io = new settings_loader(filename.c_str());
 	}
 #else

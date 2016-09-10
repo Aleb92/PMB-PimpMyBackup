@@ -24,7 +24,7 @@ namespace utilities{
 	template<typename C>
 	std::basic_string<C> dirName(C* path){
 		std::basic_string<C> s(path);
-		s.erase(std::find(s.rbegin(), s.rend(), static_cast<C>('\\')).base()+1, s.end());
+		s.erase(std::find(s.rbegin(), s.rend(), static_cast<C>('\\')).base(), s.end());
 		return s;
 	};
 

@@ -29,10 +29,12 @@ int main(int argc, char *argv[]) {
 				// Se richiesto faccio partire il servizio
 				{
 					LOGD("Redirecting output...");
-					std::ofstream out("C:\\Users\\mrcmn\\workspace\\PMB\\build\\out.txt");
+					std::ofstream out("C:\\Users\\Alessio\\git\\PMB-PimpMyBackup\\build\\out.txt");
 
 					auto coutbuf = std::cout.rdbuf(); //save old buf
 					std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
+					LOGD("Redirected output...");
 
 					utilities::on_return<> ret([coutbuf]() {
 						std::cout.rdbuf(coutbuf); //reset to standard output again
