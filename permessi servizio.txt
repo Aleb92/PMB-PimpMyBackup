@@ -1,0 +1,5 @@
+(A;;CCLCSWRPWPLOCRRC;;;IU)
+Da sostituire al pezzo con IU nella sezione D.
+
+Comando:
+sc sdset PMB <SD in SDDL format>

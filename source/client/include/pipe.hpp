@@ -3,6 +3,7 @@
 
 #include <utilities/include/singleton.hpp>
 #include <utilities/include/exceptions.hpp>
+#include <mutex>
 
 #include <Windows.h>
 
@@ -19,6 +20,8 @@ public:
 
 class pipe: public utilities::singleton<pipe> {
 	HANDLE hPipe;
+	std::mutex lock;
+
 	pipe();
 	~pipe();
 	friend class utilities::singleton<pipe>;
