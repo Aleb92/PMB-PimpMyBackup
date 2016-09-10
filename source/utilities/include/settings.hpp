@@ -2,6 +2,7 @@
 #define SOURCE_UTILITIES_INCLUDE_SETTINGS_HPP_
 
 #include <utilities/include/singleton.hpp>
+#include <utilities/include/fsutil.hpp>
 
 #include <unordered_map>
 #include <string>
@@ -186,7 +187,7 @@ public:
  * Segnala la fine di una definiizone di una classe di impostazioni.
  */
 #define SETTINGS_END( name ) ~name () { \
-			io = new utilities::settings_saver(filename); \
+			io = new utilities::settings_saver(filename.c_str()); \
 		} \
 	}
 
@@ -196,12 +197,24 @@ public:
 template <typename B>
 class settings_base : public singleton<B> {
 protected:
-	const char* filename;
+	std::string filename;
 	settings_io*io;
 public:
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+
+	settings_base(const char*f) {
+		char path[MAX_PATH];
+		GetModuleFileNameA(NULL, path, sizeof(path));
+		filename = utilities::dirName(path) + f;
+
+		io = new settings_loader(filename.c_str());
+	}
+#else
 	settings_base(const char*f) : filename(f) {
 		io = new settings_loader(f);
 	}
+#endif
 
 	static void refresh() {
 		B::inst() = B();

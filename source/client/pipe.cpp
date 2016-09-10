@@ -1,5 +1,6 @@
 #include <settings.hpp>
 #include <pipe.hpp>
+#include <actionmerger.hpp>
 
 #include <iostream>
 #include <Windows.h>
