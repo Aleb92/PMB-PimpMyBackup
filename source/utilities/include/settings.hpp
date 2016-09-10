@@ -3,6 +3,8 @@
 
 #include <utilities/include/singleton.hpp>
 #include <utilities/include/fsutil.hpp>
+#include <utilities/include/debug.hpp>
+#include <utilities/include/atend.hpp>
 
 #include <unordered_map>
 #include <string>
@@ -200,21 +202,9 @@ protected:
 	std::string filename;
 	settings_io*io;
 public:
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-
-	settings_base(const char*f) {
-		char path[MAX_PATH];
-		GetModuleFileNameA(NULL, path, sizeof(path));
-		filename = utilities::dirName(path) + f;
-		std::cout << filename;
-		io = new settings_loader(filename.c_str());
-	}
-#else
 	settings_base(const char*f) : filename(f) {
 		io = new settings_loader(f);
 	}
-#endif
 
 	static void refresh() {
 		B::inst() = B();

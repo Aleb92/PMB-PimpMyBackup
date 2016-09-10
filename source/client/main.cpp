@@ -14,6 +14,17 @@ using namespace client;
 
 int main(int argc, char *argv[]) {
 	LOGF;
+	LOGD("Redirecting output...");
+	std::ofstream out("C:\\Users\\Alessio\\git\\PMB-PimpMyBackup\\build\\out.txt");
+
+	auto coutbuf = std::cout.rdbuf(); //save old buf
+	std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+	LOGD("Redirected output...");
+
+	utilities::on_return<> ret([coutbuf]() {
+		std::cout.rdbuf(coutbuf); //reset to standard output again
+	});
+
 	try {
 		if (argc > 1 && argv[1][0] == '-')
 			switch (argv[1][1]) {
@@ -28,19 +39,8 @@ int main(int argc, char *argv[]) {
 			case 's':
 				// Se richiesto faccio partire il servizio
 				{
-					LOGD("Redirecting output...");
-					std::ofstream out("C:\\Users\\Alessio\\git\\PMB-PimpMyBackup\\build\\out.txt");
 
-					auto coutbuf = std::cout.rdbuf(); //save old buf
-					std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
-
-					LOGD("Redirected output...");
-
-					utilities::on_return<> ret([coutbuf]() {
-						std::cout.rdbuf(coutbuf); //reset to standard output again
-					});
-
-					start_service();
+					//start_service();
 
 				}
 			    return 0;
