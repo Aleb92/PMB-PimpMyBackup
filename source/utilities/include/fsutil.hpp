@@ -28,6 +28,8 @@ namespace utilities{
 		return s;
 	};
 
+	std::string moduleDir();
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	bool fileMD5(const wchar_t*path, unsigned char buff[MD5_DIGEST_LENGTH]);
 	bool fdMD5(HANDLE hwnd, unsigned char buff[MD5_DIGEST_LENGTH]);
