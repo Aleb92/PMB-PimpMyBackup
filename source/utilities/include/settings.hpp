@@ -4,7 +4,6 @@
 #include <utilities/include/singleton.hpp>
 #include <utilities/include/fsutil.hpp>
 #include <utilities/include/debug.hpp>
-#include <utilities/include/atend.hpp>
 
 #include <unordered_map>
 #include <string>
@@ -202,9 +201,19 @@ protected:
 	std::string filename;
 	settings_io*io;
 public:
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+
+	settings_base(const char*f) {
+		filename = utilities::moduleDir() + f;
+		LOGD("Settings file:" << filename);
+		io = new settings_loader(filename.c_str());
+	}
+#else
 	settings_base(const char*f) : filename(f) {
 		io = new settings_loader(f);
 	}
+#endif
 
 	static void refresh() {
 		B::inst() = B();

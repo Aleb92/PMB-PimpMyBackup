@@ -18,6 +18,12 @@ int utilities::createDirectoryRecursively(const wchar_t* path) {
 	return result;
 }
 
+string utilities::moduleDir()  {
+	char path[MAX_PATH];
+	GetModuleFileNameA(NULL, path, sizeof(path));
+	return utilities::dirName(path);
+}
+
 bool utilities::pathExists(const wchar_t*path) {
 	return ::GetFileAttributesW(path) != INVALID_FILE_ATTRIBUTES;
 }
