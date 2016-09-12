@@ -186,7 +186,7 @@ void client::sendAction(std::wstring fileName, file_action action,
 
 	if (action.op_code != 0){
 		action_merger::inst().add_change(fileName, action);
-		action_merger::inst().pending_count.fetch_sub(__builtin_popcount( (int8_t)action.op_code & ~(WRITE|APPLY)));
+		//action_merger::inst().pending_count.fetch_sub(__builtin_popcount( (int8_t)action.op_code & ~(WRITE|APPLY)));
 	}else
 		LOGD("Azione completata.");
 

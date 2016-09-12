@@ -115,7 +115,7 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode)
         break;
 
     case SERVICE_CONTROL_INTERROGATE:
-
+    	LOGD("Piazzo il checkpoint: " + action_merger::inst().pending_count);
         g_ServiceStatus.dwCheckPoint = action_merger::inst().pending_count;
         if (!SetServiceStatus (g_StatusHandle, &g_ServiceStatus))
             OutputDebugString("Errore nel settare lo stato");
