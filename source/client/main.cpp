@@ -14,6 +14,7 @@ using namespace client;
 
 int main(int argc, char *argv[]) {
 	LOGF;
+
 	try {
 		if (argc > 1 && argv[1][0] == '-')
 			switch (argv[1][1]) {
@@ -33,7 +34,6 @@ int main(int argc, char *argv[]) {
 
 					auto coutbuf = std::cout.rdbuf(); //save old buf
 					std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
-
 					LOGD("Redirected output...");
 
 					utilities::on_return<> ret([coutbuf]() {

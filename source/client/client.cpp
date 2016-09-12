@@ -271,7 +271,14 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 		volatile bool& run) {
 
 	LOGF;
-	FILE* file = _wfopen(fileName.c_str(), L"wb");
+
+	wstring dir = dirName(fileName);
+	if(dir != L"") {
+		wstring dirPath(settings::inst().temp_dir.value + dir);
+		createDirectoryRecursively(dirPath.c_str());
+	}
+
+	FILE* file = _wfopen((settings::inst().temp_dir.value + fileName).c_str(), L"wb");
 	char buffer[BUFF_LENGHT] = { 0 };
 	uint32_t n = 0;
 
@@ -283,12 +290,14 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 	});
 
 	uint32_t size = sock.recv<uint32_t>();
-
 	while ((n < size) && run) {
 		size_t i = sock.recv(buffer, BUFF_LENGHT);
 		fwrite(buffer, i, 1, file);
 		n += i;
 	}
+
+	MoveFileExW((settings::inst().temp_dir.value + fileName).c_str(),
+			(settings::inst().watched_dir.value + fileName).c_str(), MOVEFILE_REPLACE_EXISTING);
 }
 
 void client::write(socket_stream& sock, std::wstring& fileName,

@@ -9,7 +9,7 @@
 
 namespace client {
 
-enum pipe_codes {
+enum pipe_codes : uint8_t{
 	WRONG_CREDENTIALS = 1
 };
 
@@ -48,8 +48,27 @@ public:
 		}
 	}
 
+	template<typename T>
+	T read() {
+		LOGF;
+
+		DWORD dwRead;
+		LOGD("di: " << typeid(T).name());
+		T ret;
+		if (!::ReadFile(hPipe, (char*) &ret, sizeof(T), &dwRead, nullptr) ||
+				dwRead != sizeof(T)) {
+			DWORD err = GetLastError();
+			if (err != ERROR_BROKEN_PIPE)
+				throw utilities::base_exception(err,__LINE__, __func__, __FILE__);
+		}
+
+		LOGD("pipe read returned value = "<< ret);
+		return ret;
+	}
 };
 
+	template<>
+	std::wstring pipe::read<std::wstring>();
 }
 
 #endif /* SOURCE_CLIENT_INCLUDE_PIPE_HPP_ */

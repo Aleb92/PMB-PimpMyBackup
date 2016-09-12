@@ -6,5 +6,4 @@
         <Button Content="Button" Height="66" Click="Button_Click"/>
         <Label Name="Bah"/>
     </StackPanel>
-
 </Window>

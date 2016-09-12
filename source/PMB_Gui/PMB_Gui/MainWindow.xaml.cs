@@ -74,6 +74,5 @@ namespace PMB_Gui
                 (sender as Button).Content = "Stop";
             }
         }
-
     }
 }

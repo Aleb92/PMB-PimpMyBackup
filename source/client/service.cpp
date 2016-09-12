@@ -73,7 +73,7 @@ VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
         LOGD("Sending termination state to the manager");
 
         g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
-        g_ServiceStatus.dwCheckPoint++;
+        g_ServiceStatus.dwCheckPoint = -1;
         g_ServiceStatus.dwWin32ExitCode = 0;
         g_ServiceStatus.dwControlsAccepted = 0;
 
@@ -116,7 +116,7 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode)
 
     case SERVICE_CONTROL_INTERROGATE:
 
-        g_ServiceStatus.dwCheckPoint++;
+        g_ServiceStatus.dwCheckPoint = action_merger::inst().pending_count;
         if (!SetServiceStatus (g_StatusHandle, &g_ServiceStatus))
             OutputDebugString("Errore nel settare lo stato");
 

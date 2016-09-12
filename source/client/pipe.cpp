@@ -49,8 +49,17 @@ void pipe::driver() {
 				});
 
 				guard.lock();
-				while (ReadFile(hPipe, buffer, sizeof(buffer) - 1, &dwRead, nullptr)) {
+				while (true) {
 					guard.unlock();
+
+					wstring fileName = read<wstring>();
+					uint64_t timeStamp = read<uint64_t>();
+
+					file_action fa;
+					fa.op_code = server::opcode::VERSION;
+					fa.timestamps[5].dwLowDateTime = timeStamp;
+					fa.timestamps[5].dwHighDateTime = timeStamp >> 32;
+					action_merger::inst().add_change(fileName, fa);
 
 					guard.lock();
 				}
@@ -68,9 +77,29 @@ void pipe::driver() {
 	}
 }
 
+template<>
+wstring pipe::read<wstring>() {
+	LOGF;
+	size_t size = read<uint32_t>();
+	DWORD dwrr;
+	LOGD(size);
+	wstring ret;
+	wchar_t *buff = new wchar_t[size+2]{0};
+	//rr = recv(buff, size);
+	if(!::ReadFile(hPipe, reinterpret_cast<char*>(buff), size*sizeof(wchar_t), &dwrr, nullptr) || size != dwrr){
+		DWORD err = GetLastError();
+		if (err != ERROR_BROKEN_PIPE)
+			throw utilities::base_exception(err,__LINE__, __func__, __FILE__);
+	}
+
+	ret = wstring(buff, size);
+
+	delete[] buff;
+	return ret;
+}
+
 auth_exception::auth_exception(int l, const char* f, const char* ff) :
 		base_exception("Wrong username/password", l,f,ff) {
 	action_merger::inst().wait_time = settings::inst().max_waiting_time.value;
-	pipe::inst().write<uint8_t>(WRONG_CREDENTIALS);
+	pipe::inst().write(WRONG_CREDENTIALS);
 }
-
