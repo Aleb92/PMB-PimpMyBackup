@@ -1,9 +1,10 @@
 ﻿<Window x:Class="PMB_Gui.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
-    <StackPanel Margin="0" VerticalAlignment="Stretch">
-        <Button Content="Button" Height="66" Click="Button_Click"/>
-        <Label Name="Bah"/>
-    </StackPanel>
+        Title="PMB - PimpMyBackup" Height="300" Width="500" ResizeMode="NoResize" Closing="Window_Closing">
+    <Grid ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <Frame x:Name="Versions" Source="Versions.xaml" Width="484"  NavigationUIVisibility="Hidden" />
+        <Frame x:Name="Connection" Source="Connection.xaml" Width="0"  NavigationUIVisibility="Hidden" HorizontalAlignment="Left"/>
+        <Frame x:Name="Login" Source="Login.xaml" Width="0"  NavigationUIVisibility="Hidden" HorizontalAlignment="Right"/>
+    </Grid>
 </Window>
