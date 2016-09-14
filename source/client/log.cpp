@@ -3,6 +3,7 @@
 #include <utilities/include/exceptions.hpp>
 #include <utilities/include/debug.hpp>
 #include <utilities/include/strings.hpp>
+#include <server/include/protocol.hpp>
 
 #include <windows.h>
 #include <io.h>
@@ -12,6 +13,7 @@
 using namespace std;
 using namespace client;
 using namespace utilities;
+using namespace server;
 
 log::log() {
 
@@ -94,6 +96,8 @@ log::log() {
 			for(auto& action : load_map) {
 				LOGD("Logging old entry: " << utf8_encode(action.first));
 				issue(action.second, action.first);
+				action_merger::inst().pending_count.fetch_add(__builtin_popcount(
+						(int8_t)action.second.op_code & ~(WRITE|APPLY)));
 			}
 
 			/*
