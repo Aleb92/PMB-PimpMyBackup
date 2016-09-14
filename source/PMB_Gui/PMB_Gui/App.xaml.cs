@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -16,24 +10,72 @@ namespace PMB_Gui
     public partial class App : System.Windows.Application
     {
         private NotifyIcon ni;
-            
+        public Settings settings;
+        Pipe pipe;
+        private bool connAvailable = false;
+           
+        public bool ConnAvailable
+        {
+            get
+            {
+                return connAvailable;
+            }
+            set
+            {
+                if (!value)
+                    ni.Icon = PMB_Gui.Properties.Resources.icon_error;
+                else
+                    ni.Icon = PMB_Gui.Properties.Resources.icon_working;
+                connAvailable = value;
+                
+            }
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
             ni = new NotifyIcon();
-            ni.Icon = PMB_Gui.Properties.Resources.Icon1;
+            ni.Icon = PMB_Gui.Properties.Resources.icon_working;
             ni.Visible = true;
-            ni.DoubleClick += delegate
-            {
-                if (MainWindow.IsVisible)
-                    MainWindow.Hide();
+            ni.DoubleClick += toggleMainWindow;
+                
+            settings = new Settings();
+            pipe = new Pipe(settings.pipeName);
+            pipe.InvalidLogin += InvalidLogin;
+            pipe.WorkingCount += WorkingCount;
+        }
+
+        private void WorkingCount(int working_count)
+        {
+            if (connAvailable) {
+                if (working_count == 0)
+                    ni.Icon = PMB_Gui.Properties.Resources.icon_ok;
                 else
-                {
-                    MainWindow.Left = SystemParameters.FullPrimaryScreenWidth - MainWindow.ActualWidth;
-                    MainWindow.Top = SystemParameters.FullPrimaryScreenHeight - MainWindow.ActualHeight;
-                    MainWindow.Show();
-                }
-            };
+                    ni.Icon = PMB_Gui.Properties.Resources.icon_working;
+            }
+        }
+
+        private void InvalidLogin()
+        {
+            showMainWindow();
+            (MainWindow as MainWindow).ShowLogin();
+        }
+
+        private void showMainWindow() {
+
+            if (MainWindow.IsVisible)
+                return;
+
+            MainWindow.Left = SystemParameters.FullPrimaryScreenWidth - MainWindow.ActualWidth;
+            MainWindow.Top = SystemParameters.FullPrimaryScreenHeight - MainWindow.ActualHeight;
+            MainWindow.Show();
+        }
+
+        private void toggleMainWindow(object sender, EventArgs e) {
+
+            if (MainWindow.IsVisible)
+                MainWindow.Hide();
+            else showMainWindow();
         }
     }
 }

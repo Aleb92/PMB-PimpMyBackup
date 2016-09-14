@@ -32,9 +32,10 @@ namespace PMB_Gui
 
         public Pipe(string pipeName)
         {
-            timer.Tick += peek_workers;
+            //timer.Tick += peek_workers;
             pipeStream = new NamedPipeClientStream(pipeName);
-            pipeStream.BeginRead(buffer, 0, 1, new AsyncCallback(recieved), null);
+            //pipeStream.Connect();
+            //pipeStream.BeginRead(buffer, 0, 1, new AsyncCallback(recieved), null);
         }
 
         private void recieved(IAsyncResult ar)

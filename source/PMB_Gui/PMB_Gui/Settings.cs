@@ -1,20 +1,21 @@
-﻿
+﻿using System;
 using System.IO;
 
 namespace PMB_Gui
 {
-    class Settings
+    public class Settings
     {
-        public string watchedDir, pipeName, tempDir, settingsFileName;
+        public string watchedDir, pipeName, tempDir, settingsFileName, server_ip;
+        public int server_port;
 
         public Settings() {
             string line;
             string[] words;
 
-            settingsFileName = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase) + "\\..\\settings.ini";
+            settingsFileName = @"C:\Users\Alessio\git\PMB-PimpMyBackup\client_settings.ini";
 
             using (StreamReader sr = new StreamReader(
-                Path.GetDirectoryName(settingsFileName)))
+                settingsFileName))
             {
                 line = sr.ReadLine();
 
@@ -33,6 +34,14 @@ namespace PMB_Gui
 
                         case "temp_dir":
                             tempDir = words[1];
+                            break;
+
+                        case "server_port":
+                            server_port = Int32.Parse(words[1]);
+                            break;
+
+                        case "server_host":
+                            server_ip = words[1];
                             break;
 
                         default: break;

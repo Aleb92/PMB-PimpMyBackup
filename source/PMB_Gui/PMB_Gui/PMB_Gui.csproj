@@ -63,6 +63,7 @@
     <Compile Include="Login.xaml.cs">
       <DependentUpon>Login.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pipe.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Versions.xaml.cs">
       <DependentUpon>Versions.xaml</DependentUpon>
@@ -130,6 +131,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\folder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\icon_error.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\icon_ok.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\icon_working.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
