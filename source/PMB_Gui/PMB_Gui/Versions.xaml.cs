@@ -1,20 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace PMB_Gui
 {
@@ -24,12 +13,12 @@ namespace PMB_Gui
     public partial class Versions : Page
     {
         private static readonly ImageSource 
-            folder = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                        PMB_Gui.Properties.Resources.folder.GetHbitmap(), 
+            folder = Imaging.CreateBitmapSourceFromHBitmap(
+                        Properties.Resources.folder.GetHbitmap(), 
                         IntPtr.Zero, Int32Rect.Empty, 
                         System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions()),
-            file = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                        PMB_Gui.Properties.Resources.file.GetHbitmap(),
+            file = Imaging.CreateBitmapSourceFromHBitmap(
+                        Properties.Resources.file.GetHbitmap(),
                         IntPtr.Zero, Int32Rect.Empty, 
                         System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
 
@@ -42,7 +31,7 @@ namespace PMB_Gui
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadDirsAndFiles(FileView.Items, @"C:\Users\mrcmn\workspace\PMB\build\client");
+            LoadDirsAndFiles(FileView.Items, @"C:\Users\Alessio\git\PMB-PimpMyBackup\build\test");
         }
 
         private StackPanel IconAndText(ImageSource IS, string text)
@@ -52,7 +41,7 @@ namespace PMB_Gui
                 Orientation = Orientation.Horizontal
             };
 
-            sp.Children.Add(new System.Windows.Controls.Image
+            sp.Children.Add(new Image
             {
                 Source = IS,
                 Width = 16,
@@ -84,7 +73,6 @@ namespace PMB_Gui
 
             foreach (string s in Directory.GetFiles(path))
             {
-
                 TreeViewItem item = new TreeViewItem
                 {
                     Header = IconAndText(file, s.Substring(path.Length + 1)),
@@ -100,7 +88,7 @@ namespace PMB_Gui
         void File_Selected(object sender, RoutedEventArgs e)
         {
             string filename = (sender as TreeViewItem).Tag as string;
-            Prova.Content = filename;
+            Prova.Items.Add(filename);
         }
 
     }

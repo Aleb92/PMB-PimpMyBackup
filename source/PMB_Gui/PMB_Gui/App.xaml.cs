@@ -25,11 +25,13 @@ namespace PMB_Gui
             ni.Visible = true;
             ni.DoubleClick += delegate
             {
-                if (this.MainWindow.IsVisible)
-                    this.MainWindow.Hide();
+                if (MainWindow.IsVisible)
+                    MainWindow.Hide();
                 else
                 {
-                    this.MainWindow.Show();
+                    MainWindow.Left = SystemParameters.FullPrimaryScreenWidth - MainWindow.ActualWidth;
+                    MainWindow.Top = SystemParameters.FullPrimaryScreenHeight - MainWindow.ActualHeight;
+                    MainWindow.Show();
                 }
             };
         }

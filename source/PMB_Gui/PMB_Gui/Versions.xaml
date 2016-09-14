@@ -7,14 +7,40 @@
       d:DesignHeight="300" d:DesignWidth="484"
       Background="White"
 	Title="Versions" Loaded="Page_Loaded">
+
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="2" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <TreeView x:Name="FileView" BorderThickness="0"/>
-        <GridSplitter Grid.Column="1" Width="2" HorizontalAlignment="Stretch" />
-        <Label Name="Prova" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="haiskhdks dhsakjdhask ksa dhsak" Name="watched_dir"/>
+            <Button Background="White" Grid.Column="1" Content="..." Margin="5" Padding="5,1"/>
+        </Grid>
+
+        <Separator Grid.Row="1" Height="2"></Separator>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TreeView Grid.Column="0" x:Name="FileView" BorderThickness="0"/>
+            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ListBox BorderThickness="0" Grid.Row="0" Name="Prova" />
+                <Button Background="White" Grid.Row="1" Content="Restore selected version"/>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>
