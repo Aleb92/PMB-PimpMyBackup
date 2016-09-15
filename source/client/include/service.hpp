@@ -8,6 +8,7 @@
 #ifndef SOURCE_SERVER_INCLUDE_SERVICE_HPP_
 #define SOURCE_SERVER_INCLUDE_SERVICE_HPP_
 
+#include <utilities/include/atend.hpp>
 #include <Windows.h>
 
 VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv);

@@ -33,8 +33,8 @@ namespace PMB_Gui
         public Pipe(string pipeName)
         {
             //timer.Tick += peek_workers;
-            pipeStream = new NamedPipeClientStream(pipeName);
-            //pipeStream.Connect();
+            pipeStream = new NamedPipeClientStream("PMB");
+            pipeStream.Connect();
             //pipeStream.BeginRead(buffer, 0, 1, new AsyncCallback(recieved), null);
         }
 
