@@ -14,9 +14,9 @@ pipe::pipe() {
 	DWORD dwRead;
 
 	hPipe = CreateNamedPipeA(settings::inst().pipe_name.value.c_str(),
-	PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH,
-	PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 128, 1024,
-	NMPWAIT_WAIT_FOREVER, nullptr);
+		PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH,
+		PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 128, 1024,
+		NMPWAIT_WAIT_FOREVER, nullptr);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		throw base_exception(__LINE__, __func__, __FILE__);
@@ -36,30 +36,48 @@ pipe::~pipe() {
 void pipe::driver() {
 	try {
 		char buffer[1024];
+
 		DWORD dwRead;
 		unique_lock<mutex> guard(lock);
 
+		LOGD("Pipw: waiting for connection...");
 		//FIXME: Questo thread rimane bloccato quì e impedisce la corretta chiusura della pipe.
 		while (ConnectNamedPipe(hPipe, nullptr)) // wait for someone to connect to the pipe
 		{
+			LOGD("Pipe connected...");
 			{
 				guard.unlock();
 				on_return<> disconnect([this]() {
 					DisconnectNamedPipe(this->hPipe);
+					LOGD("Pipe disconnected.");
 				});
 
 				guard.lock();
 				while (true) {
 					guard.unlock();
 
-					wstring fileName = read<wstring>();
-					uint64_t timeStamp = read<uint64_t>();
+					// Prima leggo l'opcode
+					pipe_codes pc = read<pipe_codes>();
+					switch(pc) {
+					case pipe_codes::FILE_VERSION:
 
-					file_action fa;
-					fa.op_code = server::opcode::VERSION;
-					fa.timestamps[5].dwLowDateTime = timeStamp;
-					fa.timestamps[5].dwHighDateTime = timeStamp >> 32;
-					action_merger::inst().add_change(fileName, fa);
+						wstring fileName = read<wstring>();
+						uint64_t timeStamp = read<uint64_t>();
+
+						file_action fa;
+						fa.op_code = server::opcode::VERSION;
+						fa.timestamps[5].dwLowDateTime = timeStamp;
+						fa.timestamps[5].dwHighDateTime = timeStamp >> 32;
+						action_merger::inst().add_change(fileName, fa);
+
+						break;
+					case pipe_codes::WORK_COUNT:
+						write<pipe_codes>(pipe_codes::WORK_COUNT);
+						write<int32_t>(action_merger::inst().pending_count);
+						break;
+					default:
+						LOGD("Pipe: opcode not recognized. [" << (int)pc << "]");
+					}
 
 					guard.lock();
 				}

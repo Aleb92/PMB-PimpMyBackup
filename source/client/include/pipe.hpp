@@ -12,7 +12,8 @@ namespace client {
 
 enum pipe_codes : uint8_t{
 	WRONG_CREDENTIALS = 1,
-	WORK_COUNT = 2
+	WORK_COUNT = 2,
+    FILE_VERSION = 3
 };
 
 class auth_exception : public utilities::base_exception {
