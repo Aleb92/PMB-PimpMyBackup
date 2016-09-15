@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ServiceProcess;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -11,9 +12,26 @@ namespace PMB_Gui
     {
         private NotifyIcon ni;
         public Settings settings;
-        Pipe pipe;
+        public Pipe pipe;
+        public ServiceController PMBservice;
         private bool connAvailable = false;
-           
+        
+        public static MainWindow ActiveWindow
+        {
+            get
+            {
+                return Current.MainWindow as MainWindow;
+            }
+        }
+
+        public static App CurrentApp
+        {
+            get
+            {
+                return Current as App;
+            }
+        }
+
         public bool ConnAvailable
         {
             get
@@ -27,7 +45,6 @@ namespace PMB_Gui
                 else
                     ni.Icon = PMB_Gui.Properties.Resources.icon_working;
                 connAvailable = value;
-                
             }
         }
 
@@ -43,6 +60,8 @@ namespace PMB_Gui
             pipe = new Pipe(settings.pipeName);
             pipe.InvalidLogin += InvalidLogin;
             pipe.WorkingCount += WorkingCount;
+
+            PMBservice = new ServiceController("PMB", Environment.MachineName);
         }
 
         private void WorkingCount(int working_count)

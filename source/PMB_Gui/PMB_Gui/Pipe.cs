@@ -8,7 +8,7 @@ using System.Windows.Threading;
 
 namespace PMB_Gui
 {
-    class Pipe
+    public class Pipe
     {
 
         public enum pipe_codes : byte
