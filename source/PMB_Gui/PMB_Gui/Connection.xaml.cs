@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -50,7 +51,24 @@ namespace PMB_Gui
         {
             res = null;
             try {
+
                 sock.EndConnect(ar);
+                using (sock)
+                {
+                    //QUI LA CONNESSIONE C'è
+                    //TODO provare a fare una versions vuota
+
+                    sock.Send(BitConverter.GetBytes(App.CurrentApp.settings.username.Length));
+                    sock.Send(Encoding.UTF8.GetBytes(App.CurrentApp.settings.username));
+
+                    sock.Send(BitConverter.GetBytes(App.CurrentApp.settings.password.Length));
+                    sock.Send(Encoding.UTF8.GetBytes(App.CurrentApp.settings.password));
+
+                    sock.Send(BitConverter.GetBytes((int)0));
+
+                    byte[] opcode = { 64 };
+                    sock.Send(opcode);
+                }
                 app.ConnAvailable = true;
                 Dispatcher.Invoke(delegate
                 {
@@ -58,6 +76,7 @@ namespace PMB_Gui
                 });
             }
             catch {
+                //QUI LA CONNESSIONE NON C'è
                 app.ConnAvailable = false;
                 Dispatcher.Invoke(delegate
                 {

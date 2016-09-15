@@ -10,7 +10,7 @@
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
         <Grid>
             <StackPanel Name="NoConnection">
-                <Image Source="pack://siteoforigin:,,,/Resources/no_rete.png" Width="125" />
+                <Image Source="Resources/no_rete.png" Width="125" Height="125"/>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="No connection found..." FontSize="16" />
                     <Label FontSize="16">
@@ -18,7 +18,7 @@
                     </Label>
                 </StackPanel>
             </StackPanel>
-            <StackPanel Name="Loading" Visibility="Hidden">
+            <StackPanel Name="Loading">
                 <Grid>
                     <Ellipse Width="100" Height="100"  Stroke="Blue" StrokeThickness="4"  />
                     <Ellipse Width="104" Height="104"  Stroke="LightBlue" StrokeThickness="8" StrokeDashArray="4 65" >
@@ -36,7 +36,7 @@
                         </Ellipse.Triggers>
                     </Ellipse>
                 </Grid>
-                <Label Content="Checking for connectivity..." FontSize="16" />
+                <Label Content="Checking for connectivity..." FontSize="16" HorizontalAlignment="Center" />
             </StackPanel>
         </Grid>
     </StackPanel>

@@ -1,18 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.ServiceProcess;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
 namespace PMB_Gui
 {
     /// <summary>
@@ -20,9 +7,25 @@ namespace PMB_Gui
     /// </summary>
     public partial class Login : Page
     {
+
         public Login()
         {
             InitializeComponent();
+        }
+
+        private void Login_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            //TODO Migliorare il login provando a chidere delle version...
+
+            App.CurrentApp.PMBservice.Stop();
+            App.CurrentApp.PMBservice.WaitForStatus(ServiceControllerStatus.Stopped);
+
+            App.CurrentApp.settings.resetCredentials(Username.Text, Password.Password);            
+
+            App.CurrentApp.PMBservice.Start();
+            App.CurrentApp.PMBservice.WaitForStatus(ServiceControllerStatus.Running);
+
+            App.ActiveWindow.ShowVersions();
         }
     }
 }

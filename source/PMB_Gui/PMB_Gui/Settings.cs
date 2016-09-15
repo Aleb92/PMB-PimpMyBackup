@@ -5,7 +5,7 @@ namespace PMB_Gui
 {
     public class Settings
     {
-        public string watchedDir, pipeName, tempDir, settingsFileName, server_ip;
+        public string watchedDir, pipeName, tempDir, settingsFileName, server_ip, username, password;
         public int server_port;
 
         public Settings() {
@@ -44,6 +44,14 @@ namespace PMB_Gui
                             server_ip = words[1];
                             break;
 
+                        case "username":
+                            username = words[1];
+                            break;
+
+                        case "password":
+                            password = words[1];
+                            break;
+
                         default: break;
                     }
 
@@ -52,13 +60,16 @@ namespace PMB_Gui
             }
         }
 
-        public void resetCredential(string username, string password) {
+        public void resetCredentials(string username, string password) {
 
             using (StreamWriter sw = new StreamWriter(
                 settingsFileName, true))
             {
                 sw.WriteLine("username="+ username);
                 sw.WriteLine("password=" + password);
+
+                this.username = username;
+                this.password = password; 
             }
         }
 

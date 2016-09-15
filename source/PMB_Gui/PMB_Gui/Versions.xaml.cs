@@ -31,7 +31,7 @@ namespace PMB_Gui
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadDirsAndFiles(FileView.Items, @"C:\Users\Alessio\git\PMB-PimpMyBackup\build\test");
+            LoadDirsAndFiles(FileView.Items, App.CurrentApp.settings.watchedDir);
         }
 
         private StackPanel IconAndText(ImageSource IS, string text)

@@ -24,6 +24,7 @@ namespace PMB_Gui
                 Bounces = 2,
                 Bounciness = 2.5
             };
+            //DEBUGG
             Loaded += delegate
             {
                 this.ShowConnection();

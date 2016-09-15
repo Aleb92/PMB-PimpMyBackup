@@ -90,7 +90,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
@@ -101,9 +101,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Icon1.ico" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Connection.xaml">
@@ -124,9 +121,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\no_rete.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\file.png" />
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +134,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\icon_working.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\no_rete.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
