@@ -33,10 +33,14 @@ pipe::pipe() {
 	sa.lpSecurityDescriptor = pSD;
 	sa.bInheritHandle = FALSE;
 
-	hPipe = CreateNamedPipeA(settings::inst().pipe_name.value.c_str(),
-		PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH,
-		PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 128, 1024,
-		NMPWAIT_WAIT_FOREVER, &sa);
+	hPipe = CreateNamedPipeA(("\\\\.\\pipe\\" + settings::inst().pipe_name.value).c_str(),
+		PIPE_ACCESS_DUPLEX |
+		FILE_FLAG_WRITE_THROUGH |
+		FILE_FLAG_FIRST_PIPE_INSTANCE,
+		PIPE_TYPE_BYTE |
+		PIPE_READMODE_BYTE |
+		PIPE_WAIT, 1, 128, 1024,
+		60000, &sa);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		throw base_exception(__LINE__, __func__, __FILE__);
