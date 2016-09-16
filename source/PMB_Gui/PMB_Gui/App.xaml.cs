@@ -10,7 +10,7 @@ namespace PMB_Gui
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        private NotifyIcon ni;
+        public NotifyIcon ni;
         public Settings settings;
         public Pipe pipe;
         public ServiceController PMBservice;

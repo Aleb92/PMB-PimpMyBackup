@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -55,20 +56,29 @@ namespace PMB_Gui
                 sock.EndConnect(ar);
                 using (sock)
                 {
-                    //QUI LA CONNESSIONE C'è
-                    //TODO provare a fare una versions vuota
+                    using (NetworkStream ns = new NetworkStream(sock))
+                    {
+                        using (BinaryWriter bw = new BinaryWriter(ns))
+                        {
+                            using (BinaryReader br = new BinaryReader(ns))
+                            {
+                                bw.Write(App.CurrentApp.settings.username.Length);
+                                bw.Write(Encoding.UTF8.GetBytes(App.CurrentApp.settings.username));
 
-                    sock.Send(BitConverter.GetBytes(App.CurrentApp.settings.username.Length));
-                    sock.Send(Encoding.UTF8.GetBytes(App.CurrentApp.settings.username));
+                                bw.Write(App.CurrentApp.settings.password.Length);
+                                bw.Write(Encoding.UTF8.GetBytes(App.CurrentApp.settings.password));
 
-                    sock.Send(BitConverter.GetBytes(App.CurrentApp.settings.password.Length));
-                    sock.Send(Encoding.UTF8.GetBytes(App.CurrentApp.settings.password));
-
-                    sock.Send(BitConverter.GetBytes((int)0));
-
-                    byte[] opcode = { 64 };
-                    sock.Send(opcode);
+                                //Auth ok o no?
+                                if (!br.ReadBoolean())
+                                {
+                                    App.CurrentApp.ni.Icon = Properties.Resources.icon_error;
+                                    App.ActiveWindow.ShowLogin();
+                                }
+                            }
+                        }
+                    }
                 }
+                //QUI LA CONNESSIONE C'è
                 app.ConnAvailable = true;
                 Dispatcher.Invoke(delegate
                 {

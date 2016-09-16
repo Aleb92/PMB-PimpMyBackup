@@ -27,7 +27,7 @@ namespace PMB_Gui
             //DEBUGG
             Loaded += delegate
             {
-                this.ShowConnection();
+                this.ShowLogin();
             };
         }
 

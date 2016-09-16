@@ -12,7 +12,7 @@ namespace PMB_Gui
             string line;
             string[] words;
 
-            settingsFileName = @"C:\Users\Alessio\git\PMB-PimpMyBackup\client_settings.ini";
+            settingsFileName = Directory.GetCurrentDirectory() + "\\client_settings.ini";
 
             using (StreamReader sr = new StreamReader(
                 settingsFileName))

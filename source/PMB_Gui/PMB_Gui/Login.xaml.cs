@@ -15,17 +15,15 @@ namespace PMB_Gui
 
         private void Login_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            //TODO Migliorare il login provando a chidere delle version...
+            //App.CurrentApp.PMBservice.Stop();
+            //App.CurrentApp.PMBservice.WaitForStatus(ServiceControllerStatus.Stopped);
 
-            App.CurrentApp.PMBservice.Stop();
-            App.CurrentApp.PMBservice.WaitForStatus(ServiceControllerStatus.Stopped);
+            App.ActiveWindow.ShowConnection();
+            App.CurrentApp.settings.resetCredentials(Username.Text, Password.Password);
+            (App.ActiveWindow.Connection.Content as Connection).tryConnection();
 
-            App.CurrentApp.settings.resetCredentials(Username.Text, Password.Password);            
-
-            App.CurrentApp.PMBservice.Start();
-            App.CurrentApp.PMBservice.WaitForStatus(ServiceControllerStatus.Running);
-
-            App.ActiveWindow.ShowVersions();
+            //App.CurrentApp.PMBservice.Start();
+            //App.CurrentApp.PMBservice.WaitForStatus(ServiceControllerStatus.Running);
         }
     }
 }
