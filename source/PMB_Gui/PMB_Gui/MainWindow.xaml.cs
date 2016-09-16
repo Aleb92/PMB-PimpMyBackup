@@ -51,8 +51,11 @@ namespace PMB_Gui
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            e.Cancel = true;
-            Hide();
+            if (!App.CurrentApp.ShuttingDown)
+            {
+                e.Cancel = true;
+                Hide();
+            }
         }
     }
 }

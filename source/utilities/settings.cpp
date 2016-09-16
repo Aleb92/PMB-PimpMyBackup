@@ -26,10 +26,12 @@ settings_loader::settings_loader(const char*filename) {
 
 	if (settingFile.is_open())
 	  {
+		LOGD("File aperto");
 	    while ( getline(settingFile,line) )
 	    {
 	    	pair<string, stringstream> result = splitOnce(line, '=');
 	    	map[result.first].swap(result.second);
+	    	LOGD("Loaded:" << result.first);
 	    }
 	    settingFile.close();
 	  }

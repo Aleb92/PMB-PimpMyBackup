@@ -32,6 +32,8 @@ void start_service() {
 		throw base_exception(__LINE__, __func__, __FILE__);
 }
 
+
+
 VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
 	LOGF;
 	try {
@@ -78,8 +80,8 @@ VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
         g_ServiceStatus.dwControlsAccepted = 0;
 
 
-		if (!SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
-		    throw base_exception(__LINE__, __func__, __FILE__);
+    	if (!SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
+    	    throw base_exception(__LINE__, __func__, __FILE__);
 
 		LOGD("Ending operations...");
 

@@ -13,9 +13,33 @@ namespace PMB_Gui
         public NotifyIcon ni;
         public Settings settings;
         public Pipe pipe;
-        public ServiceController PMBservice;
-        private bool connAvailable = false;
-        
+        public ServiceController PMBservice = new ServiceController("PMB", Environment.MachineName);
+
+        private bool connAvailable = false, shuttingDown = false;
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            ni = new NotifyIcon()
+            {
+                Icon = PMB_Gui.Properties.Resources.icon_working,
+                Visible = true
+            };
+            ni.DoubleClick += toggleMainWindow;
+
+            pipe = new Pipe(settings.pipeName);
+            pipe.InvalidLogin += InvalidLogin;
+            pipe.WorkingCount += WorkingCount;
+        }
+
+        public bool ShuttingDown
+        {
+            get
+            {
+                return shuttingDown;
+            }
+        }
+
         public static MainWindow ActiveWindow
         {
             get
@@ -48,20 +72,10 @@ namespace PMB_Gui
             }
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
         {
-            base.OnStartup(e);
-            ni = new NotifyIcon();
-            ni.Icon = PMB_Gui.Properties.Resources.icon_working;
-            ni.Visible = true;
-            ni.DoubleClick += toggleMainWindow;
-                
-            settings = new Settings();
-            pipe = new Pipe(settings.pipeName);
-            pipe.InvalidLogin += InvalidLogin;
-            pipe.WorkingCount += WorkingCount;
-
-            PMBservice = new ServiceController("PMB", Environment.MachineName);
+            base.OnSessionEnding(e);
+            shuttingDown = true;
         }
 
         private void WorkingCount(int working_count)

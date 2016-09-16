@@ -13,10 +13,34 @@ pipe::pipe() {
 	char buffer[1024];
 	DWORD dwRead;
 
-	hPipe = CreateNamedPipeA(settings::inst().pipe_name.value.c_str(),
-		PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH,
-		PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 128, 1024,
-		NMPWAIT_WAIT_FOREVER, nullptr);
+	//Questo dovrebbe permettere a tutti di accedere
+	PSECURITY_DESCRIPTOR pSD = (PSECURITY_DESCRIPTOR) LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+	if (!pSD)
+		throw base_exception(__LINE__, __func__, __FILE__);
+
+	on_return<>([pSD]() {
+		LocalFree(pSD);
+	});
+
+	if (!InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION))
+		throw base_exception(__LINE__, __func__, __FILE__);
+
+	if (!SetSecurityDescriptorDacl(pSD, TRUE, NULL, FALSE))
+		throw base_exception(__LINE__, __func__, __FILE__);
+
+	SECURITY_ATTRIBUTES sa;
+	sa.nLength = sizeof(sa);
+	sa.lpSecurityDescriptor = pSD;
+	sa.bInheritHandle = FALSE;
+
+	hPipe = CreateNamedPipeA(("\\\\.\\pipe\\" + settings::inst().pipe_name.value).c_str(),
+		PIPE_ACCESS_DUPLEX |
+		FILE_FLAG_WRITE_THROUGH |
+		FILE_FLAG_FIRST_PIPE_INSTANCE,
+		PIPE_TYPE_BYTE |
+		PIPE_READMODE_BYTE |
+		PIPE_WAIT, 1, 128, 1024,
+		60000, &sa);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		throw base_exception(__LINE__, __func__, __FILE__);
@@ -60,16 +84,16 @@ void pipe::driver() {
 					pipe_codes pc = read<pipe_codes>();
 					switch(pc) {
 					case pipe_codes::FILE_VERSION:
+						{
+							wstring fileName = read<wstring>();
+							uint64_t timeStamp = read<uint64_t>();
 
-						wstring fileName = read<wstring>();
-						uint64_t timeStamp = read<uint64_t>();
-
-						file_action fa;
-						fa.op_code = server::opcode::VERSION;
-						fa.timestamps[5].dwLowDateTime = timeStamp;
-						fa.timestamps[5].dwHighDateTime = timeStamp >> 32;
-						action_merger::inst().add_change(fileName, fa);
-
+							file_action fa;
+							fa.op_code = server::opcode::VERSION;
+							fa.timestamps[5].dwLowDateTime = timeStamp;
+							fa.timestamps[5].dwHighDateTime = timeStamp >> 32;
+							action_merger::inst().add_change(fileName, fa);
+						}
 						break;
 					case pipe_codes::WORK_COUNT:
 						write<pipe_codes>(pipe_codes::WORK_COUNT);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
@@ -18,24 +19,22 @@ namespace PMB_Gui
             FILE_VERSION = 3
         }
 
-        private const int interval = 1000;
+        private const int interval = 10000;
 
         public event Action InvalidLogin;
         public event Action<int> WorkingCount;
 
         private NamedPipeClientStream pipeStream;
-        private DispatcherTimer timer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(interval)
-        };
+        private Timer timer;
         private byte[] buffer = new byte[4];
 
         public Pipe(string pipeName)
         {
-            //timer.Tick += peek_workers;
-            pipeStream = new NamedPipeClientStream(pipeName);
-            //pipeStream.Connect();
-            //pipeStream.BeginRead(buffer, 0, 1, new AsyncCallback(recieved), null);
+            pipeStream = new NamedPipeClientStream(".", App.CurrentApp.settings.pipeName, 
+                PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+            pipeStream.Connect();
+            pipeStream.BeginRead(buffer, 0, 1, recieved, null);
+            timer = new Timer(peek_workers, null, interval, interval);
         }
 
         private void recieved(IAsyncResult ar)
@@ -53,13 +52,12 @@ namespace PMB_Gui
                         WorkingCount(BitConverter.ToInt32(buffer, 0));
                         break;
                 }
-                pipeStream.BeginRead(buffer, 0, 1, new AsyncCallback(recieved), null);
+                pipeStream.BeginRead(buffer, 0, 1, recieved, null);
             }
         }
 
-        private void peek_workers(object sender, EventArgs e) {
+        private void peek_workers(object sender) {
             pipeStream.WriteByte((byte)pipe_codes.WORK_COUNT);
-            pipeStream.Flush();
         }
 
         public void selectVersion(string filename, long timestamp)
@@ -70,6 +68,11 @@ namespace PMB_Gui
             pipeStream.Write(str, 0, str.Length);
             pipeStream.Write(BitConverter.GetBytes(filename.Length), 0, filename.Length*2);
             pipeStream.Write(BitConverter.GetBytes(timestamp), 0, 8);
+        }
+
+        ~Pipe()
+        {
+            pipeStream.Close();
         }
     }
 }
