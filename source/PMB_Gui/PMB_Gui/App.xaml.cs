@@ -11,7 +11,7 @@ namespace PMB_Gui
     public partial class App : System.Windows.Application
     {
         public NotifyIcon ni;
-        public Settings settings;
+        public Settings settings = new Settings();
         public Pipe pipe;
         public ServiceController PMBservice = new ServiceController("PMB", Environment.MachineName);
 
@@ -20,6 +20,7 @@ namespace PMB_Gui
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            PMBservice.WaitForStatus(ServiceControllerStatus.Running);
             ni = new NotifyIcon()
             {
                 Icon = PMB_Gui.Properties.Resources.icon_working,
@@ -65,9 +66,13 @@ namespace PMB_Gui
             set
             {
                 if (!value)
+                {
                     ni.Icon = PMB_Gui.Properties.Resources.icon_error;
+                }
                 else
+                {
                     ni.Icon = PMB_Gui.Properties.Resources.icon_working;
+                }
                 connAvailable = value;
             }
         }
@@ -78,8 +83,9 @@ namespace PMB_Gui
             shuttingDown = true;
         }
 
-        private void WorkingCount(int working_count)
+        internal void WorkingCount(int working_count)
         {
+            Console.WriteLine(working_count);
             if (connAvailable) {
                 if (working_count == 0)
                     ni.Icon = PMB_Gui.Properties.Resources.icon_ok;
@@ -88,10 +94,12 @@ namespace PMB_Gui
             }
         }
 
-        private void InvalidLogin()
+        internal void InvalidLogin()
         {
-            showMainWindow();
-            (MainWindow as MainWindow).ShowLogin();
+            Dispatcher.Invoke(delegate {
+                showMainWindow();
+                (MainWindow as MainWindow).ShowLogin();
+            });
         }
 
         private void showMainWindow() {
@@ -101,6 +109,9 @@ namespace PMB_Gui
 
             MainWindow.Left = SystemParameters.FullPrimaryScreenWidth - MainWindow.ActualWidth;
             MainWindow.Top = SystemParameters.FullPrimaryScreenHeight - MainWindow.ActualHeight;
+
+            ActiveWindow.versions.LoadDirsAndFiles();
+
             MainWindow.Show();
         }
 
@@ -109,6 +120,21 @@ namespace PMB_Gui
             if (MainWindow.IsVisible)
                 MainWindow.Hide();
             else showMainWindow();
+        }
+
+        public void stopService() {
+            PMBservice.Stop();
+            PMBservice.WaitForStatus(ServiceControllerStatus.Stopped);
+        }
+
+        public void startService() {
+            PMBservice.Start();
+            PMBservice.WaitForStatus(ServiceControllerStatus.Running);
+
+            pipe = new Pipe(settings.pipeName);
+
+            pipe.InvalidLogin += InvalidLogin;
+            pipe.WorkingCount += WorkingCount;
         }
     }
 }

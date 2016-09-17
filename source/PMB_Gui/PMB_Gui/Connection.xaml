@@ -14,7 +14,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Label Content="No connection found..." FontSize="16" />
                     <Label FontSize="16">
-                        <Hyperlink Click="RetryConnection">Retry now</Hyperlink>
+                        <Hyperlink Click="tryConnection">Retry now</Hyperlink>
                     </Label>
                 </StackPanel>
             </StackPanel>

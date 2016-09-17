@@ -7,6 +7,7 @@ namespace PMB_Gui
     {
         public string watchedDir, pipeName, tempDir, settingsFileName, server_ip, username, password;
         public int server_port;
+        internal string logFileName;
 
         public Settings() {
             string line;
@@ -50,6 +51,10 @@ namespace PMB_Gui
 
                         case "password":
                             password = words[1];
+                            break;
+
+                        case "log_filename":
+                            logFileName = words[1];
                             break;
 
                         default: break;

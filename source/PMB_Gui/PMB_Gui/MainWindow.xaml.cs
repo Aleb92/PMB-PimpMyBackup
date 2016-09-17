@@ -10,6 +10,19 @@ namespace PMB_Gui
     /// </summary>
     public partial class MainWindow : Window
     {
+        public Versions versions {
+            get { return Versions.Content as Versions; }
+        }
+
+        public Login login
+        {
+            get { return Login.Content as Login; }
+        }
+
+        public Connection connection
+        {
+            get { return Connection.Content as Connection; }
+        }
 
         private DoubleAnimation 
             show = new DoubleAnimation(484, new Duration(TimeSpan.FromMilliseconds(800))), 
@@ -24,11 +37,17 @@ namespace PMB_Gui
                 Bounces = 2,
                 Bounciness = 2.5
             };
-            //DEBUGG
-            Loaded += delegate
-            {
-                this.ShowLogin();
-            };
+        }
+
+        public void ShowLoadDialog(object content)
+        {
+            LoadingCaption.Content = content;
+            Loading.Visibility = Visibility.Visible;
+        }
+
+        public void DismissLoadDialog()
+        {
+            Loading.Visibility = Visibility.Hidden;
         }
 
         public void ShowConnection()
@@ -36,11 +55,12 @@ namespace PMB_Gui
             Connection.BeginAnimation(Panel.WidthProperty, show);
             Login.BeginAnimation(Panel.WidthProperty, hide);
         }
-
+        
         public void ShowVersions()
         {
             Connection.BeginAnimation(Frame.WidthProperty, hide);
             Login.BeginAnimation(Frame.WidthProperty, hide);
+            versions.LoadDirsAndFiles();
         }
 
         public void ShowLogin()

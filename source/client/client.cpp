@@ -290,8 +290,9 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 	});
 
 	uint32_t size = sock.recv<uint32_t>();
+	LOGD(size);
 	while ((n < size) && run) {
-		size_t i = sock.recv(buffer, BUFF_LENGHT);
+		size_t i = sock.recv(buffer, min<uint32_t>(BUFF_LENGHT, size - n));
 		fwrite(buffer, i, 1, file);
 		n += i;
 	}

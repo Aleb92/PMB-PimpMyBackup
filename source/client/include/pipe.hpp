@@ -33,7 +33,6 @@ public:
 
 	template<typename T>
 	void write(T t) {
-		LOGF;
 		DWORD written, err;
 		if (!WriteFile(hPipe, &t, sizeof(t), &written, nullptr)) {
 			err = GetLastError();
@@ -44,7 +43,6 @@ public:
 
 	template<typename T>
 	void write(T* t, size_t l) {
-		LOGF;
 		DWORD written, err;
 		if (!WriteFile(hPipe, t, l, &written, nullptr)) {
 			err = GetLastError();
@@ -55,10 +53,7 @@ public:
 
 	template<typename T>
 	T read() {
-		LOGF;
-
 		DWORD dwRead;
-		LOGD("di: " << typeid(T).name() << "; size: " << sizeof(T));
 		T ret;
 		if (!::ReadFile(hPipe, (char*) &ret, sizeof(T), &dwRead, nullptr) ||
 				dwRead != sizeof(T)) {
@@ -66,8 +61,6 @@ public:
 			if (err != ERROR_BROKEN_PIPE)
 				throw utilities::base_exception(err,__LINE__, __func__, __FILE__);
 		}
-
-		LOGD("pipe read returned value = "<< ret);
 		return ret;
 	}
 };

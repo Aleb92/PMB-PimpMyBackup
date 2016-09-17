@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace PMB_Gui
 {
@@ -15,36 +16,32 @@ namespace PMB_Gui
     public partial class Connection : Page
     {
         private IAsyncResult res;
-        private App app = (App.Current as App);
         private Socket sock;
+        private DispatcherTimer connection_timer = new DispatcherTimer {
+            Interval = TimeSpan.FromMilliseconds(10000)
+        };
 
         public Connection()
         {
             InitializeComponent();
-            //DEBUG
-            Loaded += delegate
-             {
-                 tryConnection();
-             };
+            connection_timer.Tick += tryConnection;
+            connection_timer.Start();
         }
 
-        private void RetryConnection(object sender, RoutedEventArgs e)
-        {
-            tryConnection();
-        }
-
-        public void tryConnection()
+        public void tryConnection(object sender, EventArgs e)
         {
             if (res != null)
                 return;
+
+            connection_timer.Stop();
 
             Dispatcher.Invoke(delegate
             {
                 NoConnection.Visibility = Visibility.Hidden;
                 Loading.Visibility = Visibility.Visible;
                 sock = new Socket(SocketType.Stream, ProtocolType.IP);
-
-                res = sock.BeginConnect(new IPEndPoint(IPAddress.Parse(app.settings.server_ip), app.settings.server_port), new AsyncCallback(connectResult), null);
+                sock.SendTimeout = sock.ReceiveTimeout = 5000;
+                res = sock.BeginConnect(new IPEndPoint(IPAddress.Parse(App.CurrentApp.settings.server_ip), App.CurrentApp.settings.server_port), connectResult, null);
             });
         }
 
@@ -62,43 +59,53 @@ namespace PMB_Gui
                         {
                             using (BinaryReader br = new BinaryReader(ns))
                             {
-                                bw.Write(App.CurrentApp.settings.username.Length);
+                                bw.Write(IPAddress.HostToNetworkOrder(App.CurrentApp.settings.username.Length));
                                 bw.Write(Encoding.UTF8.GetBytes(App.CurrentApp.settings.username));
 
-                                bw.Write(App.CurrentApp.settings.password.Length);
+                                bw.Write(IPAddress.HostToNetworkOrder(App.CurrentApp.settings.password.Length));
                                 bw.Write(Encoding.UTF8.GetBytes(App.CurrentApp.settings.password));
+
+                                bw.Write((int)0);
+
+                                //opcode
+                                bw.Write((byte)64);
 
                                 //Auth ok o no?
                                 if (!br.ReadBoolean())
                                 {
-                                    App.CurrentApp.ni.Icon = Properties.Resources.icon_error;
-                                    App.ActiveWindow.ShowLogin();
+                                    Dispatcher.Invoke(delegate
+                                    {
+                                        App.CurrentApp.ConnAvailable = false;
+                                        App.CurrentApp.ni.Icon = Properties.Resources.icon_error;
+                                        App.ActiveWindow.ShowLogin();
+                                    });
+                                }
+                                else
+                                {
+                                    Dispatcher.Invoke(delegate
+                                    {
+                                        App.CurrentApp.ConnAvailable = true;
+                                        App.ActiveWindow.ShowVersions();
+                                    });
                                 }
                             }
                         }
                     }
                 }
-                //QUI LA CONNESSIONE C'è
-                app.ConnAvailable = true;
-                Dispatcher.Invoke(delegate
-                {
-                    (app.MainWindow as MainWindow).ShowVersions();
-                });
             }
             catch {
                 //QUI LA CONNESSIONE NON C'è
-                app.ConnAvailable = false;
+                App.CurrentApp.ConnAvailable = false;
                 Dispatcher.Invoke(delegate
                 {
+                    App.ActiveWindow.ShowConnection();
                     NoConnection.Visibility = Visibility.Visible;
                     Loading.Visibility = Visibility.Hidden;
-
-                    Task.Delay(4000).ContinueWith(_ =>
-                    {
-                        tryConnection();
-                    });
                 });
             }
+
+            connection_timer.Start();
         }
+        
     }
 }

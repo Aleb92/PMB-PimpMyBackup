@@ -88,7 +88,7 @@ void pipe::driver() {
 							wstring fileName = read<wstring>();
 							uint64_t timeStamp = read<uint64_t>();
 
-							file_action fa;
+							file_action fa = {0};
 							fa.op_code = server::opcode::VERSION;
 							fa.timestamps[5].dwLowDateTime = timeStamp;
 							fa.timestamps[5].dwHighDateTime = timeStamp >> 32;
@@ -100,7 +100,8 @@ void pipe::driver() {
 						write<int32_t>(action_merger::inst().pending_count);
 						break;
 					default:
-						LOGD("Pipe: opcode not recognized. [" << (int)pc << "]");
+						//LOGD("Pipe: opcode not recognized. [" << (int)pc << "]");
+						;
 					}
 
 					guard.lock();
@@ -128,7 +129,7 @@ wstring pipe::read<wstring>() {
 	wstring ret;
 	wchar_t *buff = new wchar_t[size+2]{0};
 	//rr = recv(buff, size);
-	if(!::ReadFile(hPipe, reinterpret_cast<char*>(buff), size*sizeof(wchar_t), &dwrr, nullptr) || size != dwrr){
+	if(!::ReadFile(hPipe, reinterpret_cast<char*>(buff), size*sizeof(wchar_t), &dwrr, nullptr) || size*sizeof(wchar_t) != dwrr){
 		DWORD err = GetLastError();
 		if (err != ERROR_BROKEN_PIPE)
 			throw utilities::base_exception(err,__LINE__, __func__, __FILE__);

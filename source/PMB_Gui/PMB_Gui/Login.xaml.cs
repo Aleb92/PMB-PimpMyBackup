@@ -1,4 +1,5 @@
 ﻿using System.ServiceProcess;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 namespace PMB_Gui
 {
@@ -15,15 +16,25 @@ namespace PMB_Gui
 
         private void Login_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            //App.CurrentApp.PMBservice.Stop();
-            //App.CurrentApp.PMBservice.WaitForStatus(ServiceControllerStatus.Stopped);
+            App.ActiveWindow.ShowLoadDialog("Trying login...");
+            string user = Username.Text, password = Password.Password;
+            Task.Run(delegate {
+                App.CurrentApp.stopService();
 
-            App.ActiveWindow.ShowConnection();
-            App.CurrentApp.settings.resetCredentials(Username.Text, Password.Password);
-            (App.ActiveWindow.Connection.Content as Connection).tryConnection();
+                Dispatcher.Invoke(delegate
+                {
+                    App.ActiveWindow.DismissLoadDialog();
+                    App.ActiveWindow.ShowConnection();
+                });
+                App.CurrentApp.settings.resetCredentials(user, password);
+                Dispatcher.Invoke(delegate
+                {
+                    (App.ActiveWindow.Connection.Content as Connection).tryConnection(null, null);
+                });
 
-            //App.CurrentApp.PMBservice.Start();
-            //App.CurrentApp.PMBservice.WaitForStatus(ServiceControllerStatus.Running);
+                App.CurrentApp.startService();
+            });
+            
         }
     }
 }
