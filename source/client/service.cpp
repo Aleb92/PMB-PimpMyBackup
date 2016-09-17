@@ -48,6 +48,12 @@ VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
 
 		LOGD("Service registered");
 
+		LOGD("Starting client...");
+
+		// Start a thread that will perform the main task of the service
+        c->start();
+		LOGD("Started");
+
 		// Tell the service controller we are started
 		g_ServiceStatus.dwControlsAccepted =
 				SERVICE_ACCEPT_SHUTDOWN |
@@ -59,12 +65,6 @@ VOID WINAPI ServiceMain(DWORD argc, wchar_t **argv) {
 			throw base_exception(__LINE__, __func__, __FILE__);
 
 		LOGD("Manager updated");
-
-		LOGD("Starting client...");
-
-		// Start a thread that will perform the main task of the service
-        c->start();
-		LOGD("Started");
 
         l.lock();
 

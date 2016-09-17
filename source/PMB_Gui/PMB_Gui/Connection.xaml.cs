@@ -76,7 +76,6 @@ namespace PMB_Gui
                                     Dispatcher.Invoke(delegate
                                     {
                                         App.CurrentApp.ConnAvailable = false;
-                                        App.CurrentApp.ni.Icon = Properties.Resources.icon_error;
                                         App.ActiveWindow.ShowLogin();
                                     });
                                 }

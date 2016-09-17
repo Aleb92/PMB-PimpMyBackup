@@ -125,6 +125,7 @@ namespace PMB_Gui
         public void stopService() {
             PMBservice.Stop();
             PMBservice.WaitForStatus(ServiceControllerStatus.Stopped);
+            pipe.Close();
         }
 
         public void startService() {
