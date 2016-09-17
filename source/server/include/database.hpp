@@ -38,11 +38,8 @@ namespace server {
 #define SQL_MOVE "INSERT INTO GROUP_CHANGES (T, username, path, time_stamp, new_path) VALUES ('m', ?1, ?2, ?3, ?4)"
 #define SQL_APPLY "UPDATE users SET lastSync=?2 WHERE username = ?1;"
 #define SQL_DELETE "INSERT INTO GROUP_CHANGES (T, username, path, time_stamp) VALUES ('d', ?1, ?2, ?3)"
-#define SQL_SYNC "SELECT path, file_id FROM files WHERE username=?1"
-#define SQL_VERSION "WITH tmp AS (SELECT time_stamp, mod, file_id FROM history WHERE username=?1"\
-		" AND path=?2 AND time_stamp=?3) UPDATE files SET time_stamp=(SELECT time_stamp FROM tmp), "\
-		"mod=(SELECT mod FROM tmp),file_id=(SELECT file_id FROM tmp) WHERE username=?1 AND path=?2;"\
-		"SELECT file_id FROM tmp"
+#define SQL_SYNC "SELECT path, time_stamp FROM files WHERE username=?1"
+#define SQL_VERSION "SELECT file_id FROM history WHERE username=?1 AND path=?2 AND time_stamp=?3"
 #define SQL_LIST_V "SELECT time_stamp FROM history WHERE username=?1 AND path=?2 ORDER BY time_stamp DESC"
 
 class database;
@@ -64,7 +61,7 @@ public:
 	void move(int64_t, std::string&);
 	void apply(int64_t);
 	void remove(int64_t);
-	std::vector<std::pair<std::string,std::string>> sync();
+	std::vector<std::pair<std::string,int64_t>> sync();
 	std::string version(int64_t);
 	std::vector<int64_t> versions();
 };

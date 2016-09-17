@@ -1,8 +1,4 @@
 /* Tabella degli utenti */
-CREATE TABLE log (
-	message TEXT
-);
-
 CREATE TABLE users (
 	username VARCHAR(32) PRIMARY KEY, 
 	password VARCHAR(16) NOT NULL,
@@ -86,7 +82,7 @@ BEGIN
 		SELECT * FROM files
 		WHERE
 			username = NEW.username AND
-			time_stamp <= NEW.time_stamp AND
+			/*time_stamp <= NEW.time_stamp AND*/
 			path = NEW.path
 	);
 
@@ -164,7 +160,6 @@ CREATE TRIGGER historic_dispatch_apply
 AFTER UPDATE ON users
 FOR EACH ROW
 BEGIN
-	INSERT INTO log (message) VALUES ("historic_dispatch_apply");
 	
 	INSERT INTO 
 		CHANGE_LOOPER (GROUP_CHANGES_TYPE, username, path, time_stamp, new_path)
@@ -182,7 +177,6 @@ CREATE TRIGGER history_delete_new
 AFTER DELETE ON files
 FOR EACH ROW
 BEGIN
-	INSERT INTO log (message) VALUES ("history_delete_new");
 	
 	INSERT INTO history (username, path, time_stamp, mod, file_id)
 	VALUES (OLD.username, OLD.path, OLD.time_stamp, OLD.mod, OLD.file_id);
@@ -193,7 +187,6 @@ AFTER UPDATE ON files
 FOR EACH ROW
 WHEN (OLD.time_stamp < NEW.time_stamp)
 BEGIN
-	INSERT INTO log (message) VALUES ("history_update_ok");
 	INSERT INTO history (username, path, time_stamp, mod, file_id)
 	VALUES (OLD.username, OLD.path, OLD.time_stamp, OLD.mod, OLD.file_id);
 END;
@@ -203,7 +196,6 @@ BEFORE UPDATE ON files
 FOR EACH ROW
 WHEN (OLD.time_stamp > NEW.time_stamp)
 BEGIN
-	INSERT INTO log (message) VALUES ("history_update_ignore");
 
 	INSERT INTO history (username, path, time_stamp, mod, file_id)
 	VALUES (NEW.username, NEW.path, NEW.time_stamp, NEW.mod, NEW.file_id);
@@ -216,7 +208,6 @@ INSTEAD OF INSERT ON CHANGE_LOOPER
 FOR EACH ROW
 WHEN (NEW.GROUP_CHANGES_TYPE = 'm')
 BEGIN
-	INSERT INTO log (message) VALUES ("apply_live_move");
 	
 	-- Aggiorno nel caso di files singoli
 	UPDATE OR REPLACE files SET path=NEW.new_path, time_stamp=NEW.time_stamp
@@ -235,7 +226,6 @@ INSTEAD OF INSERT ON CHANGE_LOOPER
 FOR EACH ROW
 WHEN (NEW.GROUP_CHANGES_TYPE = 'd')
 BEGIN
-	INSERT INTO log (message) VALUES ("apply_live_delete");
 	
 	DELETE FROM files 
 	WHERE username = NEW.username AND 

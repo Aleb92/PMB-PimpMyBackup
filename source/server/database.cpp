@@ -511,9 +511,9 @@ vector<int64_t> user_context::versions() {
 	}
 }
 
-vector<pair<string, string>> user_context::sync() {
+vector<pair<string, int64_t>> user_context::sync() {
 	LOGF;
-	vector<pair<string, string>> result;
+	vector<pair<string, int64_t>> result;
 
 	//Prima cosa: lock! Dalle specifiche sqlite solo un thread alla volta può
 	//usare la connessione.
@@ -534,7 +534,7 @@ vector<pair<string, string>> user_context::sync() {
 		case SQLITE_DONE:
 			return result;	// No such user!
 		case SQLITE_ROW:
-			result.push_back(make_pair(db_column<string>(db.sync.get(), 0), db_column<string>(db.sync.get(), 0)));
+			result.push_back(make_pair(db_column<string>(db.sync.get(), 0), db_column<int64_t>(db.sync.get(), 1)));
 			break;
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...

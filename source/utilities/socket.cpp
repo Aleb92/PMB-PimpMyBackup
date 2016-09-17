@@ -73,7 +73,6 @@ socket_base::socket_base(int af, int type, int protocol) :
 }
 
 socket_base::~socket_base() {
-	LOGF;
 	if (hValid(handle)) {
 		if (closesocket(handle))
 			throw socket_exception(__LINE__, __func__, __FILE__);
@@ -136,7 +135,6 @@ socket_stream::socket_stream(const char * ip, in_port_t port, int af, int type,
 }
 
 socket_stream::~socket_stream() {
-	LOGF;
 	if (hValid(handle)) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 		shutdown(handle, SD_SEND);
@@ -145,11 +143,12 @@ socket_stream::~socket_stream() {
 #endif
 		char buff[2048];
 		int res;
-		do {
-			res = this->recv(buff);
-			if(res < 0)
-				throw socket_exception(__LINE__, __func__, __FILE__);
-		} while(res);
+		try {
+			do {
+				res = this->recv(buff);
+			} while(res > 0);
+		}
+		catch(...) { }
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -292,21 +291,23 @@ string socket_stream::recv<string>() {
 	size_t size = recv<uint32_t>(), rr;
 	LOGD(size);
 	string ret;
-	char *buff = new char[size+2]{0};
-	//rr = recv(buff, size);
-	rr = ::recv(handle, (char*)(buff), size, MSG_NOSIGNAL);
+	if(size != 0) {
+		char *buff = new char[size+2]{0};
+		//rr = recv(buff, size);
+		rr = ::recv(handle, (char*)(buff), size, MSG_NOSIGNAL);
 
-	ret = string(buff, size);
+		ret = string(buff, size);
 
-	LOGD(buff << "|" << ret);
+		LOGD(buff << "|" << ret);
 
-	if (rr != size)
-		throw socket_exception(__LINE__, __func__, __FILE__);	
-	
-	if(buff[size] != '\0')
-		throw memory_exception("Unterminated string", __LINE__, __func__, __FILE__);
+		if (rr != size)
+			throw socket_exception(__LINE__, __func__, __FILE__);	
+		
+		if(buff[size] != '\0')
+			throw memory_exception("Unterminated string", __LINE__, __func__, __FILE__);
 
-	delete[] buff;
+		delete[] buff;
+	}
 	return ret;
 }
 
@@ -317,21 +318,26 @@ string socket_stream::recv<string>(size_t s) {
 	LOGD(size);
 	if(size > s)
 		throw io_exception("String too big", __LINE__, __func__, __FILE__);
+
 	string ret;
-	char *buff = new char[size+2]{0};
-	rr = ::recv(handle, (char*)(buff), size, MSG_NOSIGNAL);
 
-	ret = string(buff, size);
+	if(size != 0){
+		char *buff = new char[size+2]{0};
+		rr = ::recv(handle, (char*)(buff), size, MSG_NOSIGNAL);
 
-	LOGD(buff << "|" << ret);
+		ret = string(buff, size);
 
-	if (rr != size)
-		throw socket_exception(__LINE__, __func__, __FILE__);
+		LOGD(buff << "|" << ret);
 
-	if(buff[size] != '\0')
-		throw memory_exception("Unterminated string", __LINE__, __func__, __FILE__);
+		if (rr != size)
+			throw socket_exception(__LINE__, __func__, __FILE__);
 
-	delete[] buff;
+		if(buff[size] != '\0')
+			throw memory_exception("Unterminated string", __LINE__, __func__, __FILE__);
+
+		delete[] buff;
+	}
+	
 	return ret;
 }
 
