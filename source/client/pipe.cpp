@@ -53,6 +53,7 @@ pipe::~pipe() {
 		CancelIoEx(hPipe, NULL);
 		this_thread::yield();
 	}
+	write(pipe_codes::CLOSING);
 	CloseHandle(hPipe);
 	lock.unlock();
 }

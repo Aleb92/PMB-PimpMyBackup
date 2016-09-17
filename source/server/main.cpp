@@ -159,37 +159,14 @@ void list(socket_stream& sock, user_context& context, int64_t) {
 void sync(socket_stream& sock, user_context& context) {
 	LOGF;
 
-	vector<pair<string, string>> res = context.sync();
+	vector<pair<string, int64_t>> res = context.sync();
 	char buffer[BUFF_LENGHT];
 
 	sock.send<uint32_t>(res.size());
 
 	for (auto& entry : res) {
 		sock.send<string&>(entry.first);
-
-		if (entry.second == "/dev/null") {
-			sock.send<uint32_t>(0);
-			continue;
-		}
-
-		string fileID = context.usr + "/" + entry.second;
-
-		FILE* file = fopen(fileID.c_str(), "rb");
-		if (file == NULL)
-		throw fs_exception(__LINE__, __func__, __FILE__);
-
-		on_return<> ret([file]() {
-					fclose(file);
-				});
-
-		fseek(file, 0, SEEK_END);
-		uint32_t size = ftell(file);
-		sock.send(size);
-
-		while (feof(file)) {
-			size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
-			sock.send(buffer, readn);
-		}
+		sock.send<int64_t>(entry.second);
 	}
 }
 
@@ -204,11 +181,13 @@ void version(socket_stream& sock, user_context& context, int64_t ts) {
 		return;
 	}
 
-	fileID = context.usr + "/" + fileID;
+	fileID = settings::inst().save_folder.value + context.usr + "/" + fileID;
+
+	LOGD("fileID=" << fileID);
 
 	FILE* file = fopen(fileID.c_str(), "rb");
 	if (file == NULL)
-	throw fs_exception(__LINE__, __func__, __FILE__);
+		throw fs_exception(__LINE__, __func__, __FILE__);
 
 	on_return<> ret([file]() {
 				fclose(file);
@@ -216,10 +195,12 @@ void version(socket_stream& sock, user_context& context, int64_t ts) {
 
 	fseek(file, 0, SEEK_END);
 	uint32_t size = ftell(file);
-	sock.send(size);
+	LOGD("Filesize=" << size);
+	sock.send<uint32_t>(size);
+	fseek(file, 0, SEEK_SET);
 
-	while (feof(file)) {
-		size_t readn = fread(buffer, BUFF_LENGHT, 1, file);
+	while (!feof(file)) {
+		size_t readn = fread(buffer, sizeof(char), BUFF_LENGHT, file);
 		sock.send(buffer, readn);
 	}
 }
@@ -253,6 +234,9 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 			sync(sock, context);
 			return;
 		}
+
+		if(fileName.length()==0)
+			return;
 
 		int64_t timestamp[8];
 
