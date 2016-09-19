@@ -268,12 +268,15 @@ bool user_context::version_exists(string& id) {
 		case SQLITE_DONE:
 			LOGD("No version found");
 			return false;	// No such user!
-		case SQLITE_ROW: {
-			string vID = db_column<string>(db.version_exists.get(), 0);
-			LOGD("DB VERSION: " << vID);
-			LOGD("NEW VERSION: " << id);
-			return vID == id;
-		}
+		case SQLITE_ROW: 
+			{
+				string vID = db_column<string>(db.version_exists.get(), 0);
+				LOGD("DB VERSION: " << vID);
+				LOGD("NEW VERSION: " << id);
+				if(vID == id)
+					return true;
+			}
+			break;
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...
 			// Comunque nel caso, prima lascio fare qualcosa agli altri
@@ -452,6 +455,7 @@ string user_context::version(int64_t timestamp) {
 	// Ora binding degli argomenti
 	bind_db(db.version.get(), 1, usr.c_str(), path.c_str(), timestamp);
 
+	bool set = false;
 	string fileID;
 
 	// Quindi eseguo
@@ -459,9 +463,13 @@ string user_context::version(int64_t timestamp) {
 		switch (sqlite3_step(db.version.get())) {
 		case SQLITE_ROW:
 			fileID = db_column<string>(db.version.get(), 0);
+			set = true;
 			break;
 		case SQLITE_DONE:
-			return fileID;	// FATTO!
+			if(set)
+				return fileID;	// FATTO!
+			else
+				throw db_exception(db.connection.get(),__LINE__, __func__, __FILE__);
 		case SQLITE_BUSY:
 			// Qui non ci dovrebbe mai arrivare(WAL mode)...
 			// Comunque nel caso, prima lascio fare qualcosa agli altri
@@ -550,6 +558,7 @@ vector<pair<string, int64_t>> user_context::sync() {
 
 void user_context::write(int64_t time, string& fileID) {
 	LOGF;
+	lock_guard<mutex> guard(db.busy);
 
 	on_return<> ret([&] {
 		// On return resetto statement e bindings

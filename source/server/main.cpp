@@ -255,10 +255,10 @@ void worker(socket_stream sock, database& db, volatile bool&) {
 		}
 
 	} catch (socket_exception& s_ex) {
-		cerr << s_ex.what();
+		LOGD(s_ex.what());
 	}
 	catch (base_exception& ex) {
 		sock.send<bool>(false);
-		cerr << ex.what();
+		LOGD(ex.what());
 	}
 }
