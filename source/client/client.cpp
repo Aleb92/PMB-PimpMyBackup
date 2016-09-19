@@ -235,6 +235,11 @@ void client::stop() {
 
 	if (dispatcher.joinable())
 		dispatcher.join();
+
+	pipe::inst().close();
+
+	if(tombstone.joinable())
+		tombstone.join();
 }
 
 //////////////////////////////////////////////
@@ -274,31 +279,36 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 
 	wstring dir = dirName(fileName);
 	if(dir != L"") {
-		wstring dirPath(settings::inst().temp_dir.value + dir);
-		createDirectoryRecursively(dirPath.c_str());
+		wstring tempDirPath(settings::inst().temp_dir.value + dir),
+				watchedDirPath(settings::inst().temp_dir.value + dir);
+		createDirectoryRecursively(tempDirPath.c_str());
+		createDirectoryRecursively(watchedDirPath.c_str());
 	}
+	{
+		FILE* file = _wfopen((settings::inst().temp_dir.value + fileName).c_str(), L"wb");
+		char buffer[BUFF_LENGHT] = { 0 };
+		uint32_t n = 0;
 
-	FILE* file = _wfopen((settings::inst().temp_dir.value + fileName).c_str(), L"wb");
-	char buffer[BUFF_LENGHT] = { 0 };
-	uint32_t n = 0;
+		if (file == NULL)
+			throw fs_exception(__LINE__, __func__, __FILE__);
 
-	if (file == NULL)
+		on_return<> ret([file]() {
+			fclose(file);
+		});
+
+		uint32_t size = sock.recv<uint32_t>();
+		LOGD(size);
+		while ((n < size) && run) {
+			size_t i = sock.recv(buffer, min<uint32_t>(BUFF_LENGHT, size - n));
+			fwrite(buffer, i, 1, file);
+			n += i;
+		}
+	}
+	LOGD("Moving file...");
+
+	if(!MoveFileExW((settings::inst().temp_dir.value + fileName).c_str(),
+			(settings::inst().watched_dir.value + fileName).c_str(), MOVEFILE_REPLACE_EXISTING))
 		throw fs_exception(__LINE__, __func__, __FILE__);
-
-	on_return<> ret([file]() {
-		fclose(file);
-	});
-
-	uint32_t size = sock.recv<uint32_t>();
-	LOGD(size);
-	while ((n < size) && run) {
-		size_t i = sock.recv(buffer, min<uint32_t>(BUFF_LENGHT, size - n));
-		fwrite(buffer, i, 1, file);
-		n += i;
-	}
-
-	MoveFileExW((settings::inst().temp_dir.value + fileName).c_str(),
-			(settings::inst().watched_dir.value + fileName).c_str(), MOVEFILE_REPLACE_EXISTING);
 }
 
 void client::write(socket_stream& sock, std::wstring& fileName,

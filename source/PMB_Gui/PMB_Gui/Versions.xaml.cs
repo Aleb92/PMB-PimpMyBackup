@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Threading;
 
 namespace PMB_Gui
 {
@@ -106,6 +107,7 @@ namespace PMB_Gui
             string newWatchedDir;
 
             System.Windows.Forms.FolderBrowserDialog folderDialog = new System.Windows.Forms.FolderBrowserDialog();
+            folderDialog.SelectedPath = App.CurrentApp.settings.watchedDir;
 
         retry:
             if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -178,10 +180,19 @@ namespace PMB_Gui
                             }
                         }
                         App.CurrentApp.stopService();
+                        while (true)
+                            try
+                            {
+                                File.Delete(App.CurrentApp.settings.logFileName);
+                                break;
+                            }
+                            catch (IOException) {
+                                Thread.Sleep(500);
+                            }
 
                         Directory.Delete(App.CurrentApp.settings.watchedDir, true);
                         Directory.Delete(App.CurrentApp.settings.tempDir, true);
-                        File.Delete(App.CurrentApp.settings.logFileName);
+                        
 
                         App.CurrentApp.settings.resetWatchedDir(newWatchedDir);
 
@@ -190,7 +201,7 @@ namespace PMB_Gui
                         foreach (var tupla in files)
                             App.CurrentApp.pipe.selectVersion(tupla.Item1, tupla.Item2);
                     }
-                    catch (SocketException)
+                    catch (SocketException sex)
                     {
                         Dispatcher.Invoke(delegate
                         {
@@ -198,7 +209,6 @@ namespace PMB_Gui
                             App.ActiveWindow.ShowConnection();
                         });
                     }
-                    catch { }
 
                     Dispatcher.Invoke(delegate
                     {

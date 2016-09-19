@@ -9,7 +9,7 @@ using System.Windows.Threading;
 
 namespace PMB_Gui
 {
-    public class Pipe : IDisposable
+    public class Pipe
     {
 
         public enum pipe_codes : byte
@@ -58,10 +58,6 @@ namespace PMB_Gui
                         pipeStream.Read(buffer, 0, 4);
                         WorkingCount(BitConverter.ToInt32(buffer, 0));
                         break;
-                    case pipe_codes.CLOSING:
-                        timer.Stop();
-                        pipeStream.Close();
-                        return;
                 }
                 if(pipeStream.IsConnected)
                     pipeStream.BeginRead(buffer, 0, 1, recieved, null);
@@ -75,6 +71,12 @@ namespace PMB_Gui
                     pipeStream.WriteByte((byte)pipe_codes.WORK_COUNT);
                 }
                 catch { }
+        }
+
+        public void Close()
+        {
+            timer.Stop();
+            pipeStream.Close();
         }
 
         public void selectVersion(string filename, long timestamp)

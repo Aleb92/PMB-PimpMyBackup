@@ -10,6 +10,7 @@ using namespace utilities;
 using namespace std;
 
 pipe::pipe() {
+	LOGF;
 	char buffer[1024];
 	DWORD dwRead;
 
@@ -39,23 +40,21 @@ pipe::pipe() {
 		FILE_FLAG_FIRST_PIPE_INSTANCE,
 		PIPE_TYPE_BYTE |
 		PIPE_READMODE_BYTE |
-		PIPE_WAIT, 1, 128, 1024,
+		PIPE_WAIT, 255, 128, 1024,
 		60000, &sa);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		throw base_exception(__LINE__, __func__, __FILE__);
 }
 
+void pipe::close() {
+	LOGF;
+	//write(pipe_codes::CLOSING);
+	DisconnectNamedPipe(hPipe);
+}
+
 pipe::~pipe() {
-	//FIXME
-	while (!lock.try_lock()) {
-		// Interrompi l'attesa!
-		CancelIoEx(hPipe, NULL);
-		this_thread::yield();
-	}
-	write(pipe_codes::CLOSING);
 	CloseHandle(hPipe);
-	lock.unlock();
 }
 
 void pipe::driver() {
@@ -63,59 +62,42 @@ void pipe::driver() {
 		char buffer[1024];
 
 		DWORD dwRead;
-		unique_lock<mutex> guard(lock);
 
-		LOGD("Pipw: waiting for connection...");
-		//FIXME: Questo thread rimane bloccato quì e impedisce la corretta chiusura della pipe.
-		while (ConnectNamedPipe(hPipe, nullptr)) // wait for someone to connect to the pipe
+		LOGD("Pipe: waiting for connection...");
+
+		if (ConnectNamedPipe(hPipe, nullptr)) // wait for someone to connect to the pipe
 		{
 			LOGD("Pipe connected...");
-			{
-				guard.unlock();
-				on_return<> disconnect([this]() {
-					DisconnectNamedPipe(this->hPipe);
-					LOGD("Pipe disconnected.");
-				});
+			while (true) {
 
-				guard.lock();
-				while (true) {
-					guard.unlock();
-
-					// Prima leggo l'opcode
-					pipe_codes pc = read<pipe_codes>();
-					switch(pc) {
-					case pipe_codes::FILE_VERSION:
-						{
-							wstring fileName = read<wstring>();
-							uint64_t timeStamp = read<uint64_t>();
-
+				// Prima leggo l'opcode
+				pipe_codes pc = read<pipe_codes>();
+				LOGD("Ricevuto pipe-code: " << pc);
+				switch(pc) {
+				case pipe_codes::FILE_VERSION:
+					{
+						wstring fileName = read<wstring>();
+						uint64_t timeStamp = read<uint64_t>();
 							file_action fa = {0};
-							fa.op_code = server::opcode::VERSION;
-							fa.timestamps[5].dwLowDateTime = timeStamp;
-							fa.timestamps[5].dwHighDateTime = timeStamp >> 32;
-							action_merger::inst().add_change(fileName, fa);
-						}
-						break;
-					case pipe_codes::WORK_COUNT:
-						write<pipe_codes>(pipe_codes::WORK_COUNT);
-						write<int32_t>(action_merger::inst().pending_count);
-						break;
-					default:
-						//LOGD("Pipe: opcode not recognized. [" << (int)pc << "]");
-						;
+						fa.op_code = server::opcode::VERSION;
+						fa.timestamps[5].dwLowDateTime = timeStamp;
+						fa.timestamps[5].dwHighDateTime = timeStamp >> 32;
+						action_merger::inst().add_change(fileName, fa);
 					}
-
-					guard.lock();
+					break;
+				case pipe_codes::WORK_COUNT:
+					write<pipe_codes>(pipe_codes::WORK_COUNT);
+					write<int32_t>(action_merger::inst().pending_count);
+					break;
+				default:
+					//LOGD("Pipe: opcode not recognized. [" << (int)pc << "]");
+					;
 				}
 			}
-			guard.unlock();
-			DWORD err = GetLastError();
-			if (err != ERROR_BROKEN_PIPE)
-				throw base_exception(err,__LINE__, __func__, __FILE__);
-			guard.lock();
-
 		}
-		throw base_exception(__LINE__, __func__, __FILE__);
+		DWORD err = GetLastError();
+		LOGD(err);
+		throw base_exception(err, __LINE__, __func__, __FILE__);
 	} catch (const std::exception& e) {
 		std::cout << e.what() << std::endl;
 	}

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 namespace PMB_Gui
 {
@@ -79,13 +80,19 @@ namespace PMB_Gui
         }
 
         public void resetWatchedDir(string newWatchedDir) {
-
-            using (StreamWriter sw = new StreamWriter(
-                settingsFileName, true))
-            {
-                sw.WriteLine("watched_dir=" + newWatchedDir);
-                watchedDir = newWatchedDir;
-            }
+            while(true)
+                try
+                {
+                    using (StreamWriter sw = new StreamWriter(
+                        settingsFileName, true))
+                    {
+                        sw.WriteLine("watched_dir=" + newWatchedDir);
+                        watchedDir = newWatchedDir;
+                    }
+                    return;
+                }catch(IOException){
+                    Thread.Sleep(500);
+                }
         }
     }
 }

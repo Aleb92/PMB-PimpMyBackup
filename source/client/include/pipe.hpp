@@ -14,7 +14,7 @@ enum pipe_codes : uint8_t{
 	WRONG_CREDENTIALS = 1,
 	WORK_COUNT = 2,
     FILE_VERSION = 3,
-    CLOSING = -1
+    CLOSING = 255
 };
 
 class auth_exception : public utilities::base_exception {
@@ -24,13 +24,14 @@ public:
 
 class pipe: public utilities::singleton<pipe> {
 	HANDLE hPipe;
-	std::mutex lock;
 
 	pipe();
 	~pipe();
 	friend class utilities::singleton<pipe>;
 public:
 	void driver();
+
+	void close();
 
 	template<typename T>
 	void write(T t) {
@@ -54,13 +55,12 @@ public:
 
 	template<typename T>
 	T read() {
+		LOGF;
 		DWORD dwRead;
 		T ret;
 		if (!::ReadFile(hPipe, (char*) &ret, sizeof(T), &dwRead, nullptr) ||
 				dwRead != sizeof(T)) {
-			DWORD err = GetLastError();
-			if (err != ERROR_BROKEN_PIPE)
-				throw utilities::base_exception(err,__LINE__, __func__, __FILE__);
+			throw utilities::base_exception(__LINE__, __func__, __FILE__);
 		}
 		return ret;
 	}
