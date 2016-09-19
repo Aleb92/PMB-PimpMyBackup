@@ -180,6 +180,7 @@ namespace PMB_Gui
                             }
                         }
                         App.CurrentApp.stopService();
+                        
                         while (true)
                             try
                             {
@@ -190,9 +191,15 @@ namespace PMB_Gui
                                 Thread.Sleep(500);
                             }
 
+                        //creo scheletro vuoto 
+                        Directory.CreateDirectory(newWatchedDir);
+                        foreach(var tupla in files) {
+                            Directory.CreateDirectory(newWatchedDir + Path.GetDirectoryName(tupla.Item1));
+                            File.Create(newWatchedDir + tupla.Item1);
+                        }
+                        
                         Directory.Delete(App.CurrentApp.settings.watchedDir, true);
                         Directory.Delete(App.CurrentApp.settings.tempDir, true);
-                        
 
                         App.CurrentApp.settings.resetWatchedDir(newWatchedDir);
 

@@ -81,7 +81,6 @@ void action_merger::add_change(const change_entity& che) {
 	LOGF;
 
 	unique_lock<mutex> guard(lock);
-
 	wstring name(che->FileName, che->FileNameLength / sizeof(wchar_t)), path = settings::inst().watched_dir.value + name;
 	opcode flag = get_flag_bit(che->Action, che.flags);
 

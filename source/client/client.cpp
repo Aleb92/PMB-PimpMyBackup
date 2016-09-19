@@ -280,20 +280,26 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 	wstring dir = dirName(fileName);
 	if(dir != L"") {
 		wstring tempDirPath(settings::inst().temp_dir.value + dir),
-				watchedDirPath(settings::inst().temp_dir.value + dir);
+				watchedDirPath(settings::inst().watched_dir.value + dir);
 		createDirectoryRecursively(tempDirPath.c_str());
 		createDirectoryRecursively(watchedDirPath.c_str());
 	}
 	{
 		FILE* file = _wfopen((settings::inst().temp_dir.value + fileName).c_str(), L"wb");
+
 		char buffer[BUFF_LENGHT] = { 0 };
 		uint32_t n = 0;
 
 		if (file == NULL)
 			throw fs_exception(__LINE__, __func__, __FILE__);
 
-		on_return<> ret([file]() {
-			fclose(file);
+		LOGD("File aperto >>>>>>> " << utf8_encode(settings::inst().temp_dir.value + fileName));
+
+		on_return<> ret([file, fileName]() {
+			if(fclose(file))
+				LOGD("Il file non è stato chiuso >>>>>>>>> " << utf8_encode(settings::inst().temp_dir.value + fileName));
+			else
+				LOGD("File chiuso >>>>>>>>>>>>>>> " << utf8_encode(settings::inst().temp_dir.value + fileName));
 		});
 
 		uint32_t size = sock.recv<uint32_t>();
@@ -322,30 +328,35 @@ void client::write(socket_stream& sock, std::wstring& fileName,
 	FILE* file = _wfopen(path.c_str(), L"rb");
 	if (file == NULL)
 		throw fs_exception(__LINE__, __func__, __FILE__);
+	{
+		LOGD("Aperto file >>> " << utf8_encode(path));
 
-	on_return<> ret([file]() {
-		fclose(file);
-	});
+		on_return<> ret([file, path]() {
+			if(fclose(file))
+				LOGD("Il file non è stato chiuso >>>>>>>>> " << utf8_encode(path));
+			else
+				LOGD("File chiuso >>>>>>>>>>>>>>> " << utf8_encode(path));
+		});
 
-	fseek(file, 0, SEEK_END);
-	uint32_t size = ftell(file);
-	fseek(file, 0, SEEK_SET);
-	sock.send(size);
+		fseek(file, 0, SEEK_END);
+		uint32_t size = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		sock.send(size);
 
-	while (!feof(file) && run) {
-		socket_base::SOCK_STATE state = sock.getState();
-		LOGD("Stato socket: " << state);
-		if (state & socket_base::READ_READY) {
-			if (sock.recv<bool>())
-				return;
+		while (!feof(file) && run) {
+			socket_base::SOCK_STATE state = sock.getState();
+			LOGD("Stato socket: " << state);
+			if (state & socket_base::READ_READY) {
+				if (sock.recv<bool>())
+					return;
+			}
+			if (state & socket_base::WRITE_READY) {
+				size_t readn = fread(buffer, 1, BUFF_LENGHT, file);
+				sock.send(buffer, readn);
+			}
 		}
-		if (state & socket_base::WRITE_READY) {
-			size_t readn = fread(buffer, 1, BUFF_LENGHT, file);
-			sock.send(buffer, readn);
-		}
+		sock.recv<bool>();
 	}
-	sock.recv<bool>();
-
 	DeleteFileW(path.c_str());
 }
 
