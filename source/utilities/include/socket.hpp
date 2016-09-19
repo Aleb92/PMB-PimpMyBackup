@@ -314,11 +314,7 @@ public:
 	 */
 	template<typename T>
 	ssize_t recv(T* buff, size_t N) {
-		LOGF;
-		LOGD("di: " << typeid(T).name());
-		LOGD("size = " << N);
 		ssize_t ret = ::recv(handle, static_cast<char*>(buff), N * sizeof(T), MSG_NOSIGNAL);
-		LOGD(ret);
 		if(ret < 0)
 			throw socket_exception(__LINE__, __func__, __FILE__);
 		return ret;

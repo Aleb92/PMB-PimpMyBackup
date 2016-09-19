@@ -33,13 +33,15 @@ namespace server {
 #define SQL_AUTH "SELECT password FROM users WHERE username=?1"
 #define SQL_CREATE "INSERT INTO files (username, path, time_stamp, file_id) VALUES (?1,?2,?3,?4)"
 #define SQL_CHMOD "UPDATE files SET time_stamp=?3, mod=?4 WHERE username=?1 AND path=?2"
-#define SQL_EXISTS "SELECT file_id FROM files WHERE username=?1 AND path=?2"
+#define SQL_EXISTS "SELECT file_id FROM files WHERE username=?1 AND path=?2 UNION "\
+					"SELECT file_id FROM history WHERE username=?1 AND path=?2"
 #define SQL_WRITE "INSERT INTO dispatch_write (username, path, time_stamp, file_id) VALUES (?1, ?2, ?3, ?4)"
 #define SQL_MOVE "INSERT INTO GROUP_CHANGES (T, username, path, time_stamp, new_path) VALUES ('m', ?1, ?2, ?3, ?4)"
 #define SQL_APPLY "UPDATE users SET lastSync=?2 WHERE username = ?1;"
 #define SQL_DELETE "INSERT INTO GROUP_CHANGES (T, username, path, time_stamp) VALUES ('d', ?1, ?2, ?3)"
 #define SQL_SYNC "SELECT path, time_stamp FROM files WHERE username=?1"
-#define SQL_VERSION "SELECT file_id FROM history WHERE username=?1 AND path=?2 AND time_stamp=?3"
+#define SQL_VERSION "SELECT file_id FROM history WHERE username=?1 AND path=?2 AND time_stamp=?3 UNION "\
+					"SELECT file_id FROM files WHERE username=?1 AND path=?2 AND time_stamp=?3"
 #define SQL_LIST_V "SELECT time_stamp FROM history WHERE username=?1 AND path=?2 ORDER BY time_stamp DESC"
 
 class database;

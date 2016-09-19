@@ -135,6 +135,7 @@ socket_stream::socket_stream(const char * ip, in_port_t port, int af, int type,
 }
 
 socket_stream::~socket_stream() {
+	LOGF;
 	if (hValid(handle)) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 		shutdown(handle, SD_SEND);
