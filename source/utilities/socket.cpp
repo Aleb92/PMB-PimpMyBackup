@@ -237,7 +237,6 @@ template<>
 void socket_stream::send<std::wstring&>(std::wstring& str) {
 	LOGF;
 	string cvtd = utf8_encode(str);
-	LOGD("Sending string: " << cvtd << " | length: " << str.length());
 	send<string&>(cvtd);
 }
 
@@ -299,8 +298,6 @@ string socket_stream::recv<string>() {
 
 		ret = string(buff, size);
 
-		LOGD(buff << "|" << ret);
-
 		if (rr != size)
 			throw socket_exception(__LINE__, __func__, __FILE__);	
 		
@@ -327,8 +324,6 @@ string socket_stream::recv<string>(size_t s) {
 		rr = ::recv(handle, (char*)(buff), size, MSG_NOSIGNAL);
 
 		ret = string(buff, size);
-
-		LOGD(buff << "|" << ret);
 
 		if (rr != size)
 			throw socket_exception(__LINE__, __func__, __FILE__);

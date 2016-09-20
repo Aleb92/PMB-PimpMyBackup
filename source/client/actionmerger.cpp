@@ -64,14 +64,18 @@ void action_merger::add_change(std::wstring& fileName, file_action& action) {
 			pending_count.fetch_add(__builtin_popcount( (int8_t)up.op_code & ~(WRITE|APPLY) ));
 			pending_count.fetch_sub(old_pending);
 
+			LOGD("Pending count up: " << pending_count);
+
 			for (int i = 0; i < 8; i++)
 			if (CompareFileTime(&action.timestamps[i], &up.timestamps[i])
 					== 1)
 			up.timestamps[i] = action.timestamps[i];
-			//FIXME: è possibile avere un rename quì? Secondo me non dovrebbe...
 		}
-		else
+		else {
 			map[fileName] = action;
+			pending_count.fetch_add(__builtin_popcount( (int8_t)action.op_code & ~(WRITE|APPLY) ));
+			LOGD("Pending count up: " << action_merger::inst().pending_count);
+		}
 	}
 
 	cv.notify_all();
@@ -90,19 +94,27 @@ void action_merger::add_change(const change_entity& che) {
 	}
 
 	if(flag == WRITE) {
+		//TODO
+
+		wstringstream ss;
+		ss << settings::inst().temp_dir.value << name << L'.' << hex << che.time;
+		wstring tempPath = ss.str();
+
 		//Se il file era in una sottodirectory creo lo stesso albero anche in temp dir
 		wstring dir = dirName(name);
 		if(dir != L"") {
 			wstring dirPath(settings::inst().temp_dir.value + dir);
 			createDirectoryRecursively(dirPath.c_str());
-			LOGD(utf8_encode(dirPath));
 		}
-		if(CreateHardLinkW((settings::inst().temp_dir.value + name).c_str(), path.c_str(), NULL) != 0)
+		if(CreateHardLinkW(tempPath.c_str(), path.c_str(), NULL) != 0)
 			//HARDLYNK
 			LOGD("--HARDLINK created--");
 		else
 			//COPY
-			CopyFileW(path.c_str(), (settings::inst().temp_dir.value + name).c_str(), false);
+			if(!CopyFileW(path.c_str(), tempPath.c_str(), false)){
+				LOGD("Unable to fulfill write... skipping!");
+				return;
+			}
 	}
 
 	log::inst().issue(che);
@@ -112,6 +124,8 @@ void action_merger::add_change(const change_entity& che) {
 
 		if((flag != WRITE) && (flag!= APPLY))
 			++pending_count;
+
+		LOGD("Pending count up: " << pending_count);
 
 		file_action& fa = map[name];
 		fa.op_code |= flag;
@@ -172,7 +186,7 @@ file_action& file_action::operator ^=(const log_entry_header& entry) {
 	return *this;
 }
 
-bool action_merger::remove(std::wstring& name, file_action& actions) {
+bool action_merger::peek(){
 	LOGF;
 	unique_lock<mutex> guard(lock);
 
@@ -184,11 +198,21 @@ bool action_merger::remove(std::wstring& name, file_action& actions) {
 	LOGD("Map size merger: " << map.size());
 
 	// Se stiamo chiudendo mi fermo...
+	return !map.empty();
+}
+
+bool action_merger::remove(std::wstring& name, file_action& actions) {
+	LOGF;
+	unique_lock<mutex> guard(lock);
+
+	LOGD("Map size merger: " << map.size());
+
+	// Se stiamo chiudendo mi fermo...
 	if (map.empty())
 		return false;
 
 	if(it==map.end())
-	it = map.begin();
+		it = map.begin();
 
 	// Ora prelevo le informazioni perchè sono sicuro che il mio iteratore
 	// sia valido (no rehash + size > 0 + no end())

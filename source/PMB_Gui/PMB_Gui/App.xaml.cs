@@ -23,7 +23,7 @@ namespace PMB_Gui
             PMBservice.WaitForStatus(ServiceControllerStatus.Running);
             ni = new NotifyIcon()
             {
-                Icon = PMB_Gui.Properties.Resources.icon_working,
+                Icon = PMB_Gui.Properties.Resources.icon_error,
                 Visible = true
             };
             ni.DoubleClick += toggleMainWindow;
@@ -65,14 +65,18 @@ namespace PMB_Gui
             }
             set
             {
-                if (!value)
-                {
-                    ni.Icon = PMB_Gui.Properties.Resources.icon_error;
-                }
-                else
-                {
-                    ni.Icon = PMB_Gui.Properties.Resources.icon_working;
-                }
+                if(value != connAvailable)
+                    if (!value)
+                    {
+                        ni.Icon = PMB_Gui.Properties.Resources.icon_error;
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(delegate {
+                            ActiveWindow.versions.LoadDirsAndFiles();
+                        });
+                        ni.Icon = PMB_Gui.Properties.Resources.icon_working;
+                    }
                 connAvailable = value;
             }
         }
@@ -119,7 +123,10 @@ namespace PMB_Gui
 
             if (MainWindow.IsVisible)
                 MainWindow.Hide();
-            else showMainWindow();
+            else {
+                ActiveWindow.versions.LoadDirsAndFiles();
+                showMainWindow();
+            }
         }
 
         public void stopService() {

@@ -37,6 +37,12 @@ namespace PMB_Gui
                 Bounces = 2,
                 Bounciness = 2.5
             };
+
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            Hide();
         }
 
         public void ShowLoadDialog(object content)
@@ -60,7 +66,6 @@ namespace PMB_Gui
         {
             Connection.BeginAnimation(Frame.WidthProperty, hide);
             Login.BeginAnimation(Frame.WidthProperty, hide);
-            versions.LoadDirsAndFiles();
         }
 
         public void ShowLogin()

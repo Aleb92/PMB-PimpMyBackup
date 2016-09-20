@@ -70,6 +70,8 @@ public:
 	void add_change(const change_entity&ce);
 	void add_change(std::wstring& fileName, file_action& action);
 
+	bool peek();
+
 	/**
 	 * Rimuove un elemento dalla mappa e lo restituisce
 	 */

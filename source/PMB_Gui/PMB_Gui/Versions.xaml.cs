@@ -83,7 +83,7 @@ namespace PMB_Gui
                 };
 
                 ic.Add(item);
-                LoadDirsAndFiles(item.Items, s);
+                LoadDirsAndFiles(item.Items, s + "\\");
             }
 
             foreach (string s in Directory.GetFiles(path))
@@ -103,7 +103,6 @@ namespace PMB_Gui
         private void Change_Dir(object sender, RoutedEventArgs e)
         {
             App.ActiveWindow.ShowLoadDialog("Updating backup directory...");
-
             string newWatchedDir;
 
             System.Windows.Forms.FolderBrowserDialog folderDialog = new System.Windows.Forms.FolderBrowserDialog();
@@ -195,7 +194,7 @@ namespace PMB_Gui
                         Directory.CreateDirectory(newWatchedDir);
                         foreach(var tupla in files) {
                             Directory.CreateDirectory(newWatchedDir + Path.GetDirectoryName(tupla.Item1));
-                            File.Create(newWatchedDir + tupla.Item1);
+                            File.Create(newWatchedDir + tupla.Item1).Close();
                         }
                         
                         Directory.Delete(App.CurrentApp.settings.watchedDir, true);
