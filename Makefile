@@ -32,7 +32,7 @@ clean: clean-db
 	$(RM) -rf build/[!M]*
 
 clean-db:
-	$(RM) server.db
+	$(RM) -rf server.db build/test
 
 database:
 	sqlite3 server.db < create_db.sql
