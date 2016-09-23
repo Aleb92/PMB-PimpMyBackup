@@ -1,7 +1,7 @@
 #ifndef SOURCE_CLIENT_INCLUDE_SETTINGS_HPP_
 #define SOURCE_CLIENT_INCLUDE_SETTINGS_HPP_
 
-#define SETTINGS_FILE_NAME "..\\client_settings.ini"
+#define SETTINGS_FILE_NAME "client_settings.ini"
 
 #include <utilities/include/socket.hpp>
 #include <utilities/include/singleton.hpp>
@@ -23,6 +23,8 @@ namespace client {
 	SETTINGS_ENTRY(std::wstring, log_filename);
 
 	SETTINGS_ENTRY(int, max_waiting_time);
+	SETTINGS_ENTRY(int, min_waiting_time);
+
 	SETTINGS_ENTRY(std::string, username);
 	SETTINGS_ENTRY(std::string, password);
 

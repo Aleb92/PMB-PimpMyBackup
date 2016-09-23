@@ -88,6 +88,11 @@ namespace PMB_Gui
                     {
                         sw.WriteLine("watched_dir=" + newWatchedDir);
                         watchedDir = newWatchedDir;
+                        App.CurrentApp.Dispatcher.Invoke(delegate
+                        {
+                            App.ActiveWindow.versions.watched_dir.Content = newWatchedDir;
+                        });
+                        
                     }
                     return;
                 }catch(IOException){

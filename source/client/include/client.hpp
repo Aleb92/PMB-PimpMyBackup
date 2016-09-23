@@ -32,8 +32,8 @@ class client {
 	void remove(utilities::socket_stream&, std::wstring&);
 	void chmod(utilities::socket_stream&, std::wstring&);
 	void apply(utilities::socket_stream&, std::wstring&);
-	void version(utilities::socket_stream&, std::wstring&, volatile bool&);
-	void write(utilities::socket_stream&, std::wstring&, volatile bool&);
+	void version(utilities::socket_stream&, std::wstring&, FILETIME, volatile bool&);
+	void write(utilities::socket_stream&, std::wstring&, FILETIME, volatile bool&);
 
 public:
 	client();

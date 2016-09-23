@@ -20,8 +20,8 @@
             </StackPanel>
             <StackPanel Name="Loading">
                 <Grid>
-                    <Ellipse Width="100" Height="100"  Stroke="Blue" StrokeThickness="4"  />
-                    <Ellipse Width="104" Height="104"  Stroke="LightBlue" StrokeThickness="8" StrokeDashArray="4 65" >
+                    <Ellipse Width="100" Height="100"  Stroke="#FF6363CA" StrokeThickness="4"  />
+                    <Ellipse Width="104" Height="104"  Stroke="#FFCBE0EA" StrokeThickness="8" StrokeDashArray="4 65" >
                         <Ellipse.RenderTransform>
                             <RotateTransform  CenterX="52" CenterY="52"/>
                         </Ellipse.RenderTransform>

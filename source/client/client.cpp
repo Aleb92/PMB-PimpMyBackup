@@ -13,11 +13,13 @@
 #include <utilities/include/atend.hpp>
 #include <utilities/include/fsutil.hpp>
 #include <utilities/include/exceptions.hpp>
+#include <utilities/include/strings.hpp>
 
 #include <windows.h>
 #include <thread>
 #include <string>
 #include <utility>
+#include <sstream>
 
 using namespace std;
 using namespace utilities;
@@ -83,11 +85,10 @@ void client::dispatch() {
 
 		bool b = true;
 
-		while (action_merger::inst().remove(fileName, newAction)) {
-			thPool.execute(sendAction, this, fileName,newAction);
-
-			if (action_merger::inst().wait_time != 0)
-				Sleep(action_merger::inst().wait_time);
+		while (action_merger::inst().peek()) {
+			this_thread::sleep_for(chrono::milliseconds(settings::inst().min_waiting_time.value + action_merger::inst().wait_time));
+			if(action_merger::inst().remove(fileName, newAction))
+				thPool.execute(sendAction, this, fileName,newAction);
 		}
 	} catch (const exception& e) {
 		cout << e.what() << endl;
@@ -145,23 +146,28 @@ void client::sendAction(std::wstring fileName, file_action action,
 					LOGD("Ricevuto OK di fine transazione dal server.");
 					result.op_code |= f.first;
 					action.op_code &= ~f.first;
-					if(f.first != APPLY)
+					if(f.first != APPLY){
 						--action_merger::inst().pending_count;
+						LOGD("Pending count down: " << action_merger::inst().pending_count);
+					}
+
 				}
 			}
 		}
 
 		if ((action.op_code & VERSION) && run) {
-			this->version(sock, realName, run);
+			this->version(sock, realName, action.timestamps[5], run);
 			if (sock.recv<bool>()) {
 				result.op_code |= VERSION;
 				action.op_code &= ~VERSION;
 				--action_merger::inst().pending_count;
+
+				LOGD("Pending count down: " << action_merger::inst().pending_count);
 			}
 		}
 
 		if ((action.op_code & WRITE) && run) {
-			this->write(sock, realName, run);
+			this->write(sock, realName, action.timestamps[7], run);
 			if (sock.recv<bool>()) {
 				result.op_code |= WRITE;
 				action.op_code &= ~WRITE;
@@ -187,14 +193,14 @@ void client::sendAction(std::wstring fileName, file_action action,
 
 	if (action.op_code != 0){
 		action_merger::inst().add_change(fileName, action);
-		//action_merger::inst().pending_count.fetch_sub(__builtin_popcount( (int8_t)action.op_code & ~(WRITE|APPLY)));
+		action_merger::inst().pending_count.fetch_sub(__builtin_popcount( (int8_t)action.op_code & ~(WRITE|APPLY)));
 	}else
 		LOGD("Azione completata.");
 
 	if (result.op_code != 0)
 		log::inst().finalize(result, fileName);
 
-	if(action_merger::inst().pending_count.load() == 0 && ((result.op_code != APPLY) && (result.op_code != WRITE))){
+	if(action_merger::inst().pending_count.load() == 0 && (result.op_code & ~(WRITE|APPLY))){
 
 		LOGD("SENDING APPLY");
 		wstring name(L"*");
@@ -272,27 +278,34 @@ void client::apply(socket_stream&, wstring&) {
 	LOGF;
 }
 
-void client::version(socket_stream& sock, std::wstring& fileName,
+void client::version(socket_stream& sock, std::wstring& fileName, FILETIME timestamp,
 		volatile bool& run) {
 
 	LOGF;
 
+	wstring path;
 	wstring dir = dirName(fileName);
 	if(dir != L"") {
 		wstring tempDirPath(settings::inst().temp_dir.value + dir),
-				watchedDirPath(settings::inst().temp_dir.value + dir);
+				watchedDirPath(settings::inst().watched_dir.value + dir);
 		createDirectoryRecursively(tempDirPath.c_str());
 		createDirectoryRecursively(watchedDirPath.c_str());
 	}
 	{
-		FILE* file = _wfopen((settings::inst().temp_dir.value + fileName).c_str(), L"wb");
+		//FIXME La cartelle nel temp nn servono piu (nomi unici)
+		wstringstream ss;
+		ss << fileName << '.' << hex << timestamp;
+		path = ss.str();
+
+		FILE* file = _wfopen((settings::inst().temp_dir.value + path).c_str(), L"wb");
+
 		char buffer[BUFF_LENGHT] = { 0 };
 		uint32_t n = 0;
 
 		if (file == NULL)
 			throw fs_exception(__LINE__, __func__, __FILE__);
 
-		on_return<> ret([file]() {
+		on_return<> ret([file, fileName]() {
 			fclose(file);
 		});
 
@@ -306,46 +319,53 @@ void client::version(socket_stream& sock, std::wstring& fileName,
 	}
 	LOGD("Moving file...");
 
-	if(!MoveFileExW((settings::inst().temp_dir.value + fileName).c_str(),
+	if(!MoveFileExW((settings::inst().temp_dir.value + path).c_str(),
 			(settings::inst().watched_dir.value + fileName).c_str(), MOVEFILE_REPLACE_EXISTING))
 		throw fs_exception(__LINE__, __func__, __FILE__);
 }
 
-void client::write(socket_stream& sock, std::wstring& fileName,
+void client::write(socket_stream& sock, std::wstring& fileName, FILETIME timestamp,
 		volatile bool& run) {
 
 	LOGF;
 	char buffer[BUFF_LENGHT] = { 0 };
 
-	wstring path = settings::inst().temp_dir.value + fileName;
+	wstringstream ss;
+	ss << settings::inst().temp_dir.value << fileName << '.' << hex << timestamp;
+	wstring path = ss.str();
 
 	FILE* file = _wfopen(path.c_str(), L"rb");
 	if (file == NULL)
 		throw fs_exception(__LINE__, __func__, __FILE__);
+	{
+		LOGD("Aperto file >>> " << utf8_encode(path));
 
-	on_return<> ret([file]() {
-		fclose(file);
-	});
+		on_return<> ret([file, path]() {
+			if(fclose(file))
+				LOGD("Il file non è stato chiuso >>>>>>>>> " << utf8_encode(path));
+			else
+				LOGD("File chiuso >>>>>>>>>>>>>>> " << utf8_encode(path));
+		});
 
-	fseek(file, 0, SEEK_END);
-	uint32_t size = ftell(file);
-	fseek(file, 0, SEEK_SET);
-	sock.send(size);
+		fseek(file, 0, SEEK_END);
+		uint32_t size = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		sock.send(size);
 
-	while (!feof(file) && run) {
-		socket_base::SOCK_STATE state = sock.getState();
-		LOGD("Stato socket: " << state);
-		if (state & socket_base::READ_READY) {
-			if (sock.recv<bool>())
-				return;
+		while (!feof(file) && run) {
+			socket_base::SOCK_STATE state = sock.getState();
+			LOGD("Stato socket: " << state);
+			if (state & socket_base::READ_READY) {
+				if (sock.recv<bool>())
+					return;
+			}
+			if (state & socket_base::WRITE_READY) {
+				size_t readn = fread(buffer, 1, BUFF_LENGHT, file);
+				sock.send(buffer, readn);
+			}
 		}
-		if (state & socket_base::WRITE_READY) {
-			size_t readn = fread(buffer, 1, BUFF_LENGHT, file);
-			sock.send(buffer, readn);
-		}
+		sock.recv<bool>();
 	}
-	sock.recv<bool>();
-
 	DeleteFileW(path.c_str());
 }
 

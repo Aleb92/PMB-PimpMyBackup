@@ -40,7 +40,7 @@ database:
 	./create_user.sh hhh ppp
 
 restart_client:
-	$(RM) -rf build/test build/temp client.log client.log.old
+	$(RM) -rf build/test* build/temp client.log client.log.old
 	
 doc:
 	doxygen doxygen.conf

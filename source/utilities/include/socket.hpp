@@ -278,7 +278,6 @@ public:
 		size_t n;
 		if((n = ::send(handle, (const char*) buff, N * sizeof(T), MSG_NOSIGNAL)) != N)
 			throw socket_exception(__LINE__, __func__, __FILE__);
-		LOGD("Invio contenuto buffer..." << " size: " << n);
 	}
 
 	/**
